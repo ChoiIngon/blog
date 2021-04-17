@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<skin>
+	<!-- 스킨 기본 정보 -->
+    <information>
+        <name>주말엔혼자스킨</name> <!-- 표시 되는 이름 -->
+        <version>0.1</version> <!-- 스킨 버전 -->
+        <description> <!-- 스킨 상세 설명 -->
+            <![CDATA[웹표준을 준수 하려고 하는 XHTML 기반의 티스토리 반응형 스킨입니다.]]>
+        </description>
+        <license> <!-- 저작권 -->
+            <![CDATA[자유롭게 수정이 가능하며, 저작권 표시하에 재배포 가능합니다.]]>
+        </license>
+    </information>
+	
+	<!-- 스킨 제작자 정보 -->
+    <author>
+        <name>주말엔혼자지만</name> <!-- 표시 되는 이름 -->
+        <homepage>https://kukuta.tistory.com</homepage> <!-- 제작자 웹사이트 주소 -->
+        <email>kukuta@gmail.com</email> <!-- 제작자 이메일 주소 -->
+    </author>
+	
+	<!-- 설정 기본값 -->
+    <default>
+        <recentEntries>5</recentEntries> <!-- 사이드바 최근 글 갯수 -->
+        <recentComments>5</recentComments> <!-- 사이드바 최근 댓글 갯수 -->
+        <recentTrackbacks>5</recentTrackbacks> <!-- 사이드바 트랙백 갯수 -->
+        <itemsOnGuestbook>30</itemsOnGuestbook> <!-- 한페이지에 표시될 방명록 갯수 -->
+        <tagsInCloud>30</tagsInCloud> <!-- 사이드바에 표시될 태그 갯수 -->
+        <sortInCloud>1</sortInCloud> <!-- 태그 클라우드 표현 방식 (1:인기도순, 2:이름순, 3:랜덤) -->
+        <expandComment>1</expandComment> <!-- 댓글영역 표현 방식 (0:감추기, 1:펼치기) -->
+        <expandTrackback>0</expandTrackback> <!-- 트랙백영역 표현 방식 (0:감추기, 1:펼치기) -->
+        <lengthOfRecentNotice>100</lengthOfRecentNotice> <!-- 최근 공지 표현될 글자수 -->
+        <lengthOfRecentEntry>100</lengthOfRecentEntry> <!-- 최근 글 표현될 글자수 -->
+        <lengthOfRecentComment>100</lengthOfRecentComment> <!-- 최근 댓글에 표현될 글자수 -->
+        <lengthOfRecentTrackback>100</lengthOfRecentTrackback> <!-- 최근 트랙백에 표현될 글자수 -->
+        <lengthOfLink>100</lengthOfLink> <!-- 링크에 표현될 글자수 -->
+		<entriesOnPage>30</entriesOnPage> <!-- 홈 화면 글 수 -->
+		<entriesOnList>30</entriesOnList> <!-- 글 목록 글 수 -->
+        <showListOnCategory>1</showListOnCategory> <!-- 커버 미사용 홈에서 글 목록 표현(0:내용만, 1:목록만, 2: 내용+목록) -->
+        <showListLock>1</showListLock> <!-- 홈 설정과 기본 설정에서 '목록 구성 요소' 항목의 노출 여부 결정 (0: 노출, 1: 노출 안 함) -->
+		
+		<commentMessage>
+			<none>댓글이 없습니다.</none>
+			<single>댓글 &lt;span class="cnt"&gt;하나&lt;/span&gt; 달렸습니다.</single>
+		</commentMessage>
+
+		<trackbackMessage>
+			<none>받은 트랙백이 없고</none>
+			<single>트랙백이 &lt;span class="cnt"&gt;하나&lt;/span&gt;이고</single>
+		</trackbackMessage>
+		<!-- 카테고리 -->
+		<tree>
+            <color>000000</color> <!-- 카테고리 글자색 -->
+            <bgColor>ffffff</bgColor> <!-- 카테고리 배경색 -->
+            <activeColor>000000</activeColor> <!-- 선택시 글자색 -->
+            <activeBgColor>eeeeee</activeBgColor> <!-- 선택시 배경색 -->
+            <labelLength>27</labelLength> <!-- 표현될 카테고리 글자 수 -->
+            <showValue>1</showValue> <!-- 카테고리 글 수 표현(0:숨김, 1:보임) -->
+        </tree>
+        <contentWidth>860</contentWidth> <!--  콘텐츠영역 가로 사이즈, 이 사이즈에 맞춰 에디터의 위지윅이 제대로 구현된다 -->
+    </default>
+</skin>
