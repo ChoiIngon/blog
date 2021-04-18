@@ -1,7 +1,12 @@
 @charset "utf-8";
 
-#contents .article {
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
 }
 
-#sidebar {
+.desc > p,
+.tt_article_useless_p_margin > p {
+	color: red;
 }

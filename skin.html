@@ -13,6 +13,23 @@
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 	<!-- Google Material Icon -->
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	
+	<style>
+		#article {
+			width: 800px;
+			display: block;
+			margin-left: auto;
+			margin-right: auto;
+		}
+		code.singleline {
+			margin: 5px;
+			outline-width: thin;
+			outline-style: solid;
+			outline-offset: 1px;
+			color: blue;
+			font-style: italic;
+		}
+	</style>
 	<title>[##_page_title_##]</title>
 </head>
 
@@ -24,6 +41,8 @@
 		</nav>
 	</header>
 
+	
+
 	<s_notice_rep>
 		
 		<a href="[##_notice_rep_link_##]">[##_notice_rep_title_##]</a>
@@ -32,10 +51,12 @@
 	
 	</s_notice_rep>
 	
+	<div id="article">
 	<s_article_rep>
 		<s_index_article_rep>
 			<h1><a href="[##_article_rep_link_##]">[##_article_rep_title_##]</a></h1>
 		</s_index_article_rep>
+		<div class="permalink_article">
 		<s_permalink_article_rep>
 			<h1><a href="[##_article_rep_link_##]">[##_article_rep_title_##]</a></h1>
 			<s_ad_div>
@@ -52,8 +73,9 @@
 			<h6>[##_article_rep_date_##]</h6>
 			<h3>by [##_article_rep_author_##]</h3>
 			
+			<div class="desc">
 			[##_article_rep_desc_##]
-			
+			</div>
 			<!-- 태그 -->
 			<s_tag_label>
 				<div class="tagTrail">
@@ -156,8 +178,9 @@
 				</s_rp_container>
 			</s_rp>
 		</s_permalink_article_rep>
+		</div>
 	</s_article_rep>
-
+	</div>
 	<s_sidebar>
 		<!-- 오른쪽 사이드바 -->
 		<s_sidebar_element>
