@@ -6,7 +6,29 @@
 	box-sizing: border-box;
 }
 
-.desc > p,
-.tt_article_useless_p_margin > p {
-	color: red;
+#article {
+	width: 800px;
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#article .header {
+	display: block;
+	padding: 10px 0;
+	text-align: center;
+	font-size: 16px;
+}
+
+#article.desc {
+	
+}
+
+code.singleline {
+	margin: 5px;
+	outline-width: thin;
+	outline-style: solid;
+	outline-offset: 1px;
+	color: blue;
+	font-style: italic;
 }

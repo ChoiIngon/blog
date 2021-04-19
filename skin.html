@@ -13,22 +13,10 @@
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 	<!-- Google Material Icon -->
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	
+	<!-- local css -->
+	<link rel="stylesheet" href="./style.css"/>
 	<style>
-		#article {
-			width: 800px;
-			display: block;
-			margin-left: auto;
-			margin-right: auto;
-		}
-		code.singleline {
-			margin: 5px;
-			outline-width: thin;
-			outline-style: solid;
-			outline-offset: 1px;
-			color: blue;
-			font-style: italic;
-		}
+		
 	</style>
 	<title>[##_page_title_##]</title>
 </head>
@@ -58,23 +46,23 @@
 		</s_index_article_rep>
 		<div class="permalink_article">
 		<s_permalink_article_rep>
-			<h1><a href="[##_article_rep_link_##]">[##_article_rep_title_##]</a></h1>
-			<s_ad_div>
-				<div class="admin">
-					<a href="[##_s_ad_m_link_##]">수정</a> :
-					<a href="#" onclick="[##_s_ad_m_onclick_##]">수정(창으로)</a> |
-					([##_s_ad_s1_label_##])→<a href="#" onclick="[##_s_ad_s2_onclick_##]">[##_s_ad_s2_label_##]</a> |
-					<a href="#" onclick="[##_s_ad_t_onclick_##]">관련글(트랙백)</a> |
-					<a href="#" onclick="[##_s_ad_d_onclick_##]">삭제</a>
-				</div>
-			</s_ad_div>
-			
-			<!-- 본문 -->
-			<h6>[##_article_rep_date_##]</h6>
-			<h3>by [##_article_rep_author_##]</h3>
-			
+			<div class="header">
+				<h1><a href="[##_article_rep_link_##]">[##_article_rep_title_##]</a></h1>
+				<span class="category"><a href="[##_article_rep_category_link_##]">[##_article_rep_category_##]</a></span>
+				<span class="date">[##_article_rep_date_##]</span>
+				<s_ad_div>
+					<div class="admin">
+						<a href="[##_s_ad_m_link_##]">수정</a> :
+						<a href="#" onclick="[##_s_ad_m_onclick_##]">수정(창으로)</a> |
+						([##_s_ad_s1_label_##])→<a href="#" onclick="[##_s_ad_s2_onclick_##]">[##_s_ad_s2_label_##]</a> |
+						<a href="#" onclick="[##_s_ad_t_onclick_##]">관련글(트랙백)</a> |
+						<a href="#" onclick="[##_s_ad_d_onclick_##]">삭제</a>
+					</div>
+				</s_ad_div>
+			</div>
+			<hr>
 			<div class="desc">
-			[##_article_rep_desc_##]
+				[##_article_rep_desc_##]
 			</div>
 			<!-- 태그 -->
 			<s_tag_label>
