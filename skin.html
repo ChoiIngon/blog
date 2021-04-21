@@ -15,8 +15,72 @@
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 	<!-- local css -->
 	<link rel="stylesheet" href="./style.css"/>
+	
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+	
 	<style>
+		body {
+			background-color: #000000;
+			color: #84c754;
+		}
 		
+		.index-article {
+			position: relative;
+			border: 1px solid #ffffff;
+			height: 180px;
+			padding: 5px;
+			border-radius: 5px;
+		}
+		
+		.index-article a:link {
+			color: #84c754;
+		}
+		
+		.index-article a:visited {
+			color: #84c754;
+		}
+		
+		.index-article a:hover {
+			color: #84c754;
+		}
+		
+		.index-article a:active {
+			color: #84c754;
+		}
+		 
+.index-article .title {
+	position: relative;
+	top: 10px;
+	left: 10px;
+	display: block;
+	font-size: 1.2em;
+	font-weight: bold;
+}
+
+.index-article img {
+	position: absolute;
+	top: 50px;
+	left: 10px;
+	width: 150px;
+	height: 120px;
+	border: 1px solid #ffffff;
+	object-fit: cover;
+}
+
+.index-article .summary {
+	position: absolute;
+	top: 50px;
+	left: 170px;
+	line-height: 1.4em;
+	height: 5.6em;
+	overflow: hidden;
+	word-wrap: break-word;
+	text-overflow: ellipsis;
+	display: -webkit-box;
+	-webkit-line-clamp: 4;
+	-webkit-box-orient: vertical;
+}
+
 	</style>
 	<title>[##_page_title_##]</title>
 </head>
@@ -29,8 +93,6 @@
 		</nav>
 	</header>
 
-	
-
 	<s_notice_rep>
 		
 		<a href="[##_notice_rep_link_##]">[##_notice_rep_title_##]</a>
@@ -41,10 +103,22 @@
 	
 	<div id="article">
 	<s_article_rep>
+		
 		<s_index_article_rep>
-			<h1><a href="[##_article_rep_link_##]">[##_article_rep_title_##]</a></h1>
+			<div class="index-article">
+				<div class="title">
+					<a href="[##_article_rep_link_##]">[##_article_rep_title_##]</a>
+				</div>
+				<s_article_rep_thumbnail>
+					<img src="[##_article_rep_thumbnail_url_##]"/>
+				</s_article_rep_thumbnail>
+				<div class="summary">
+					<a href="[##_article_rep_link_##]">[##_article_rep_summary_##]</a>
+				</div>
+			</div>
 		</s_index_article_rep>
-		<div class="permalink_article">
+	
+		<div class="permalink-article">
 		<s_permalink_article_rep>
 			<div class="header">
 				<h1><a href="[##_article_rep_link_##]">[##_article_rep_title_##]</a></h1>
@@ -169,6 +243,7 @@
 		</div>
 	</s_article_rep>
 	</div>
+	
 	<s_sidebar>
 		<!-- 오른쪽 사이드바 -->
 		<s_sidebar_element>
@@ -177,6 +252,7 @@
 		
 		<s_sidebar_element>
 			<!-- 최근 공지 사항 -->
+			<!--
 			<h3>공지 사항 </h3>
 			<s_rct_notice>
 			<ul>
@@ -185,10 +261,12 @@
 				</s_rct_notice_rep>
 			</ul>
 			</s_rct_notice>
+			-->
 		</s_sidebar_element>
 		
 		<s_sidebar_element>
 		<!-- 최근에 올라온 글 -->
+			<!--
 			<h3>최근 글 </h3>
 			<ul>
 				<s_rctps_rep>
@@ -202,9 +280,10 @@
 					</li>
 				</s_rctps_rep>
 			</ul>
+			-->
 		</s_sidebar_element>
 	</s_sidebar>
-	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+	
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 </s_t3>
