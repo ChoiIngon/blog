@@ -6,43 +6,102 @@
 	box-sizing: border-box;
 }
 
-#article {
+body {
+	font: 100% Courier New;
+	font-size: 15px;
+  background-color: #000000;
+	color: #84c754;
+}
+
+a, button {
+	transition: all .2s ease-in-out;
+	cursor: pointer;
+}
+
+button {
+	outline: none;
+	border: none;
+}
+
+aside.left {
+	background-color: pink;
+}
+
+article {
 	width: 800px;
 	display: block;
 	margin-left: auto;
 	margin-right: auto;
-}
-/*
-#article .index-article {
-	border: 1px solid #ddd;
-	border-radius: 8px;
-	padding: 5px;
-	height: 170px;
-	white-space:nowrap;
+	background-color: yellow;
 }
 
-#article .index-article img {
-	display: block;
-	width: 120px;
-	height: 120px;
-	margin-right: 15px;
-	border: 1px solid #ccc;
-	padding: 5px;
-	outline: 1px solid #ccc
-	filter: contrast(0.9);
-  -webkit-filter: contrast(0.9);
+aside.right {
+	background-color: gree;
 }
-*/
 
-#article .header {
+article .header {
 	display: block;
 	padding: 10px 0;
 	text-align: center;
 	font-size: 16px;
 }
 
-#article.desc {
-	
+article .index-article {
+	position: relative;
+	border: 1px solid #ffffff;
+	height: 180px;
+	margin: 2px;
+	padding: 10px;
+	border-radius: 5px;
+}
+
+article .index-article a:link,
+article .index-article a:visited,
+article .index-article a:hover,
+article .index-article a:active {
+	color: #84c754;
+}
+
+article .index-article img {
+	margin-right: 10px;
+	width: 150px;
+	height: 120px;
+	border: 1px solid #ffffff;
+	object-fit: cover;
+	float: left;
+}
+
+article .index-article .summary {
+	line-height: 1.4em;
+	height: 5.6em;
+	overflow: hidden;
+	word-wrap: break-word;
+	text-overflow: ellipsis;
+	display: -webkit-box;
+	-webkit-line-clamp: 4;
+	-webkit-box-orient: vertical;
+}
+
+article .index-article .title {
+	margin: 5px;
+	margin-bottom:15px;
+	font-size: 1.2em;
+	line-height: 1em;
+	font-weight: bold;
+}
+
+#article .permalink-article a:link,
+#article .permalink-article a:visited,
+#article .permalink-article a:hover,
+#article .permalink-article a:active {
+	color: #ffffff;
+	text-decoration: underline;
+}
+
+#sidebar {
+	float: left;
+	width: 200px;
+	border: 1px solid #ffffff;
 }
 
 code.singleline {

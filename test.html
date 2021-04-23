@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<title>Test page</title>
+
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+
+	<script>
+	const tableOfContents = function(contents, target) {
+		console.log(contents + " " + target);
+	}
+	tableOfContents("contents", "target");
+	</script>
+
+	<style>
+		main {
+			justify-content: center;
+			display: flex;
+		}
+		
+		main aside.left {
+			background-color : pink;
+			width: 300px;
+			border: 1px solid;
+		}
+		
+		main article {
+			flex: 1;
+			background-color : yellow;
+			border: 1px solid;
+		}
+		
+		main aside.right {
+			width: 300px;
+			background-color : pink;
+			border: 1px solid;
+		}
+		
+		@media screen and (max-width: 1424px) {
+			main aside.right {
+				display: none;
+			}
+		}
+		
+		@media screen and (max-width: 768px) {
+			main aside.left {
+				display: none;
+			}
+		}
+		@media screen and (min-width: 1024px) {
+			main article {
+				flex: none;
+				width: 768px;
+			}
+		}
+
+		main aside.left .sticky-pannel {
+			position: -webkit-sticky;
+			position: sticky;
+			top: 0px;
+			background-color: #cae8ca;
+			border: 1px solid #4caf50;
+		}
+	</style>
+  
+</head>
+
+<body>
+<main role="main">
+	<aside class="left">
+		left
+		<div class="sticky-pannel">
+			<ol>
+				<li>Title</li>
+				<ol>
+					<li>sub title</li>
+				</ol>
+				<li>Title</li>
+				<ol>
+					<li>sub title</li>
+					<li>sub title</li>
+					<li>sub title</li>
+					<li>sub title</li>
+					<li>sub title</li>
+					<li>sub title</li>
+				</ol>
+				<li>Title</li>
+				<ol>
+					<li>sub title</li>
+					<li>sub title</li>
+				</ol>
+				<li>Title</li>
+				<ol>
+					<li>sub title</li>
+					<li>sub title</li>
+					<li>sub title</li>
+					<li>sub title</li>
+					<li>sub title</li>
+				</ol>
+				<li>Title</li>
+				<ol>
+					<li>sub title</li>
+					<li>sub title</li>
+					<li>sub title</li>
+					<li>sub title</li>
+					<li>sub title</li>
+				</ol>
+				<li>Title</li>
+				<ol>
+					<li>sub title</li>
+					<li>sub title</li>
+					<li>sub title</li>
+					<li>sub title</li>
+					<li>sub title</li>
+				</ol>
+				<li>Title</li>
+				<ol>
+					<li>sub title</li>
+					<li>sub title</li>
+					<li>sub title</li>
+					<li>sub title</li>
+					<li>sub title</li>
+				</ol>
+			</ol>
+		</div>
+	</aside>
+	<article>
+		<div style="height:1024px;">
+			<h1>title</h1>
+			<p>article</p>
+			<p>article</p>
+			<p>article</p>
+			<p>article</p>
+			<p>article</p>
+		</div>
+	</article>
+	<aside class="right">
+		right
+	</aside>
+
+</main>
+</body>
+
+</html>
