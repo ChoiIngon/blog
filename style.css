@@ -7,9 +7,8 @@
 }
 
 body {
-	font: 100% Courier New;
-	font-size: 15px;
-  background-color: #000000;
+	font: 15px/18px Consolas;
+  	background-color: #000000;
 	color: #84c754;
 }
 
@@ -27,11 +26,13 @@ main aside.left {
 
 main article {
 	flex: 1;
+	border: 1px solid #ffffff;
+	border-radius: 5px;
 }
 
 main aside.right {
 	width: 250px;
-	background-color: green;
+	border: 1px solid;
 }
 
 main aside,
@@ -164,4 +165,77 @@ code.singleline {
 		flex: none;
 		width: 768px;
 	}
+}
+
+#toc {
+	position: -webkit-sticky;
+	position: sticky;
+	top: 0px;
+}
+
+#toc::-webkit-scrollbar {
+	width: 3px; /*스크롤바의 너비*/
+}
+
+#toc::-webkit-scrollbar-thumb {
+	background-color: #ffffff; /*스크롤바의 색상*/
+}
+
+#toc::-webkit-scrollbar-track {
+	background-color: #000000; /*스크롤바 트랙 색상*/
+}
+
+#toc ul {
+	padding-left:20px;
+}
+
+#toc h1 {
+	font-size: 1.3em;
+}
+
+#toc h2 {
+	font-size: 1.1em;
+}
+
+#toc h3 {
+	font-size: 1.0em;
+	font-style: italic;
+}
+
+#toc h4 {
+	font-size: 1.0em;
+	font-style: italic;
+}
+
+#toc h5 {
+	font-size: 1.0em;
+	font-style: italic;
+}
+
+#toc h6 {
+	font-size: 1.0em;
+	font-style: italic;
+}
+
+#toc li a[selected] {
+	font-weight: bold;
+}
+
+#toc li a[selected] {
+	font-weight: bold;
+}
+
+#toc li a[selected]::before {
+	content: "[";
+}
+
+#toc li a[selected]::after {
+	content: "]";
+}
+
+#toc li a:link,
+#toc li a:visited,
+#toc li a:hover,
+#toc li a:active {
+	color: #84c754;
 }

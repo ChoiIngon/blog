@@ -16,90 +16,9 @@
 	<!-- local css -->
 	<link rel="stylesheet" href="./style.css"/>
 	
-		<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="./images/table_of_contents.js"></script>
 	<script>
-	$.fn.table_of_contents = function(options) {
-		options = (typeof(options) == 'undefined') ? {} : options;
-		
-		let toc_container = $(options.container);
-		let this_container = $(this);
-		let headlines = $(":header", this_container);
-		
-		if(0 == headlines.length)
-		{
-			return;
-		}
-		
-		let scrollToHeadline = function(target) 
-		{
-			$("body, html").animate(
-				{'scrollTop': $(target).offset().top + options.scrollOffset},
-				options.scrollSpeed,
-				function() {}
-			);
-		};
-				
-		let last_scroll_position = 0;
-		let ticking = false;
-		
-		$(document).scroll(function() {
-			const middle = window.scrollY + (window.innerHeight / 2);
-			
-			$(toc_container).find("ul li a").each(function(index, elmt) {
-				$(elmt).css("font-weight", "normal");
-			});
-			
-			headlines.each(function(index, headline) {
-				let headline_id = $(headline).prop("id");
-				let href = $("li a[href='#" + headline_id + "']");
-				
-				if(window.scrollY <= $(headline).offset().top && $(headline).offset().top <= window.scrollY + window.innerHeight)
-				{
-					href.css("font-weight", "bold");
-				}
-			});
-			
-		});
-		
-		let tocHTML = "<ul class='__scroll-to-headline__'>";
-		
-		let top_level = headlines[0].tagName.replace(/[^\d]/g, ""); // 숫자가 아닌 모든 것을 ""변경. 결국 숫자만 뽑겠다는 의미
-		
-		headlines.each(function(headline_index, headline) {
-			var sub_level = headline.tagName.replace(/[^\d]/g, "");
-			if (sub_level > top_level) { // 하위
-				for (let i = sub_level; i > top_level; i--) {
-					tocHTML += "<ul>";
-				}
-			} 
-			else if(sub_level < top_level) {
-				for (let i = sub_level; i < top_level; i++) {
-					tocHTML += "</ul>";
-				}
-			}
-			top_level = sub_level;
-			
-			let headline_unique_id = "headline_unique_id_" + headline_index;
-			let headlineElmt = $(headline);
-			let headlineText = headlineElmt.text();
-			
-			headlineElmt.prop("id", headline_unique_id);
-			tocHTML += "<li id='li_" + headline_unique_id +"'><a href='#" + headline_unique_id + "'>" + headlineText + "</a></li>";
-		});
-		
-		
-		tocHTML += "</ul>";
-		toc_container.append($(tocHTML));
-		
-		$("li a", $(".__scroll-to-headline__")).click(function(e) {
-			e.preventDefault();
-			
-			const target = $(e.target).attr('href');
-			scrollToHeadline(target);
-		});
-		//});
-	};
-		
 		$(document).ready(function() {
 			$('article').table_of_contents({
 				container: "#toc",
@@ -108,13 +27,10 @@
 			});
 		});
 	</script>
+
 	<style>
-		main aside.left #toc {
-			position: -webkit-sticky;
-			position: sticky;
-			top: 0px;
-			background-color: #cae8ca;
-			border: 1px solid #4caf50;
+		ul {
+			padding-left:20px;
 		}
 	</style>
 	<title>[##_page_title_##]</title>
@@ -129,11 +45,8 @@
 	</header>
 
 	<s_notice_rep>
-		
-		<a href="[##_notice_rep_link_##]">[##_notice_rep_title_##]</a>
 		<a href="[##_notice_rep_link_##]">[##_notice_rep_title_##]</a>
 		[##_notice_rep_desc_##]
-	
 	</s_notice_rep>
 	
 	<!-- 콘텐츠 : 사이드바+본문 시작 -->
@@ -174,7 +87,7 @@
 					</script>
 					<div class="permalink-article">
 					<div class="header">
-						<h1><a href="[##_article_rep_link_##]">[##_article_rep_title_##]</a></h1>
+						<h1>[##_article_rep_title_##]</h1>
 						<span class="category"><a href="[##_article_rep_category_link_##]">[##_article_rep_category_##]</a></span>
 						<span class="date">[##_article_rep_date_##]</span>
 						<s_ad_div>
