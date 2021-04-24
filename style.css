@@ -13,6 +13,34 @@ body {
 	color: #84c754;
 }
 
+main {
+	justify-content: center;
+	display: flex;
+}
+
+main aside.left {
+	width: 250px;
+	padding: 0.5em;
+	border: 1px solid #ffffff;
+	border-radius: 5px;
+}
+
+main article {
+	flex: 1;
+}
+
+main aside.right {
+	width: 250px;
+	background-color: green;
+}
+
+main aside,
+main article {
+	box-sizing: border-box;
+	padding-left : 0.25em;
+	padding-right : 0.25em;
+}
+
 a, button {
 	transition: all .2s ease-in-out;
 	cursor: pointer;
@@ -23,22 +51,6 @@ button {
 	border: none;
 }
 
-aside.left {
-	background-color: pink;
-}
-
-article {
-	width: 800px;
-	display: block;
-	margin-left: auto;
-	margin-right: auto;
-	background-color: yellow;
-}
-
-aside.right {
-	background-color: gree;
-}
-
 article .header {
 	display: block;
 	padding: 10px 0;
@@ -47,10 +59,9 @@ article .header {
 }
 
 article .index-article {
-	position: relative;
 	border: 1px solid #ffffff;
 	height: 180px;
-	margin: 2px;
+	margin-bottom: 3px;
 	padding: 10px;
 	border-radius: 5px;
 }
@@ -98,12 +109,6 @@ article .index-article .title {
 	text-decoration: underline;
 }
 
-#sidebar {
-	float: left;
-	width: 200px;
-	border: 1px solid #ffffff;
-}
-
 code.singleline {
 	margin: 5px;
 	outline-width: thin;
@@ -111,4 +116,52 @@ code.singleline {
 	outline-offset: 1px;
 	color: blue;
 	font-style: italic;
+}
+
+#search {
+	flex: 1;
+	padding: 0 0.1em;
+}
+
+#search s_sidebar_element {
+	display: flex;
+	align-items: center;
+}
+
+#search s_sidebar_element input {
+	width:100%;
+	color: 495057;
+	outline: none;
+	border-top: none;
+	border-left: none;
+	border-right: none;
+	font-size: 1.25em;
+	padding-bottom: 0.25;
+	flex: 1;
+	border-bottom: 1px solid #ffffff;
+	transition: all 0.2s ease-in-out;
+}
+
+#search s_sidebar_element button {
+	width: 40px;
+	background-color: transparent;
+}
+
+@media screen and (max-width: 1424px) {
+	main aside.right {
+		display: none;
+	}
+}
+
+@media screen and (max-width: 768px) {
+	main aside.left {
+		display: none;
+	}
+}
+
+@media screen and (min-width: 1024px) {
+	main article {
+		flex: none;
+		width: 768px;
+	}
 }

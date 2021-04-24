@@ -16,21 +16,106 @@
 	<!-- local css -->
 	<link rel="stylesheet" href="./style.css"/>
 	
-	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-	
-	<style>
+		<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script>
+	$.fn.table_of_contents = function(options) {
+		options = (typeof(options) == 'undefined') ? {} : options;
 		
-		#contents {
-			position: relative;
-			display: inline;				
+		let toc_container = $(options.container);
+		let this_container = $(this);
+		let headlines = $(":header", this_container);
+		
+		if(0 == headlines.length)
+		{
+			return;
 		}
 		
-		#sidebar {
-		position: absolute;
-		top: 0px;
-		left: 50%;
-		margin-left:-603px;
-	}
+		let scrollToHeadline = function(target) 
+		{
+			$("body, html").animate(
+				{'scrollTop': $(target).offset().top + options.scrollOffset},
+				options.scrollSpeed,
+				function() {}
+			);
+		};
+				
+		let last_scroll_position = 0;
+		let ticking = false;
+		
+		$(document).scroll(function() {
+			const middle = window.scrollY + (window.innerHeight / 2);
+			
+			$(toc_container).find("ul li a").each(function(index, elmt) {
+				$(elmt).css("font-weight", "normal");
+			});
+			
+			headlines.each(function(index, headline) {
+				let headline_id = $(headline).prop("id");
+				let href = $("li a[href='#" + headline_id + "']");
+				
+				if(window.scrollY <= $(headline).offset().top && $(headline).offset().top <= window.scrollY + window.innerHeight)
+				{
+					href.css("font-weight", "bold");
+				}
+			});
+			
+		});
+		
+		let tocHTML = "<ul class='__scroll-to-headline__'>";
+		
+		let top_level = headlines[0].tagName.replace(/[^\d]/g, ""); // 숫자가 아닌 모든 것을 ""변경. 결국 숫자만 뽑겠다는 의미
+		
+		headlines.each(function(headline_index, headline) {
+			var sub_level = headline.tagName.replace(/[^\d]/g, "");
+			if (sub_level > top_level) { // 하위
+				for (let i = sub_level; i > top_level; i--) {
+					tocHTML += "<ul>";
+				}
+			} 
+			else if(sub_level < top_level) {
+				for (let i = sub_level; i < top_level; i++) {
+					tocHTML += "</ul>";
+				}
+			}
+			top_level = sub_level;
+			
+			let headline_unique_id = "headline_unique_id_" + headline_index;
+			let headlineElmt = $(headline);
+			let headlineText = headlineElmt.text();
+			
+			headlineElmt.prop("id", headline_unique_id);
+			tocHTML += "<li id='li_" + headline_unique_id +"'><a href='#" + headline_unique_id + "'>" + headlineText + "</a></li>";
+		});
+		
+		
+		tocHTML += "</ul>";
+		toc_container.append($(tocHTML));
+		
+		$("li a", $(".__scroll-to-headline__")).click(function(e) {
+			e.preventDefault();
+			
+			const target = $(e.target).attr('href');
+			scrollToHeadline(target);
+		});
+		//});
+	};
+		
+		$(document).ready(function() {
+			$('article').table_of_contents({
+				container: "#toc",
+				scrollSpeed: 600,
+				scrollOffset: -10
+			});
+		});
+	</script>
+	<style>
+		main aside.left #toc {
+			position: -webkit-sticky;
+			position: sticky;
+			top: 0px;
+			background-color: #cae8ca;
+			border: 1px solid #4caf50;
+		}
 	</style>
 	<title>[##_page_title_##]</title>
 </head>
@@ -53,7 +138,18 @@
 	
 	<!-- 콘텐츠 : 사이드바+본문 시작 -->
 	<main role="main">
-		<aside class="left"/>
+		<aside class="left">
+			<div id="search">
+				<s_sidebar_element>
+					<s_search>
+						<input type="text" name="[##_search_name_##]" value="[##_search_text_##]" onkeypress="if (event.keyCode == 13) { [##_search_onclick_submit_##] }" placeholder="search"/> 
+						<button type="button" onclick="[##_search_onclick_submit_##]" class="submit"> 
+							<img src="./images/baseline_search_white_24dp.png"/>
+						</button> 						
+					</s_search> 
+				</s_sidebar_element>
+			</div> <!-- class="search" -->
+			<div id="toc"></div>
 		</aside>
 		<article>
 			<s_article_rep>
@@ -73,6 +169,9 @@
 				</s_index_article_rep>
 
 				<s_permalink_article_rep>
+					<script>
+							
+					</script>
 					<div class="permalink-article">
 					<div class="header">
 						<h1><a href="[##_article_rep_link_##]">[##_article_rep_title_##]</a></h1>
@@ -237,6 +336,7 @@
 					-->
 				</s_sidebar_element>
 			</s_sidebar>
+
 		</aside>
 	</main> <!-- 콘텐츠 끝 -->
 	
