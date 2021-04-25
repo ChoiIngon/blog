@@ -81,9 +81,22 @@ $.fn.table_of_contents = function(options) {
 			
 	});
 
-	toc_container.css("height", window.innerHeight);		
+	console.log("height of toc conatiner:" + toc_container.height() + 
+	", height of window inner:" + $(window).height() + 
+	", height of document:" + $(document).height() +
+	", toc container top:" + toc_container.offset().top +
+	", toc container height:" + toc_container.height()
+	);
+	/* BUG!!!!!! FIX ME!!!!! */
+	if(window.innerHeight < toc_container.height())
+	{
+		toc_container.css("height", window.innerHeight - toc_container.offset().top);		
+	}
 	toc_container.css("overflow", "auto");		
 	$(window).resize(function() {
-		toc_container.css("height", window.innerHeight);		
+		if(window.innerHeight < toc_container.height())
+		{
+			toc_container.css("height", window.innerHeight - toc_container.offset().top);		
+		}
 	});
 };
