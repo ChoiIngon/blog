@@ -383,6 +383,10 @@ aside.left {
 	padding-left:20px;
 }
 
+#table-of-contents ul li {
+	margin-bottom: 5px;
+}
+
 #table-of-contents h1 {
 	font-size: 1.3em;
 }
@@ -413,6 +417,7 @@ aside.left {
 
 #table-of-contents a {
 	color: #666;
+	font-weight: normal;
 	text-decoration: none;
 }
 
@@ -421,12 +426,12 @@ aside.left {
 	text-decoration: underline;
 }
 
-#table-of-contents li a[selected]::before {
-	content: ">> ";
+#table-of-contents li a:hover {
+	text-decoration: underline;
 }
 
-#table-of-contents li a[selected]::after {
-	content: " <<";
+#table-of-contents li a[selected]::before {
+	content: "✔";
 }
 
 #footer {
