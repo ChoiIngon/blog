@@ -14,7 +14,8 @@
 			$('article').table_of_contents({
 				container: "#toc",
 				scrollSpeed: 600,
-				scrollOffset: -10
+				scrollOffset: -10,
+        sticky: true
 			});
 		});
 	</script>
@@ -30,6 +31,7 @@
 		a {
 			transition: all .2s ease-in-out;
 			cursor: pointer;
+      text-decoration: none;
 		}
 		
 		ul {
@@ -71,8 +73,10 @@
 		}
 		
 		#toc {
+      /*
 			position: -webkit-sticky;
 			position: sticky;
+      */
 		
 			/* position: fixed; */
 			top: 0px;
@@ -99,6 +103,7 @@
 
 		#toc li a[selected] {
 			font-weight: bold;
+      text-decoration: underline;
 		}
 
 		#toc li a[selected]::before {
