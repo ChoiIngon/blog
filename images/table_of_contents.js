@@ -74,29 +74,28 @@ $.fn.table_of_contents = function(options) {
 					
 			if(window.scrollY <= $(headline).offset().top && $(headline).offset().top <= window.scrollY + window.innerHeight)
 			{
+				console.log("toc_height:" + toc_container.height() + ", headline[0].top:" + $(headlines[0]).offset().top + ", curr.top:" + href.offset().top
+					+ "\n" + "doc_height:" + $(document).height()
+					+ "\n" + "toc_position.top:" + toc_container.position().top
+				);
+				
 				href.attr("selected", "selected");
 				return false;
 			}
 		});
-			
 	});
 
-	console.log("height of toc conatiner:" + toc_container.height() + 
-	", height of window inner:" + $(window).height() + 
-	", height of document:" + $(document).height() +
-	", toc container top:" + toc_container.offset().top +
-	", toc container height:" + toc_container.height()
-	);
-	/* BUG!!!!!! FIX ME!!!!! */
 	if(window.innerHeight < toc_container.height())
 	{
-		toc_container.css("height", window.innerHeight - toc_container.offset().top);		
+		toc_container.css("height", window.innerHeight - (toc_container.offset().top - $(document).scrollTop()));		
+		toc_container.css("overflow", "auto");		
 	}
-	toc_container.css("overflow", "auto");		
+	
 	$(window).resize(function() {
 		if(window.innerHeight < toc_container.height())
 		{
-			toc_container.css("height", window.innerHeight - toc_container.offset().top);		
+			toc_container.css("height", window.innerHeight - (toc_container.offset().top - $(document).scrollTop()));		
+			toc_container.css("overflow", "auto");		
 		}
 	});
 };
