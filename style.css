@@ -388,30 +388,30 @@ aside.left {
 }
 
 #table-of-contents h1 {
-	font-size: 1.3em;
+	font-size: 1.2em;
 }
 
 #table-of-contents h2 {
-	font-size: 1.1em;
+	font-size: 1.0em;
 }
 
 #table-of-contents h3 {
-	font-size: 1.0em;
+	font-size: 0.8em;
 	font-style: italic;
 }
 
 #table-of-contents h4 {
-	font-size: 1.0em;
+	font-size: 0.8em;
 	font-style: italic;
 }
 
 #table-of-contents h5 {
-	font-size: 1.0em;
+	font-size: 0.8em;
 	font-style: italic;
 }
 
 #table-of-contents h6 {
-	font-size: 1.0em;
+	font-size: 0.8em;
 	font-style: italic;
 }
 
@@ -419,6 +419,10 @@ aside.left {
 	color: #666;
 	font-weight: normal;
 	text-decoration: none;
+}
+
+#table-of-contents li {
+	list-style-type: circle;
 }
 
 #table-of-contents li a[selected] {
@@ -430,9 +434,11 @@ aside.left {
 	text-decoration: underline;
 }
 
+/*
 #table-of-contents li a[selected]::before {
 	content: "✔";
 }
+*/
 
 #footer {
 	position: relative;
@@ -1368,12 +1374,17 @@ aside.left {
 	white-space:pre-wrap;
 	word-wrap:break-word;
 }
+
+.entry-content pre[data-ke-language] {
+	margin-top: 1em;
+	margin-bottom: 1em;
+}
 .entry-content pre code.hljs {
 	padding: 20px;
 }
 .entry-content ul,
 .entry-content ol {
-	margin-bottom: 50px;
+	/* margin-bottom: 50px; */
 }
 .entry-content ul {
 	list-style: disc inside;
@@ -1382,11 +1393,13 @@ aside.left {
 	position: relative;
 	padding-left: 22px;
 	font-size: 0.9375em;
-	line-height: 1.6;
+	line-height: 1.5em;
 	color: #666;
 	list-style: inherit;
 	text-indent: -22px;
+	margin-bottom: 0.3em;
 }
+
 .entry-content ol {
 	list-style: inside decimal;
 }
@@ -1415,8 +1428,11 @@ aside.left {
 	margin: 0 0 22px 22px;
 }
 .entry-content blockquote {
-	margin-bottom: 60px;
-	padding: 16px 20px;
+	/* margin-bottom: 60px; */
+	/* padding: 16px 20px; */
+	margin-top: 1em;
+	margin-bottom: 1em;
+	padding: 0.5em 0.5em;
 	border-left: 4px solid #e6e6e6;
 }
 .entry-content blockquote p {
@@ -2254,3 +2270,95 @@ aside.left {
 	margin: 30px auto
 }
 
+pre[data-ke-type='codeblock'] {
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0 0 20px 0;
+  font-size: 13px;
+  line-height: 17px;
+}
+pre[data-ke-type='codeblock'] > code {
+  display: block;
+  overflow-x: auto;
+  font-family: consolas, monospace;
+}
+pre[data-ke-type='codeblock'] > code.lnWrap {
+  position: relative;
+  padding-left: 40px;
+}
+
+pre[data-ke-type='codeblock'] > code .ln[data-ln]::before,
+pre[data-ke-type='codeblock'] > code .ln[data-ln--before]::before {
+  content: attr(data-ln);
+}
+
+pre[data-ke-type='codeblock'] > code .ln,
+pre[data-ke-type='codeblock'] > code .lnBorder {
+  box-sizing: border-box;
+  position: absolute;
+  left: 0;
+  display: inline-block;
+  width: 40px;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  cursor: pointer;
+}
+
+pre[data-ke-type='codeblock'] > code .lnBorder {
+  z-index: 1;
+  top: 0;
+  bottom: 0;
+  border: 1px solid transparent;
+  border-right-color: #ccc;
+}
+
+pre[data-ke-type='codeblock'] > code .ln {
+  z-index: 0;
+  padding-right: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+}
+pre[data-ke-type='codeblock'] > code .lc {
+  box-sizing: border-box;
+  display: inline-block;
+  width: 100%;
+  padding-left: 10px;
+}
+pre[data-ke-type='codeblock'] > code.noline .lc {
+  padding-left: 0;
+}
+
+pre[data-ke-type='codeblock'] > code .ln.marker {
+  background-color: rgba(40, 70, 100, 1);
+  background: linear-gradient(to left, rgba(40, 70, 100, 1) 60%, transparent);
+  color: white !important;
+}
+pre[data-ke-type='codeblock'] > code .lc.marker {
+  background-color: rgba(40, 70, 100,1);
+  background: linear-gradient(to right, rgba(40, 70, 100, 1) 80%, transparent);
+}
+
+pre[data-ke-type='codeblock'] > code .lnA { }
+pre[data-ke-type='codeblock'] > code .lnB { }
+
+pre[data-ke-type='codeblock'] > code .colBox {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  vertical-align: middle;
+  margin-right: 4px;
+  outline: 1px solid grey;
+}
+
+pre[data-ke-type='codeblock'] > code .hover, pre[data-ke-type='codeblock'] > code .clicked {
+  outline: solid 1px gold;
+}
+pre[data-ke-type='codeblock'] > code .solo:hover {
+  color: red;
+}

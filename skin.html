@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="./style.css">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="./images/table_of_contents.js"></script>
+<script src="./images/linenumberV2.js"></script>
 
 </head>
 <body id="[##_body_id_##]" class="<s_if_var_color-type>[##_var_color-type_##]</s_if_var_color-type><s_if_var_post-type> [##_var_post-type_##]</s_if_var_post-type><s_if_var_view-more> paging-view-more</s_if_var_view-more>">
@@ -45,7 +46,8 @@
 				$('.entry-content').table_of_contents({
 					container: "#table-of-contents",
 					scrollSpeed: 600,
-					scrollOffset: -10
+					scrollOffset: -10,
+					sticky: true
 				});
 			});
 		</script>

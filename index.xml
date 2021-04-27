@@ -1,19 +1,19 @@
 <?xml version="1.1" encoding="utf-8"?>
 <skin>
 	<information>
-		<name>Poster</name>
+		<name>CustomPoster</name>
 		<version>1.0</version>
 		<description>
-			<![CDATA[ 군더더기 없이 글과 이미지를 배열할 수 있는 스킨입니다.  ]]>
+			<![CDATA[ 군더더기 없이 글과 이미지를 배열할 수 있는 Poster 스킨을 개량한 버전입니다. ]]>
 		</description>
 		<license>
 			<![CDATA[ MIT License ]]>
 		</license>
 	</information>
 	<author>
-		<name>Tistory</name>
-		<homepage>http://www.tistory.com</homepage>
-		<email>tistoryblog@daum.net</email>
+		<name>kukuta</name>
+		<homepage>http://kukuta.tistory.com</homepage>
+		<email>kukuta@gmail.com</email>
 	</author>
 	<default>
 		<recentEntries>5</recentEntries>
