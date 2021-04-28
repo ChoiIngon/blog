@@ -1,4 +1,10 @@
 $.fn.table_of_contents = function(options) {
+	options = (typeof(options) == 'undefined') ? {} : options;
+	
+	let toc_container = $(options.container);
+	let this_container = $(this);
+	let headlines = $(":header", this_container);
+
 	let scrollToHeadline = function(target) 
 	{
 		$("body, html").animate(
@@ -7,13 +13,7 @@ $.fn.table_of_contents = function(options) {
 			function() {}
 		);
 	};
-		
-	options = (typeof(options) == 'undefined') ? {} : options;
-	
-	let toc_container = $(options.container);
-	let this_container = $(this);
-	let headlines = $(":header", this_container);
-		
+
 	if(0 == headlines.length)
 	{
 		return;
@@ -67,41 +67,106 @@ $.fn.table_of_contents = function(options) {
 		toc_container.css("top", "0px");
 	
 		const first_headline_ref = toc_container.find("ul:first-child");
+		let last_scroll_pos = $(document).scrollTop();
+		
 		$(document).scroll(function() {
 			const middle = window.scrollY + (window.innerHeight / 2);
 										
 			$(toc_container).find("li a").each(function(index, elmt) {
 				$(elmt).removeAttr("selected");
 			});
-					
+			
 			headlines.each(function(index, headline) {
 				let headline_id = $(headline).prop("id");
 				let href = $("li a[href='#" + headline_id + "']");
 						
 				if(window.scrollY <= $(headline).offset().top && $(headline).offset().top <= window.scrollY + window.innerHeight)
 				{
-					let selected_elmt_top = href.position().top;
-					let selected_elmt_height = href.height();
-					let viewport_height = Math.min($(window).height(), $(window).height() - (toc_container.offset().top - $(document).scrollTop()));
+					href.attr("selected", "selected");
 					
-					if(selected_elmt_top > viewport_height)
+					let selected_elmt = href;
+					let viewport_top = Math.max(0, toc_container.offset().top - $(window).scrollTop());
+					let viewport_height = Math.min($(window).height() - viewport_top, toc_container.offset().top + $(toc_container).height() - $(window).scrollTop());
+					let viewport_mid = (viewport_top + viewport_height) / 2;
+					let selected_elmt_top = selected_elmt.offset().top - $(window).scrollTop();
+					
+					if(last_scroll_pos < $(window).scrollTop() && $(window).height() <= viewport_height)
 					{
-						toc_container.css({top: viewport_height - selected_elmt_top - selected_elmt_height * 2});
+						if(selected_elmt_top > viewport_mid)
+						{
+							toc_container.offset({top: toc_container.offset().top + (viewport_mid - selected_elmt_top)});
+						}
 					}
 					else
 					{
-						toc_container.css({top: 0});
+						if(selected_elmt_top + selected_elmt.height() < viewport_mid)
+						{
+							toc_container.offset({top: toc_container.offset().top - (selected_elmt_top + selected_elmt.height() - viewport_mid)});
+						}
+						if($(window).scrollTop() < toc_container.offset().top)
+						{
+							toc_container.css("top", "0px");
+						}
 					}
-					console.log(
-						"selected_elmt_top:" + selected_elmt_top
-						+ "\nselected_elmt_height:" + selected_elmt_height
-						+ "\nviewport_height:" + viewport_height
-						+ "\ntoc top:" + toc_container.offset().top + ", docuement scroll top:" + $(document).scrollTop()
-					);
-					href.attr("selected", "selected");
+					
 					return false;
 				}
 			});
+			
+			last_scroll_pos = $(window).scrollTop();
 		});
 	}
+
+	/*
+	$("body").append("<div id='_result'></div>");
+	let result = $("#_result");
+	result.css("position", "fixed");
+	result.css("top", "25px");
+	result.css("right", "0px");
+	result.css("color", "#ffffff");
+	let last_scroll_pos = $(document).scrollTop();
+	let display = function() {
+		let selected_elmt = toc_container.find("li a[selected]");
+		if(0 == selected_elmt.length)
+		{
+			return;
+		}
+		
+		let viewport_top = Math.max(0, toc_container.offset().top - $(window).scrollTop());
+		let viewport_height = Math.min($(window).height() - viewport_top, toc_container.offset().top + $(toc_container).height() - $(window).scrollTop());
+		let viewport_mid = (viewport_top + viewport_height) / 2;
+		let selected_elmt_top = selected_elmt.offset().top - $(window).scrollTop();
+		
+		if(last_scroll_pos < $(window).scrollTop() && $(window).height() <= viewport_height)
+		{
+			if(selected_elmt_top > viewport_mid)
+			{
+				toc_container.offset({top: toc_container.offset().top + (viewport_mid - selected_elmt_top)});
+			}
+		}
+		else
+		{
+			
+			console.log("up up");
+			if(selected_elmt_top + selected_elmt.height() < viewport_mid)
+			{
+				toc_container.offset({top: toc_container.offset().top - (selected_elmt_top + selected_elmt.height() - viewport_mid)});
+			}
+			if($(window).scrollTop() < toc_container.offset().top)
+			{
+				toc_container.css("top", "0px");
+			}
+		}
+
+		last_scroll_pos = $(window).scrollTop();
+		
+		result.html(
+			"document:{scrollTop:" + $(document).scrollTop() + ", height:" + $(document).height() + "}<br>"
+			+ "window:{scrollTop:" + $(window).scrollTop() + ", height:" + $(window).height() + "}<br>"
+			+ "toc_container:{position.top:" + toc_container.position().top + ", offset.top:" + toc_container.offset().top + ", height:" + toc_container.height() +"}<br>"
+			+ "viewport     :{position.top:" + viewport_top + ", offset.top:" + toc_container.offset().top + ", height:" + viewport_height +"}<br>"
+			+ "selected elmt:{position.top:" + (selected_elmt.offset().top - $(window).scrollTop()) + ", offset.top:" + selected_elmt.offset().top + ", height:" + selected_elmt.height() +"}<br>"
+		);
+	};	
+	*/
 };
