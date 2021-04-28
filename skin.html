@@ -5,10 +5,9 @@
 <meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width">
 <title>[##_page_title_##]</title>
 <link rel="stylesheet" href="./style.css">
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="./images/table_of_contents.js"></script>
+<script src="//t1.daumcdn.net/tistory_admin/lib/jquery/jquery-1.12.4.min.js"></script>
 <script src="./images/linenumberV2.js"></script>
-
+<script src="./images/table_of_contents.js"></script>
 </head>
 <body id="[##_body_id_##]" class="<s_if_var_color-type>[##_var_color-type_##]</s_if_var_color-type><s_if_var_post-type> [##_var_post-type_##]</s_if_var_post-type><s_if_var_view-more> paging-view-more</s_if_var_view-more>">
 <s_t3>
@@ -41,42 +40,44 @@
 	<hr>
 	<section class="container">
 		[##_revenue_list_upper_##]
-		<script>
-			$(document).ready(function() {
-				$('.entry-content').table_of_contents({
-					container: "#table-of-contents",
-					scrollSpeed: 600,
-					scrollOffset: -10,
-					sticky: true
-				});
-			});
-		</script>
+		
 		<aside class="left">
-			<div id="table-of-contents"></div>
+			<script>
+				$(document).ready(function() {
+					$('.entry-content').table_of_contents({
+						container: "#toc",
+						scrollSpeed: 600,
+						scrollOffset: -10,
+						sticky: true
+					});
+				});
+			</script>
+			<div id="toc"></div>
 		</aside>
+		
 		<article id="content">
 			<s_cover_group>
-				<s_cover_rep>
-					<s_cover name='cover-thumbnail-list'>
-						<div class='cover-thumbnail-list'>
-							<div class="inner">
-								<h2>[##_cover_title_##]</h2>
-								<ul>
-									<s_cover_item>
-										<li>
-											<a href="[##_cover_item_url_##]">
-												<span class="thum"><s_cover_item_thumbnail><img src="//i1.daumcdn.net/thumb/C264x200/?fname=[##_cover_item_thumbnail_##]" alt=""></s_cover_item_thumbnail></span>
-												<s_cover_item_article_info>
-													<span class="category">[##_cover_item_category_##]</span>
-												</s_cover_item_article_info>
-												<span class="title">[##_cover_item_title_##]</span>
-											</a>
-										</li>
-									</s_cover_item>
-								</ul>
+					<s_cover_rep>
+						<s_cover name='cover-thumbnail-list'>
+							<div class='cover-thumbnail-list'>
+								<div class="inner">
+									<h2>[##_cover_title_##]</h2>
+									<ul>
+										<s_cover_item>
+											<li>
+												<a href="[##_cover_item_url_##]">
+													<span class="thum"><s_cover_item_thumbnail><img src="//i1.daumcdn.net/thumb/C264x200/?fname=[##_cover_item_thumbnail_##]" alt=""></s_cover_item_thumbnail></span>
+													<s_cover_item_article_info>
+														<span class="category">[##_cover_item_category_##]</span>
+													</s_cover_item_article_info>
+													<span class="title">[##_cover_item_title_##]</span>
+												</a>
+											</li>
+										</s_cover_item>
+									</ul>
+								</div>
 							</div>
-						</div>
-					 </s_cover>
+						</s_cover>
 
 						<s_cover name='cover-slider'>
 							<div class="cover-slider">
@@ -471,8 +472,10 @@
 			</s_paging>
 
 		</article>
+		
 		<aside class="right">
 		</aside>
+		
 	</section>
 	<hr>
 	[##_revenue_list_lower_##]

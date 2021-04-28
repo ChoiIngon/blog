@@ -1,10 +1,6 @@
 $.fn.table_of_contents = function(options) {
 	options = (typeof(options) == 'undefined') ? {} : options;
 	
-	let toc_container = $(options.container);
-	let this_container = $(this);
-	let headlines = $(":header", this_container);
-
 	let scrollToHeadline = function(target) 
 	{
 		$("body, html").animate(
@@ -14,13 +10,17 @@ $.fn.table_of_contents = function(options) {
 		);
 	};
 
+	let toc_container = $(options.container);
+	let this_container = $(this);
+	let headlines = $(":header", this_container);
+
 	if(0 == headlines.length)
 	{
 		return;
 	}
 	
-	let tocHTML = "<ul>";
 	let top_level = headlines[0].tagName.replace(/[^\d]/g, ""); // 숫자가 아닌 모든 것을 ""변경. 결국 숫자만 뽑겠다는 의미
+	let tocHTML = "<ul>";
 		
 	headlines.each(function(headline_index, headline) {
 		var sub_level = headline.tagName.replace(/[^\d]/g, "");
@@ -70,8 +70,6 @@ $.fn.table_of_contents = function(options) {
 		let last_scroll_pos = $(document).scrollTop();
 		
 		$(document).scroll(function() {
-			const middle = window.scrollY + (window.innerHeight / 2);
-										
 			$(toc_container).find("li a").each(function(index, elmt) {
 				$(elmt).removeAttr("selected");
 			});
