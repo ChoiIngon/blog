@@ -19,30 +19,31 @@ $.fn.table_of_contents = function(options) {
 		return;
 	}
 	
-	let top_level = headlines[0].tagName.replace(/[^\d]/g, ""); // 숫자가 아닌 모든 것을 ""변경. 결국 숫자만 뽑겠다는 의미
+	let prev_level = headlines[0].tagName.replace(/[^\d]/g, ""); // 숫자가 아닌 모든 것을 ""변경. 결국 숫자만 뽑겠다는 의미
+	const top_level = prev_level;
 	let tocHTML = "<ul>";
 		
 	headlines.each(function(headline_index, headline) {
-		var sub_level = headline.tagName.replace(/[^\d]/g, "");
-		if (sub_level > top_level) { 
-			for (let i = sub_level; i > top_level; i--) {
+		var curr_level = headline.tagName.replace(/[^\d]/g, "");
+		if (curr_level > prev_level) { 
+			for (let i = curr_level; i > prev_level; i--) {
 				tocHTML += "<ul>";
 			}
 		} 
-		else if(sub_level < top_level) {
-			for (let i = sub_level; i < top_level; i++) {
+		else if(curr_level < prev_level) {
+			for (let i = curr_level; i < prev_level; i++) {
 				tocHTML += "</ul>";
 			}
 		}
 		
-		top_level = sub_level;
+		prev_level = curr_level;
 		
 		let headline_unique_id = "headline_unique_id_" + headline_index;
 		let headlineElmt = $(headline);
 		let headlineText = headlineElmt.text();
 		
 		headlineElmt.prop("id", headline_unique_id);
-		tocHTML += "<li><"+headline.tagName + "><a href='#" + headline_unique_id + "'>" + headlineText + "</" +headline.tagName +"></a></li>";
+		tocHTML += "<li depth='" + (curr_level - top_level) + "'><a href='#" + headline_unique_id + "'>" + headlineText + "</a></li>";
 	});
 		
 	tocHTML += "</ul>";
@@ -76,10 +77,10 @@ $.fn.table_of_contents = function(options) {
 			
 			headlines.each(function(index, headline) {
 				let headline_id = $(headline).prop("id");
-				let href = $("li a[href='#" + headline_id + "']");
 						
 				if(window.scrollY <= $(headline).offset().top && $(headline).offset().top <= window.scrollY + window.innerHeight)
 				{
+					let href = $("li a[href='#" + headline_id + "']");
 					href.attr("selected", "selected");
 					
 					let selected_elmt = href;

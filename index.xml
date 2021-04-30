@@ -1,10 +1,10 @@
 <?xml version="1.1" encoding="utf-8"?>
 <skin>
 	<information>
-		<name>CustomPoster</name>
+		<name>CustomPoster.1.0</name>
 		<version>1.0</version>
 		<description>
-			<![CDATA[ 군더더기 없이 글과 이미지를 배열할 수 있는 Poster 스킨을 개량한 버전입니다. ]]>
+			<![CDATA[ 군더더기 없이 글과 이미지를 배열할 수 있는 Poster스킨 개량버전입니다.  ]]>
 		</description>
 		<license>
 			<![CDATA[ MIT License ]]>
