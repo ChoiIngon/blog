@@ -2161,6 +2161,7 @@ hr {
 
 #article_rep_desc article {
 	flex-grow: 1;
+	width:100%;
 }
 
 #toc {
