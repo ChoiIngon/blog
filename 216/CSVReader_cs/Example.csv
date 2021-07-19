@@ -1,0 +1,4 @@
+﻿Index,Message,ExpireDay,RewardIndex,RewardCount
+1,한글 이름 여덟 글자,14,100000,10
+2,"Comma,Seperated,Text",7,100001,30
+3,"""Event"",""한글"",""123"",""!@#""	",365,100002,5
