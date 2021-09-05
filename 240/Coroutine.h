@@ -4,7 +4,6 @@
 #include <coroutine>
 #include <memory>
 
-
 template <class T, class INITIAL_SUSPEND = std::suspend_always>
 class Coroutine
 {
@@ -27,18 +26,16 @@ private:
         {
             throw std::exception("unhandled exception");
         }
-
     };
 
     template <class R>
     struct promise_type_impl : public promise_base
     {
         R value;
-        std::shared_ptr<Impl> impl;
+
         Coroutine get_return_object()
         {
-            impl = std::make_shared<Impl>(std::coroutine_handle<promise_type_impl>::from_promise(*this));
-            return Coroutine{ impl };
+            return Coroutine{ std::make_shared<Impl>(std::coroutine_handle<promise_type_impl>::from_promise(*this)) };
         }
 
         std::suspend_always yield_value(R&& value)
@@ -53,10 +50,16 @@ private:
             return {};
         }
 
-        void return_void()
+        void return_value(R&& value)
         {
-            impl->done = true;
+            this->value = value;
         }
+
+        void return_value(const R& value)
+        {
+            this->value = value;
+        }
+
     };
 
     template <>
@@ -105,10 +108,6 @@ public:
 
         impl->handle.resume();
 
-        if (impl->done)
-        {
-            return false;
-        }
         return true;
     }
 
@@ -142,6 +141,7 @@ public:
     {
         explicit iterator(Coroutine* coroutine)
             : coroutine(coroutine)
+            , done(true)
         {
         }
 
@@ -152,22 +152,21 @@ public:
 
         iterator& operator++()
         {
-            coroutine->resume();
+            done = !coroutine->resume();
             return *this;
         }
 
-        iterator& operator++(int)
+        bool operator == (std::default_sentinel_t)
         {
-            coroutine->resume();
-            return *this;
-        }
-
-        bool operator == (std::default_sentinel_t) const
-        {
-            return coroutine->done();
+            if(true == done && true == coroutine->done())
+            {
+                return true;
+            }
+            return false;
         }
     private:
         Coroutine* coroutine;
+        bool done;
     };
 
     iterator begin()
