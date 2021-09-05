@@ -194,7 +194,6 @@ private:
     public:
         Impl(std::coroutine_handle<promise_type> handle)
             : handle(handle)
-            , done(false)
         {
         }
 
@@ -207,7 +206,6 @@ private:
         }
 
         std::coroutine_handle<promise_type> handle;
-        bool done;
     };
 
 private:
