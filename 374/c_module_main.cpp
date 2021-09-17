@@ -27,7 +27,16 @@ extern "C"
     // array parameter 사용
     EXPORT int accumulate(int* input, int size)
     {
-        std::cout << "call function " << __FUNCTION__ << "()" << std::endl;
+        std::cout << "call function " << __FUNCTION__ << "(";
+        for(int i=0; i<size; i++)
+        {
+            std::cout << *(input+i);
+            if(i < size-1)
+            {
+                std::cout << ", ";
+            }
+        }
+        std::cout << ")" << std::endl;
 
         std::vector<int> v(input, input + size);
         int result = std::accumulate(v.begin(), v.end(), 0u);
@@ -45,7 +54,7 @@ extern "C"
     // 구조체 parameter
     EXPORT int getarea(Rect* r)
     {
-        std::cout << "call function " << __FUNCTION__ << "()" << std::endl;
+        std::cout << "call function " << __FUNCTION__ << "(width:" << r->width << ", height:" << r->height << ")" << std::endl;
         return r->width * r->height;
     }
 }
