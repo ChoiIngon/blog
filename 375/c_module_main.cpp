@@ -7,12 +7,6 @@ int add(int a, int b)
     return a + b;
 }
 
-int sub(int a, int b)
-{
-    std::cout << __FUNCTION__ << "(" << a << ", " << b << ")" << std::endl;
-    return a - b;
-}
-
 PyObject* py_add(PyObject* self, PyObject* args)
 {
     PyTupleObject* tuple = (PyTupleObject*)args;
@@ -25,9 +19,14 @@ PyObject* py_add(PyObject* self, PyObject* args)
     return pyResult;
 }
 
+int sub(int a, int b)
+{
+    std::cout << __FUNCTION__ << "(" << a << ", " << b << ")" << std::endl;
+    return a - b;
+}
+
 PyObject* py_sub(PyObject* self, PyObject* args)
 {
-    PyTupleObject* tuple = (PyTupleObject*)args;
     int a = 0;
     int b = 0;
 
