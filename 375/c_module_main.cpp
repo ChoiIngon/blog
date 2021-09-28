@@ -41,24 +41,24 @@ PyObject* py_sub(PyObject* self, PyObject* args)
 }
 
 // 모듈에 있는 메소드의 정보(필수)
-PyMethodDef method_infos[] = {
+PyMethodDef method_defs[] = {
     {"add", py_add, METH_VARARGS /* 가변 인자를 의미*/, "Integer add" /*설명*/},
     {"sub", py_sub, METH_VARARGS, "Integer sub"},
     {nullptr, nullptr, 0, nullptr}
 };
 
 // 모듈 자체의 정보(필수)
-PyModuleDef module_info = {
+PyModuleDef module_def = {
     PyModuleDef_HEAD_INIT,
     "c_module",                 // 모듈 이름
     "document string",          // 모듈 설명
     -1,                         // Size of per-interpreter state 또는 그냥 -1
-    method_infos                // 메소드 정보를 담은 배열
+    method_defs                 // 메소드 정보를 담은 배열
 };
 
 // 모듈 초기화 함수
 // PyInit_XX
 PyMODINIT_FUNC PyInit_c_module()
 {
-    return PyModule_Create(&module_info);
+    return PyModule_Create(&module_def);
 }
