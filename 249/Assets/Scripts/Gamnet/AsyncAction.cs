@@ -9,12 +9,13 @@ namespace Gamnet
 {
 	public class AsyncAction
 	{
-		public AsyncAction(IEnumerator enumerator, Action action)
+		public AsyncAction(Session session, Action action)
 		{
 			Task.Run(() =>
 			{
+                IEnumerator enumerator = session.enumerator;
 				action();
-				CoroutineCompleteEvent evt = new CoroutineCompleteEvent(null, enumerator);
+				CoroutineCompleteEvent evt = new CoroutineCompleteEvent(session, enumerator);
 				SessionEventQueue.Instance.EnqueuEvent(evt);
 			});
 		}

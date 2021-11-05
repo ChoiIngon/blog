@@ -17,7 +17,6 @@ namespace Assets.Scripts
 
             Gamnet.Log.Init("log", "UnityServer", 1);
             Gamnet.ServerTest test = GetComponent<Gamnet.ServerTest>();
-            Gamnet.Log.Write(Gamnet.Log.LogLevel.ERR, $"test string");
             test?.Run();
         }
 

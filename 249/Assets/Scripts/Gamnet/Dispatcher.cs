@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -11,11 +12,13 @@ namespace Gamnet
         {
             return 0;
         }
-        public virtual IEnumerator<T> OnReceive(T session, Packet packet)
+        public virtual IEnumerator OnReceive(T session, Packet packet)
         {
             yield break;
         }
     }
+
+
     class Dispatcher<T> where T : ServerSession
     {
         private Dictionary<uint, PacketHandler<T>> handlers = new Dictionary<uint, PacketHandler<T>>();
@@ -41,7 +44,8 @@ namespace Gamnet
             {
                 return;
             }
-            packetHandler.OnReceive(session, packet);
+            session.enumerator = packetHandler.OnReceive(session, packet);
+            session.enumerator.MoveNext();
         }
     }
 }

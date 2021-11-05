@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Gamnet
@@ -10,7 +11,7 @@ namespace Gamnet
         private UInt32 recv_packet_seq = 0;
 
         public Action OnConnectEvent;
-
+        private IPEndPoint endPoint; // 자동 재접속을 위해
         public abstract class IPacketHandler
         {
             public abstract void OnReceive(Packet packet);

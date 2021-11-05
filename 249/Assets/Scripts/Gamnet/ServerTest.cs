@@ -17,15 +17,6 @@ namespace Gamnet
 
         private void Start()
         {
-            BinaryFormatter bf = new BinaryFormatter();
-            Assets.Scripts.Message message = new Assets.Scripts.Message();
-            message.greeting = "Hello World";
-
-            System.IO.MemoryStream ms = new System.IO.MemoryStream();
-            bf.Serialize(ms, message);
-            ms.Position = 0;
-            Assets.Scripts.Message message2 = (Assets.Scripts.Message)bf.Deserialize(ms);
-            Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, message2.greeting);
         }
 
         [EditorGUI(EditorGUIAttribute.GUIType.Button, "테스트 실행")]
@@ -46,9 +37,12 @@ namespace Gamnet
                 client.session.OnConnectEvent += () =>
                 {
                     Assets.Scripts.Message message = new Assets.Scripts.Message();
-                    message.Id = 1;
+
                     message.greeting = "Hello World";
-                    client.session.AsyncSend(message);
+                    Packet req = new Packet();
+                    req.Id = 1;
+                    req.Serialize(message);
+                    client.session.AsyncSend(req);
                 };
                 client.session.AsyncConnect(Host, Port);
             }

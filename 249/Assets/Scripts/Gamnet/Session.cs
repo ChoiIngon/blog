@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -22,8 +23,7 @@ namespace Gamnet
         public const int MAX_BUFFER_SIZE = 1024;
 
         public Socket socket;
-        private IPEndPoint endPoint; // 자동 재접속을 위해
-        private ConnectionState connectionState = ConnectionState.Close;
+        public ConnectionState state = ConnectionState.Close;
 
         private Timeout timeout = new Timeout();
         private System.Timers.Timer timer;
@@ -36,15 +36,19 @@ namespace Gamnet
         private List<Packet> sendQueue = new List<Packet>();
         private int sendQueueIndex;
         private UInt32 sendPacketSeq = 0;
+        private Connector connector;
+        public IEnumerator enumerator;
 
-        public ConnectionState State
-        {
-            get { return connectionState; }
-        }
 
         public Session(UInt32 sessionKey)
         {
             this.session_key = sessionKey;
+        }
+
+        public void AsyncConnect(string host, int port, int timeout_sec = 5)
+        {
+            this.connector = new Connector(this);
+            this.connector.AsyncConnect(host, port, timeout_sec);
         }
 
         #region Receive
@@ -111,48 +115,6 @@ namespace Gamnet
         }
         #endregion
 
-        public void AsyncConnect(string host, int port, int timeout_sec = 5)
-        {
-            IPAddress ipAddress = null;
-            try
-            {
-                ipAddress = IPAddress.Parse(host);
-            }
-            catch (System.FormatException)
-            {
-                IPHostEntry hostEntry = Dns.GetHostEntry(host);
-                if (hostEntry.AddressList.Length > 0)
-                {
-                    ipAddress = hostEntry.AddressList[0];
-                }
-            }
-
-            connectionState = ConnectionState.OnConnecting;
-            endPoint = new IPEndPoint(ipAddress, port);
-            socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            socket.BeginConnect(endPoint, new AsyncCallback(AsyncConnectCallback), null);
-        }
-
-        private void AsyncConnectCallback(IAsyncResult result)
-        {
-            try
-            {
-                socket.EndConnect(result);
-                socket.ReceiveBufferSize = Gamnet.Session.MAX_BUFFER_SIZE;
-                socket.SendBufferSize = Gamnet.Session.MAX_BUFFER_SIZE;
-                connectionState = ConnectionState.Connected;
-                //_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendTimeout, 10000);
-                //_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, 10000);
-
-                ConnectEvent evt = new ConnectEvent(this);
-                SessionEventQueue.Instance.EnqueuEvent(evt);
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError("[Session.Callback_Connect] exception:" + e.ToString());
-            }
-        }
-
         public void Error(System.Exception e)
         {
             ErrorEvent evt = new ErrorEvent(this);
@@ -165,7 +127,7 @@ namespace Gamnet
 
         public void Disconnect()
         {
-            if (ConnectionState.Close == this.State)
+            if (ConnectionState.Close == this.state)
             {
                 return;
             }
@@ -175,10 +137,10 @@ namespace Gamnet
                 return;
             }
 
-            Debug.Log($"[Session.Disconnect] session state:{State.ToString()}");
+            Debug.Log($"[Session.Disconnect] session state:{state.ToString()}");
             try
             {
-                connectionState = ConnectionState.Close;
+                state = ConnectionState.Close;
                 timer.Stop();
 
                 socket.BeginDisconnect(false, new AsyncCallback(DisconnectCallback), socket);
@@ -205,7 +167,7 @@ namespace Gamnet
             }
             catch (SocketException e)
             {
-                Debug.Log("[Session.Callback_Disconnect] session_state:" + State.ToString() + ", exception:" + e.ToString());
+                Debug.Log("[Session.Callback_Disconnect] session_state:" + state.ToString() + ", exception:" + e.ToString());
             }
         }
 
@@ -234,16 +196,6 @@ namespace Gamnet
             Packet packetToBeSent = sendQueue[sendQueueIndex];
             Buffer bufferToBeSend = packetToBeSent.buffer;
             socket.BeginSend(bufferToBeSend.ToByteArray(), 0, packetToBeSent.Length, 0, new AsyncCallback(AsyncSendCallback), null);
-        }
-        public void AsyncSend<T>(T msg) where T : Message
-        {
-            BinaryFormatter bf = new BinaryFormatter();
-            System.IO.MemoryStream ms = new System.IO.MemoryStream();
-            bf.Serialize(ms, msg);
-            Packet packet = new Packet();
-            packet.Id = msg.Id;
-            packet.Write(ms.GetBuffer());
-            AsyncSend(packet);
         }
 
         private void AsyncSendCallback(IAsyncResult result)
@@ -282,7 +234,7 @@ namespace Gamnet
             }
             catch (SocketException e)
             {
-                Debug.Log("[Session.Callback_Disconnect] session_state:" + State.ToString() + ", exception:" + e.ToString());
+                Debug.Log("[Session.Callback_Disconnect] session_state:" + state.ToString() + ", exception:" + e.ToString());
                 Error(e);
                 Disconnect();
             }

@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
+using System.Threading;
 
 namespace Assets.Scripts.Packet
 {
@@ -15,20 +11,22 @@ namespace Assets.Scripts.Packet
             return 1;
         }
 
-        public override IEnumerator<Gamnet.ServerSession> OnReceive(Gamnet.ServerSession session, Gamnet.Packet packet)
+        public override IEnumerator OnReceive(Gamnet.ServerSession session, Gamnet.Packet req)
         {
-            BinaryFormatter bf = new BinaryFormatter();
-            packet.buffer.ms.Position = Gamnet.Packet.HEADER_SIZE;
-            Assets.Scripts.Message message = (Assets.Scripts.Message)bf.Deserialize(packet.buffer.ms);
+            Assets.Scripts.Message message = req.Deserialize<Assets.Scripts.Message>();
 
             Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, message.greeting);
-            
+
+            yield return new Gamnet.AsyncAction(session, () =>
+            {
+                Thread.Sleep(1000);
+            });
+
             message.greeting = "Thanks";
-            System.IO.MemoryStream ms = new System.IO.MemoryStream();
-            bf.Serialize(ms, message);
+
             Gamnet.Packet ans = new Gamnet.Packet();
             ans.Id = 1;
-            ans.Write(ms.GetBuffer());
+            ans.Serialize(message);
             session.AsyncSend(ans);
             yield break;
         }

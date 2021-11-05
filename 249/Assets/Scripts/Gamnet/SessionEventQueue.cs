@@ -19,7 +19,7 @@ namespace Gamnet
     };
     public class CoroutineCompleteEvent : SessionEvent
     {
-        private IEnumerator enumerator;
+        IEnumerator enumerator;
         public CoroutineCompleteEvent(Session session, IEnumerator enumerator) : base(session)
         {
             this.enumerator = enumerator;
@@ -27,7 +27,7 @@ namespace Gamnet
 
 		public override void OnEvent()
 		{
-			
+            enumerator.MoveNext();
 		}
 	}
     public class AcceptEvent : SessionEvent

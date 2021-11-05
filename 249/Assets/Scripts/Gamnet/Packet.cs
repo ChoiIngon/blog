@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 
 namespace Gamnet
@@ -95,6 +96,25 @@ namespace Gamnet
             buffer.ms.Write(src, 0, src.Length);
             buffer.write_index += src.Length;
             Length = (ushort)(buffer.write_index);
+        }
+
+        public void Serialize(object src)
+        {
+            buffer.ms.Position = HEADER_SIZE;
+            BinaryFormatter bf = new BinaryFormatter();
+            bf.Serialize(buffer.ms, src);
+            buffer.write_index += (int)buffer.ms.Position - HEADER_SIZE;
+            Length = (ushort)(buffer.write_index);
+        }
+
+        public T Deserialize<T>()
+        {
+            buffer.ms.Position = HEADER_SIZE;
+            BinaryFormatter bf = new BinaryFormatter();
+
+            T obj = (T)bf.Deserialize(buffer.ms);
+
+            return obj;
         }
 
         public void Write(Boolean src) { byte[] bytes = BitConverter.GetBytes(src); Write(bytes); }

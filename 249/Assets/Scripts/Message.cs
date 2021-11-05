@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Assets.Scripts
 {
     [Serializable]
-    public class Message : Gamnet.Message
+    public class Message
     {
         public string greeting;
     }
