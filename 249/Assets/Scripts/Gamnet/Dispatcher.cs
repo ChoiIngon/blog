@@ -5,10 +5,16 @@ using System.Reflection;
 
 namespace Gamnet
 {
-    public interface PacketHandler<T> where T : ServerSession
+    public class PacketHandler<T> where T : ServerSession
     {
-        uint Id();
-        void OnReceive(T session, Packet packet);
+        public virtual uint Id()
+        {
+            return 0;
+        }
+        public virtual IEnumerator<T> OnReceive(T session, Packet packet)
+        {
+            yield break;
+        }
     }
     class Dispatcher<T> where T : ServerSession
     {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +17,19 @@ namespace Gamnet
         }
         public abstract void OnEvent();
     };
+    public class CoroutineCompleteEvent : SessionEvent
+    {
+        private IEnumerator enumerator;
+        public CoroutineCompleteEvent(Session session, IEnumerator enumerator) : base(session)
+        {
+            this.enumerator = enumerator;
+        }
+
+		public override void OnEvent()
+		{
+			
+		}
+	}
     public class AcceptEvent : SessionEvent
     {
         public AcceptEvent(Session session) : base(session) { }

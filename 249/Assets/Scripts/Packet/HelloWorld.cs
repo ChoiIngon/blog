@@ -10,19 +10,19 @@ namespace Assets.Scripts.Packet
 {
     class HelloWorld : Gamnet.PacketHandler<Gamnet.ServerSession>
     {
-        public uint Id()
+        public override uint Id()
         {
             return 1;
         }
 
-        public void OnReceive(Gamnet.ServerSession session, Gamnet.Packet packet)
+        public override IEnumerator<Gamnet.ServerSession> OnReceive(Gamnet.ServerSession session, Gamnet.Packet packet)
         {
             BinaryFormatter bf = new BinaryFormatter();
             packet.buffer.ms.Position = Gamnet.Packet.HEADER_SIZE;
             Assets.Scripts.Message message = (Assets.Scripts.Message)bf.Deserialize(packet.buffer.ms);
 
             Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, message.greeting);
-
+            
             message.greeting = "Thanks";
             System.IO.MemoryStream ms = new System.IO.MemoryStream();
             bf.Serialize(ms, message);
@@ -30,6 +30,7 @@ namespace Assets.Scripts.Packet
             ans.Id = 1;
             ans.Write(ms.GetBuffer());
             session.AsyncSend(ans);
+            yield break;
         }
     }
 }
