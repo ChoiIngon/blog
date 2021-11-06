@@ -16,7 +16,7 @@ namespace Assets
         // Update is called once per frame
         void Update()
         {
-            Gamnet.SessionEventQueue.Instance.Update();
+            session.Update();
         }
     }
 }

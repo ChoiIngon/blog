@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -42,6 +43,7 @@ namespace Gamnet
 
         private Dictionary<uint, IPacketHandler> handlers = new Dictionary<uint, IPacketHandler>();
 
+        public ConcurrentQueue<SessionEvent> sessionEventQueue = new ConcurrentQueue<SessionEvent>();
         public ClientSession() : base(++ClientSession.SESSION_KEY)
         {
         }
@@ -98,6 +100,20 @@ namespace Gamnet
         public void UnregisterHandler(uint msgId)
         {
             handlers.Remove(msgId);
+        }
+        public void Update()
+        {
+            SessionEvent evt;
+            while (true == sessionEventQueue.TryDequeue(out evt))
+            {
+                evt.OnEvent();
+            }
+        }
+
+        protected override void OnPacket(Packet packet)
+        {
+            ReceiveEvent evt = new ReceiveEvent(this, packet);
+            sessionEventQueue.Enqueue(evt);
         }
     }
 }

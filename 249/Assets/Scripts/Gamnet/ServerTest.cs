@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -19,7 +20,6 @@ namespace Gamnet
         {
         }
 
-        [EditorGUI(EditorGUIAttribute.GUIType.Button, "테스트 실행")]
         public void Run()
         {
             for (int i = 0; i < SessionCount; i++)
@@ -31,7 +31,10 @@ namespace Gamnet
                 client.session = new Gamnet.ClientSession();
                 client.session.RegisterHandler<Assets.Scripts.Message>(1, (Assets.Scripts.Message msg) =>
                 {
-                    Debug.Log(msg.greeting);
+                    Packet p = new Packet();
+                    p.Id = 2;
+                    p.Serialize(msg);
+                    client.session.AsyncSend(p);
                 });
 
                 client.session.OnConnectEvent += () =>

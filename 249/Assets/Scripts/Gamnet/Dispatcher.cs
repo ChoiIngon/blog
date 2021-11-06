@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEngine;
 
 namespace Gamnet
 {
@@ -39,13 +40,19 @@ namespace Gamnet
 
         public void OnReceive(T session, Packet packet)
         {
-            PacketHandler<T> packetHandler;
-            if (false == handlers.TryGetValue(packet.Id, out packetHandler))
+            Async.AsyncReceive asyncReceive;
+            if (true == session.async_receives.TryGetValue(packet.Id, out asyncReceive))
             {
+                asyncReceive.OnReceive(packet);
                 return;
             }
-            session.enumerator = packetHandler.OnReceive(session, packet);
-            session.enumerator.MoveNext();
+
+            PacketHandler<T> packetHandler;
+            if (true == handlers.TryGetValue(packet.Id, out packetHandler))
+            {
+                session.enumerator = packetHandler.OnReceive(session, packet);
+                session.enumerator.MoveNext();
+            }
         }
     }
 }

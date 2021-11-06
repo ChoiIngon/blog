@@ -20,12 +20,17 @@ namespace Gamnet
 
         public override void OnAccept()
         {
-            Debug.Log("OnAccept");
         }
 
         public override void OnClose()
         {
 
+        }
+
+        protected override void OnPacket(Packet packet)
+        {
+            ReceiveEvent evt = new ReceiveEvent(this, packet);
+            SessionEventQueue.Instance.EnqueuEvent(evt);
         }
     }
 }

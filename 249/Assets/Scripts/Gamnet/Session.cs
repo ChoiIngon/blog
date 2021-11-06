@@ -39,10 +39,11 @@ namespace Gamnet
         private Connector connector;
         public IEnumerator enumerator;
 
-
+        public Dictionary<uint, Async.AsyncReceive> async_receives;
         public Session(UInt32 sessionKey)
         {
             this.session_key = sessionKey;
+            this.async_receives = new Dictionary<uint, Async.AsyncReceive>();
         }
 
         public void AsyncConnect(string host, int port, int timeout_sec = 5)
@@ -103,12 +104,10 @@ namespace Gamnet
                     return;
                 }
 
-                timeout.UnsetTimeout(packet.Seq);
                 receiveBuffer.Remove(packet.Length);
                 receiveBuffer = new Buffer(receiveBuffer);
 
-                ReceiveEvent evt = new ReceiveEvent(this, packet);
-                SessionEventQueue.Instance.EnqueuEvent(evt);
+                OnPacket(packet);
             }
 
             AsyncReceive();
@@ -273,6 +272,11 @@ namespace Gamnet
         public virtual void OnError(System.Exception e)
         {
             throw new System.NotImplementedException("Session.OnError is not implemented");
+        }
+
+        protected virtual void OnPacket(Packet packet)
+        {
+            throw new System.NotImplementedException("Session.OnPacket is not implemented");
         }
     }
 }

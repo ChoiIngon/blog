@@ -17,19 +17,7 @@ namespace Gamnet
         }
         public abstract void OnEvent();
     };
-    public class CoroutineCompleteEvent : SessionEvent
-    {
-        IEnumerator enumerator;
-        public CoroutineCompleteEvent(Session session, IEnumerator enumerator) : base(session)
-        {
-            this.enumerator = enumerator;
-        }
 
-		public override void OnEvent()
-		{
-            enumerator.MoveNext();
-		}
-	}
     public class AcceptEvent : SessionEvent
     {
         public AcceptEvent(Session session) : base(session) { }
@@ -105,6 +93,7 @@ namespace Gamnet
             session.OnReceive(this.packet);
         }
     }
+
     public class SessionEventQueue
     {
         private ConcurrentQueue<SessionEvent> eventQueue = new ConcurrentQueue<SessionEvent>();

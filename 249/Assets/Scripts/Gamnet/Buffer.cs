@@ -91,18 +91,5 @@ namespace Gamnet
         {
             return ms.GetBuffer();
         }
-        /*
-        public static implicit operator byte[](Buffer src)
-        {
-            if (0 == src.Size())
-            {
-                return null;
-            }
-
-            byte[] dest = new byte[src.Size()];
-            System.Buffer.BlockCopy(src.ms.GetBuffer(), src.read_index, dest, 0, src.Size());
-            return dest;
-        }
-        */
     }
 }
