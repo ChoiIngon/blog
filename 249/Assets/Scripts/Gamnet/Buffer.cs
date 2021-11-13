@@ -13,11 +13,6 @@ namespace Gamnet
         public int write_index = 0;
         public int read_index = 0;
 
-        private static ObjectPool<Buffer> object_pool = new ObjectPool<Buffer>(() => new Buffer());
-        public static ObjectPool<Buffer>.Item<Buffer> Create()
-        {
-            return object_pool.Create();
-        }
         public Buffer()
         {
             ms = new System.IO.MemoryStream();

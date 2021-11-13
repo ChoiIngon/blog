@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
@@ -11,6 +12,7 @@ namespace Gamnet
 {
     public class ServerTest : MonoBehaviour
     {
+        public static Dictionary<string, Action<Assets.Client>> testcases = new Dictionary<string, Action<Assets.Client>>();
         public string Host;
         public int Port;
         public int SessionCount;
@@ -22,6 +24,7 @@ namespace Gamnet
 
         public void Run()
         {
+            /*
             for (int i = 0; i < SessionCount; i++)
             {
                 GameObject go = new GameObject();
@@ -49,8 +52,13 @@ namespace Gamnet
                 };
                 client.session.AsyncConnect(Host, Port);
             }
+            */
         }
 
+        public async void AsyncRun()
+        {
+
+        }
         private void Update()
         {
 

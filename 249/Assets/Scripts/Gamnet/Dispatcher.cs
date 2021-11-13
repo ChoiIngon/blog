@@ -7,6 +7,10 @@ using UnityEngine;
 
 namespace Gamnet
 {
+    class TestMethod : System.Attribute
+    {
+    }
+
     public class PacketHandler<T> where T : ServerSession
     {
         public virtual uint Id()
@@ -35,6 +39,21 @@ namespace Gamnet
             {
                 PacketHandler<T> packetHandler = Activator.CreateInstance(type) as PacketHandler<T>;
                 handlers.Add(packetHandler.Id(), packetHandler);
+
+                // 테스트 메소드들 자동 등록
+                MethodInfo[] methodInfos = type.GetMethods();
+                foreach (MethodInfo methodInfo in methodInfos)
+                {
+                    IEnumerable<Attribute> attributes = methodInfo.GetCustomAttributes();
+                    foreach (Attribute attr in attributes)
+                    {
+                        if (attr is TestMethod testMethod)
+                        {
+                            Action<Assets.Client> action = (Action<Assets.Client>)Delegate.CreateDelegate(typeof(Action<Assets.Client>), packetHandler, methodInfo);
+                            ServerTest.testcases.Add(methodInfo.Name, action);
+                        }
+                    }
+                }
             }
         }
 

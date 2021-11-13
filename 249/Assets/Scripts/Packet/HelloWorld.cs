@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using UnityEngine;
@@ -7,15 +8,31 @@ namespace Assets.Scripts.Packet
 {
     class HelloWorld : Gamnet.PacketHandler<Gamnet.ServerSession>
     {
+        public class Message1
+        {
+            public const uint MSG_ID = 1;
+            public string greeting;
+        }
+
+        public class Message2
+        {
+            public const uint MSG_ID = 2;
+            public string greeting;
+        }
+
+        public HelloWorld()
+        {
+            Debug.Log("HelloWorld");
+        }
+
         public override uint Id()
         {
-            return 1;
+            return Message1.MSG_ID;
         }
 
         public override IEnumerator OnReceive(Gamnet.ServerSession session, Gamnet.Packet packet)
         {
-            Assets.Scripts.Message req = packet.Deserialize<Assets.Scripts.Message>();
-
+            Message1 req = packet.Deserialize<Message1>();
             Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, req.greeting);
 
             var asyncTask = new Gamnet.Async.AsyncTask(session, () =>
@@ -23,30 +40,56 @@ namespace Assets.Scripts.Packet
                 // verrrry long term task
                 Thread.Sleep(1000);
             });
-            yield return asyncTask; // return. but resume again when the task finish.
 
+            yield return asyncTask; // suspend. but resume again when the task finish.
             if (null != asyncTask.Exception) // check result of task. if null. success.
             {
                 throw asyncTask.Exception;
             }
 
-            Assets.Scripts.Message ans = new Assets.Scripts.Message();
+            Message1 ans = new Message1();
             ans.greeting = "Thanks";
 
-            packet.Clear();
-            packet.Id = 1;
-            packet.Serialize(ans);
-            session.AsyncSend(packet);
+            Gamnet.Packet ansPacket = new Gamnet.Packet();
+            ansPacket.Clear();
+            ansPacket.Id = 1;
+            ansPacket.Serialize(ans);
+            session.AsyncSend(ansPacket);
 
-            var asyncReceive = new Gamnet.Async.AsyncReceive(session, 2, 1);
+            var asyncReceive = new Gamnet.Async.AsyncReceive(session, Message2.MSG_ID, 1);
             yield return asyncReceive;
             if (null != asyncReceive.Exception)
             {
-                Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, "timeout");
+                Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, asyncReceive.Exception.ToString());
+                yield break;
             }
 
-            Assets.Scripts.Message req2 = asyncReceive.Packet.Deserialize<Assets.Scripts.Message>();
-            Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, req2.greeting);
+            Message2 ntf = asyncReceive.Packet.Deserialize<Message2>();
+            Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, ntf.greeting);
+        }
+
+        [Gamnet.TestMethod]
+        public void Test_HelloWorld(Assets.Client client)
+        {
+            client.session.RegisterHandler<Message1>(Message1.MSG_ID, (Message1 ans) =>
+            {
+                client.session.UnregisterHandler(Message1.MSG_ID);
+
+                Message2 ntf = new Message2();
+                ntf.greeting = "fin";
+                Gamnet.Packet ntfPacket = new Gamnet.Packet();
+                ntfPacket.Id = Message2.MSG_ID;
+                ntfPacket.Serialize(ntf);
+                client.session.AsyncSend(ntfPacket);
+            });
+
+            Message1 req = new Message1();
+            req.greeting = "Hello";
+
+            Gamnet.Packet packet = new Gamnet.Packet();
+            packet.Id = Message1.MSG_ID;
+            packet.Serialize(req);
+            client.session.AsyncSend(packet);
         }
     }
 }
