@@ -69,7 +69,7 @@ namespace Assets.Scripts.Packet
         }
 
         [Gamnet.TestMethod]
-        public void Test_HelloWorld(Assets.Client client)
+        public void Test_HelloWorld(Gamnet.Client client)
         {
             client.session.RegisterHandler<Message1>(Message1.MSG_ID, (Message1 ans) =>
             {

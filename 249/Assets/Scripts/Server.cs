@@ -13,11 +13,8 @@ namespace Assets.Scripts
 
         void Start()
         {
-            server.Listen(4000, 8000);
-
             Gamnet.Log.Init("log", "UnityServer", 1);
-            Gamnet.ServerTest test = GetComponent<Gamnet.ServerTest>();
-            test?.Run();
+            server.Listen(4000, 8000);
         }
 
         private void Update()

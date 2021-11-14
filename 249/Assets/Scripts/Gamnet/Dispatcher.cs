@@ -49,8 +49,8 @@ namespace Gamnet
                     {
                         if (attr is TestMethod testMethod)
                         {
-                            Action<Assets.Client> action = (Action<Assets.Client>)Delegate.CreateDelegate(typeof(Action<Assets.Client>), packetHandler, methodInfo);
-                            ServerTest.testcases.Add(methodInfo.Name, action);
+                            //Action<Assets.Client> action = (Action<Assets.Client>)Delegate.CreateDelegate(typeof(Action<Assets.Client>), packetHandler, methodInfo);
+                            //ServerTest.testcases.Add(methodInfo.Name, action);
                         }
                     }
                 }

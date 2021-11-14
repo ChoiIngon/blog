@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
@@ -10,29 +11,26 @@ using UnityEngine;
 
 namespace Gamnet
 {
-    public class ServerTest : MonoBehaviour
+    public class ServerTest<T> where T : Gamnet.Client
     {
-        public static Dictionary<string, Action<Assets.Client>> testcases = new Dictionary<string, Action<Assets.Client>>();
         public string Host;
         public int Port;
         public int SessionCount;
         public int LoopCount;
+        public Dictionary<string, Action<T>> testcases = new Dictionary<string, Action<T>>();
+        private Dictionary<uint, T> clients = new Dictionary<uint, T>();
 
-        private void Start()
-        {
-        }
 
         public void Run()
         {
-            /*
             for (int i = 0; i < SessionCount; i++)
             {
                 GameObject go = new GameObject();
-                go.transform.SetParent(transform);
-
-                Assets.Client client = go.AddComponent<Assets.Client>();
+                T client = go.AddComponent<T>();
                 client.session = new Gamnet.ClientSession();
-                client.session.RegisterHandler<Assets.Scripts.Message>(1, (Assets.Scripts.Message msg) =>
+                clients.Add(client.session.session_key, client);
+                /*
+                client.session.RegisterHandler<.Message>(1, (Assets.Scripts.Message msg) =>
                 {
                     Packet p = new Packet();
                     p.Id = 2;
@@ -50,18 +48,9 @@ namespace Gamnet
                     req.Serialize(message);
                     client.session.AsyncSend(req);
                 };
+                */
                 client.session.AsyncConnect(Host, Port);
             }
-            */
-        }
-
-        public async void AsyncRun()
-        {
-
-        }
-        private void Update()
-        {
-
         }
     }
 }
