@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Net;
 using System.Runtime.Serialization.Formatters.Binary;
 
-namespace Gamnet
+namespace Gamnet.Client
 {
-    public class ClientSession : Gamnet.Session
+    public class Session : Gamnet.Session
     {
         private static UInt32 SESSION_KEY = 0;
         private UInt32 recv_packet_seq = 0;
@@ -20,8 +20,8 @@ namespace Gamnet
 
         public class PacketHandler<T> : IPacketHandler where T : new()
         {
-            private ClientSession session;
-            public PacketHandler(ClientSession session)
+            private Session session;
+            public PacketHandler(Session session)
             {
                 this.session = session;
             }
@@ -44,7 +44,7 @@ namespace Gamnet
         private Dictionary<uint, IPacketHandler> handlers = new Dictionary<uint, IPacketHandler>();
 
         public ConcurrentQueue<SessionEvent> sessionEventQueue = new ConcurrentQueue<SessionEvent>();
-        public ClientSession() : base(++ClientSession.SESSION_KEY)
+        public Session() : base(++Session.SESSION_KEY)
         {
         }
 

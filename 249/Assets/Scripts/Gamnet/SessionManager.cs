@@ -6,21 +6,24 @@ using System.Threading.Tasks;
 
 namespace Gamnet
 {
-    public class SessionManager
+    public interface ISessionManager
     {
-        private Dictionary<uint, ServerSession> sessions = new Dictionary<uint, ServerSession>();
-        public void Add(ServerSession session)
+        void Add(Session session);
+        void Remove(Session session);
+    }
+
+    public class SessionManager<T> : ISessionManager where T : Session
+    {
+        private Dictionary<uint, T> sessions = new Dictionary<uint, T>();
+        public void Add(Session session)
         {
-            sessions.Add(session.session_key, session);
+            T t_session = session as T;
+            sessions.Add(session.session_key, t_session);
         }
 
-        public void Remove(ServerSession session)
+        public void Remove(Session session)
         {
             sessions.Remove(session.session_key);
-        }
-
-        public virtual void Dispatch(ServerSession session, Packet packet)
-        {
         }
     }
 }

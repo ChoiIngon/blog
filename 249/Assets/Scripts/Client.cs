@@ -5,11 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace Gamnet
+namespace Assets.Scripts
 {
     public class Client : MonoBehaviour
     {
-        public ClientSession session = new ClientSession();
+        public Gamnet.Client.Session session = new Gamnet.Client.Session();
         private void Update()
         {
             session.Update();

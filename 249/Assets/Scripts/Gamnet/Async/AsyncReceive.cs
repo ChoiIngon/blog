@@ -37,7 +37,7 @@ namespace Gamnet.Async
         {
             this.Exception = new TimeoutException();
             TimeoutEvent evt = new TimeoutEvent(session, msgId, enumerator);
-            SessionEventQueue.Instance.EnqueuEvent(evt);
+            EventLoop.EnqueuEvent(evt);
         }
 
         public class TimeoutEvent : SessionEvent

@@ -50,7 +50,7 @@ namespace Gamnet
             //_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, 10000);
 
             ConnectEvent evt = new ConnectEvent(session);
-            SessionEventQueue.Instance.EnqueuEvent(evt);
+            EventLoop.EnqueuEvent(evt);
         }
     }
 }

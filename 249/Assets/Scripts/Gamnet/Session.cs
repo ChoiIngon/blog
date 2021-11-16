@@ -120,7 +120,7 @@ namespace Gamnet
             evt.exception = e;
             lock (this)
             {
-                SessionEventQueue.Instance.EnqueuEvent(evt);
+                EventLoop.EnqueuEvent(evt);
             }
         }
 
@@ -162,7 +162,7 @@ namespace Gamnet
                 socket.EndDisconnect(result);
 
                 CloseEvent evt = new CloseEvent(this);
-                SessionEventQueue.Instance.EnqueuEvent(evt);
+                EventLoop.EnqueuEvent(evt);
             }
             catch (SocketException e)
             {

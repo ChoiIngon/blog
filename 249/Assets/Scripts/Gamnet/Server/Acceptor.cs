@@ -4,19 +4,20 @@ using System.Net;
 using System.Net.Sockets;
 using UnityEngine;
 
-namespace Gamnet
+namespace Gamnet.Server
 {
-    public class Server<T> : SessionManager where T : ServerSession, new()
+    public class Acceptor<SESSION_T> where SESSION_T : Server.Session, new()
     {
         private Socket tcp_socket;
         private Socket udp_socket;
 
-        private Dispatcher<T> dispatcher = new Dispatcher<T>();
+        private SessionManager<SESSION_T> session_manager = new SessionManager<SESSION_T>();
+        private Dispatcher<SESSION_T> dispatcher = new Dispatcher<SESSION_T>();
 
         public int MaxSessionCount;
 
         System.Timers.Timer timer = new System.Timers.Timer();
-        public void Listen(int port, int maxSessionCount)
+        public void Init(int port, int maxSessionCount)
         {
             dispatcher.Init();
 
@@ -36,27 +37,27 @@ namespace Gamnet
         {
             Socket clientSocket = tcp_socket.EndAccept(ar);
 
-            T session = new T();
+            SESSION_T session = new SESSION_T();
             session.socket = clientSocket;
-            session.session_manager = this;
+            session.session_manager = session_manager;
+            session.dispatcher = dispatcher;
 
-            Add(session);
+            session_manager.Add(session);
 
             tcp_socket.BeginAccept(AcceptCallback, null);
 
             SessionEvent evt = new AcceptEvent(session);
-            SessionEventQueue.Instance.EnqueuEvent(evt);
+            EventLoop.EnqueuEvent(evt);
         }
 
-        public void Update()
+        public class AcceptEvent : SessionEvent
         {
-            SessionEventQueue.Instance.Update();
-        }
-
-        public override void Dispatch(ServerSession session, Packet packet)
-        {
-            T session_t = session as T;
-            dispatcher.OnReceive(session_t, packet);
+            public AcceptEvent(Session session) : base(session) { }
+            public override void OnEvent()
+            {
+                session.AsyncReceive();
+                session.OnAccept();
+            }
         }
     }
 }

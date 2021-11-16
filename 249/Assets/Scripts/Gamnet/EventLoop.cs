@@ -18,15 +18,6 @@ namespace Gamnet
         public abstract void OnEvent();
     };
 
-    public class AcceptEvent : SessionEvent
-    {
-        public AcceptEvent(Session session) : base(session) { }
-        public override void OnEvent()
-        {
-            session.AsyncReceive();
-            session.OnAccept();
-        }
-    }
     public class ConnectEvent : SessionEvent
     {
         public ConnectEvent(Session session) : base(session) { }
@@ -94,28 +85,23 @@ namespace Gamnet
         }
     }
 
-    public class SessionEventQueue
+    public class EventLoop
     {
         private ConcurrentQueue<SessionEvent> eventQueue = new ConcurrentQueue<SessionEvent>();
-        static private SessionEventQueue instance = new SessionEventQueue();
-        static public SessionEventQueue Instance
-        {
-            get
-            {
-                return instance;
-            }
-        }
-        public void Update()
+        static private EventLoop instance = new EventLoop();
+
+        static public void Update()
         {
             SessionEvent evt;
-            while (true == eventQueue.TryDequeue(out evt))
+            while (true == instance.eventQueue.TryDequeue(out evt))
             {
                 evt.OnEvent();
             }
         }
-        public void EnqueuEvent(SessionEvent evt)
+
+        public static void EnqueuEvent(SessionEvent evt)
         {
-            eventQueue.Enqueue(evt);
+            instance.eventQueue.Enqueue(evt);
         }
     }
 }

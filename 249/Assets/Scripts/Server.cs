@@ -9,17 +9,25 @@ namespace Assets.Scripts
 {
     public class Server : MonoBehaviour
     {
-        Gamnet.Server<Gamnet.ServerSession> server = new Gamnet.Server<Gamnet.ServerSession>();
+        Gamnet.Server.Acceptor<Session> acceptor = new Gamnet.Server.Acceptor<Session>();
 
+        Gamnet.ServerTest<Test.Client> test = new Gamnet.ServerTest<Test.Client>();
         void Start()
         {
             Gamnet.Log.Init("log", "UnityServer", 1);
-            server.Listen(4000, 8000);
+            acceptor.Init(4000, 8000);
+
+            test.Host = "127.0.0.1";
+            test.Port = 4000;
+            test.SessionCount = 1;
+            test.LoopCount = 1;
+            test.Init();
+            test.Run();
         }
 
         private void Update()
         {
-            server.Update();
+            Gamnet.EventLoop.Update();
         }
     }
 }

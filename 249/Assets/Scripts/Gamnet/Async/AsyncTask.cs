@@ -15,7 +15,7 @@ namespace Gamnet.Async
             {
                 action();
                 AsyncTaskCompleteEvent evt = new AsyncTaskCompleteEvent(session, enumerator);
-                SessionEventQueue.Instance.EnqueuEvent(evt);
+                EventLoop.EnqueuEvent(evt);
             });
         }
 

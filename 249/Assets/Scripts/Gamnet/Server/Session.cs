@@ -2,20 +2,20 @@
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 
-namespace Gamnet
+namespace Gamnet.Server
 {
-    public class ServerSession : Gamnet.Session
+    public class Session : Gamnet.Session
     {
         static UInt32 SESSION_KEY = 0;
-        public SessionManager session_manager;
-
-        public ServerSession() : base(++SESSION_KEY)
+        public ISessionManager session_manager;
+        public IDispatcher dispatcher;
+        public Session() : base(++SESSION_KEY)
         {
         }
 
         public override void OnReceive(Packet packet)
         {
-            session_manager.Dispatch(this, packet);
+            dispatcher.OnReceive(this, packet);
         }
 
         public override void OnAccept()
@@ -30,7 +30,7 @@ namespace Gamnet
         protected override void OnPacket(Packet packet)
         {
             ReceiveEvent evt = new ReceiveEvent(this, packet);
-            SessionEventQueue.Instance.EnqueuEvent(evt);
+            EventLoop.EnqueuEvent(evt);
         }
     }
 }
