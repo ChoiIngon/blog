@@ -2,7 +2,7 @@
 using System;
 using UnityEngine;
 
-namespace Gamnet.Test
+namespace Gamnet.Simulation
 {
     public class Client : MonoBehaviour
     {
@@ -11,6 +11,10 @@ namespace Gamnet.Test
 
         public void MoveNext()
         {
+        }
+        private void Update()
+        {
+            session.Update();
         }
     }
 }

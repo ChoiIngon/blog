@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Assets.Scripts.Packet
 {
-    class HelloWorld : Gamnet.Server.PacketHandler<Gamnet.Server.Session>
+    class HelloWorld : Gamnet.Server.PacketHandler<Session>
     {
         [Serializable]
         public class Message1
@@ -32,7 +32,7 @@ namespace Assets.Scripts.Packet
             return Message1.MSG_ID;
         }
 
-        public override IEnumerator OnReceive(Gamnet.Server.Session session, Gamnet.Packet packet)
+        public override IEnumerator OnReceive(Session session, Gamnet.Packet packet)
         {
             Message1 req = packet.Deserialize<Message1>();
             Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, req.greeting);
@@ -71,7 +71,7 @@ namespace Assets.Scripts.Packet
         }
 
         [Gamnet.Server.TestMethod]
-        public void Test_HelloWorld(Assets.Scripts.Test.Client client)
+        public void Test_HelloWorld(Assets.Scripts.Simulator.Client client)
         {
             client.session.RegisterHandler<Message1>(Message1.MSG_ID, (Message1 ans) =>
             {

@@ -11,16 +11,15 @@ namespace Gamnet.Server
     {
     }
 
-    public abstract class IPacketHandler
+    public interface IPacketHandler
+    {
+    }
+
+    public abstract class PacketHandler<T> : IPacketHandler where T : Server.Session
     {
         public abstract uint Id();
-
-    }
-    public abstract class PacketHandler<T> : IPacketHandler where T : Session
-    {
         public abstract IEnumerator OnReceive(T session, Packet packet);
     }
-
 
     public interface IDispatcher
     {
@@ -33,10 +32,12 @@ namespace Gamnet.Server
         {
             handlers.Clear();
 
+            string exeAssemblyName = Assembly.GetExecutingAssembly().GetName().Name;
             AppDomain currentDomain = AppDomain.CurrentDomain;
             Assembly[] assems = currentDomain.GetAssemblies();
+            IEnumerable<Assembly> executingAssembly = assems.Where(a => a.GetName().Name.Equals(exeAssemblyName));
 
-            IEnumerable<Type> childrenTypes = assems.SelectMany(s => s.GetTypes()).Where(p => typeof(PacketHandler<T>).IsAssignableFrom(p));
+            IEnumerable<Type> childrenTypes = executingAssembly.SelectMany(s => s.GetTypes()).Where(p => typeof(PacketHandler<T>).IsAssignableFrom(p) && p.IsClass);
             foreach (var type in childrenTypes)
             {
                 PacketHandler<T> packetHandler = Activator.CreateInstance(type) as PacketHandler<T>;

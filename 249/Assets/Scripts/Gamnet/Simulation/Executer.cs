@@ -9,29 +9,48 @@ using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace Gamnet
+namespace Gamnet.Simulation
 {
-    public class ServerTest<T> where T : Gamnet.Test.Client
+    public class Simulator
+    {
+        private static IExecuter executer;
+
+        public static void Init<CLIENT_T>(string host, int port, int sessionCount, int loopCount) where CLIENT_T : Gamnet.Simulation.Client
+        {
+            Executer<CLIENT_T> exec = new Executer<CLIENT_T>();
+            exec.Host = host;
+            exec.Port = port;
+            exec.SessionCount = sessionCount;
+            exec.LoopCount = loopCount;
+            exec.Init();
+            executer = exec;
+            exec.Run();
+        }
+    }
+
+    public interface IExecuter
+    {
+    }
+    public class Executer<CLIENT_T> : IExecuter where CLIENT_T : Gamnet.Simulation.Client
     {
         public string Host;
         public int Port;
         public int SessionCount;
         public int LoopCount;
-        public Dictionary<string, Action<T>> testcases = new Dictionary<string, Action<T>>();
-        private Dictionary<uint, T> clients = new Dictionary<uint, T>();
-        public List<Action<T>> executes = new List<Action<T>>();
+        public Dictionary<string, Action<CLIENT_T>> testcases = new Dictionary<string, Action<CLIENT_T>>();
+        private Dictionary<uint, CLIENT_T> clients = new Dictionary<uint, CLIENT_T>();
+        public List<Action<CLIENT_T>> executes = new List<Action<CLIENT_T>>();
 
         public void Init()
         {
+            string exeAssemblyName = Assembly.GetExecutingAssembly().GetName().Name;
             AppDomain currentDomain = AppDomain.CurrentDomain;
             Assembly[] assems = currentDomain.GetAssemblies();
+            IEnumerable<Assembly> executingAssembly = assems.Where(a => a.GetName().Name.Equals(exeAssemblyName));
 
-            IEnumerable<Type> childrenTypes = assems.SelectMany(s => s.GetTypes()).Where(p => typeof(Server.IPacketHandler).IsAssignableFrom(p) && p.IsClass && false == p.IsAbstract);
+            IEnumerable<Type> childrenTypes = executingAssembly.SelectMany(s => s.GetTypes()).Where(p => typeof(Server.IPacketHandler).IsAssignableFrom(p) && p.IsClass);
             foreach (var type in childrenTypes)
             {
-                Debug.Log(type.Name);
-                Server.IPacketHandler obj = Activator.CreateInstance(type) as Server.IPacketHandler;
-
                 // 테스트 메소드들 자동 등록
                 MethodInfo[] methodInfos = type.GetMethods();
                 foreach (MethodInfo methodInfo in methodInfos)
@@ -41,7 +60,8 @@ namespace Gamnet
                     {
                         if (attr is Server.TestMethod testMethod)
                         {
-                            Action<T> action = (Action<T>)Delegate.CreateDelegate(typeof(Action<T>), obj, methodInfo);
+                            object obj = Activator.CreateInstance(type) as object;
+                            Action<CLIENT_T> action = (Action<CLIENT_T>)Delegate.CreateDelegate(typeof(Action<CLIENT_T>), obj, methodInfo);
                             testcases.Add(methodInfo.Name, action);
                         }
                     }
@@ -56,19 +76,10 @@ namespace Gamnet
             for (int i = 0; i < SessionCount; i++)
             {
                 GameObject go = new GameObject();
-                T client = go.AddComponent<T>();
+                CLIENT_T client = go.AddComponent<CLIENT_T>();
 
                 clients.Add(client.session.session_key, client);
-                /*
-                client.session.RegisterHandler<.Message>(1, (Assets.Scripts.Message msg) =>
-                {
-                    Packet p = new Packet();
-                    p.Id = 2;
-                    p.Serialize(msg);
-                    client.session.AsyncSend(p);
-                });
 
-                */
                 client.session.OnConnectEvent += () =>
                 {
                     executes[0](client);

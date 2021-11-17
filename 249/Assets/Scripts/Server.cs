@@ -11,18 +11,16 @@ namespace Assets.Scripts
     {
         Gamnet.Server.Acceptor<Session> acceptor = new Gamnet.Server.Acceptor<Session>();
 
-        Gamnet.ServerTest<Test.Client> test = new Gamnet.ServerTest<Test.Client>();
         void Start()
         {
             Gamnet.Log.Init("log", "UnityServer", 1);
             acceptor.Init(4000, 8000);
 
-            test.Host = "127.0.0.1";
-            test.Port = 4000;
-            test.SessionCount = 1;
-            test.LoopCount = 1;
-            test.Init();
-            test.Run();
+            Assets.Scripts.Simulator test = GetComponent<Assets.Scripts.Simulator>();
+            if (null != test)
+            {
+                Gamnet.Simulation.Simulator.Init<Assets.Scripts.Simulator.Client>("127.0.0.1", 4000, 1, 1);
+            }
         }
 
         private void Update()
