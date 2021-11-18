@@ -26,8 +26,8 @@ namespace Gamnet
         public ConnectionState state = ConnectionState.Close;
 
         private Timeout timeout = new Timeout();
-        private System.Timers.Timer timer;
-        private int timeoutInterval = 5000; // 비동기 connect 실패 시간. 5초
+        //private System.Timers.Timer timer;
+        //private int timeoutInterval = 5000; // 비동기 connect 실패 시간. 5초
 
         private byte[] receiveBytes = new byte[MAX_BUFFER_SIZE];
         private Buffer receiveBuffer = new Buffer();
@@ -36,7 +36,7 @@ namespace Gamnet
         private List<Packet> sendQueue = new List<Packet>();
         private int sendQueueIndex;
         private UInt32 sendPacketSeq = 0;
-        private Connector connector;
+
         public IEnumerator enumerator;
 
         public Dictionary<uint, Async.AsyncReceive> async_receives;
@@ -44,12 +44,6 @@ namespace Gamnet
         {
             this.session_key = sessionKey;
             this.async_receives = new Dictionary<uint, Async.AsyncReceive>();
-        }
-
-        public void AsyncConnect(string host, int port, int timeout_sec = 5)
-        {
-            this.connector = new Connector(this);
-            this.connector.AsyncConnect(host, port, timeout_sec);
         }
 
         #region Receive
@@ -64,7 +58,7 @@ namespace Gamnet
             {
                 Debug.LogError($"[Session.Receive] exception:{e.ToString()}");
                 Error(e);
-                Disconnect();
+                Close();
             }
         }
         void AsyncReceiveCallback(IAsyncResult result)
@@ -74,16 +68,19 @@ namespace Gamnet
                 Int32 recvBytesSize = socket.EndReceive(result);
                 if (0 == recvBytesSize)
                 {
-                    Disconnect();
+                    Close();
                     return;
                 }
                 receiveBuffer.Append(this.receiveBytes, 0, recvBytesSize);
+            }
+            catch (System.ObjectDisposedException)
+            {
             }
             catch (SocketException e)
             {
                 Debug.LogError($"[Session.AsyncReceiveCallback] exception:{e.ToString()}");
                 Error(e);
-                Disconnect();
+                Close();
                 return;
             }
 
@@ -107,7 +104,8 @@ namespace Gamnet
                 receiveBuffer.Remove(packet.Length);
                 receiveBuffer = new Buffer(receiveBuffer);
 
-                OnPacket(packet);
+                ReceiveEvent evt = new ReceiveEvent(this, packet);
+                EventLoop.EnqueuEvent(evt);
             }
 
             AsyncReceive();
@@ -124,7 +122,7 @@ namespace Gamnet
             }
         }
 
-        public void Disconnect()
+        public void Close()
         {
             if (ConnectionState.Close == this.state)
             {
@@ -136,13 +134,12 @@ namespace Gamnet
                 return;
             }
 
-            Debug.Log($"[Session.Disconnect] session state:{state.ToString()}");
             try
             {
                 state = ConnectionState.Close;
-                timer.Stop();
+                //timer.Stop();
 
-                socket.BeginDisconnect(false, new AsyncCallback(DisconnectCallback), socket);
+                socket.BeginDisconnect(false, new AsyncCallback(CloseCallback), socket);
             }
             catch (SocketException e)
             {
@@ -155,7 +152,7 @@ namespace Gamnet
             }
         }
 
-        private void DisconnectCallback(IAsyncResult result)
+        private void CloseCallback(IAsyncResult result)
         {
             try
             {
@@ -235,12 +232,10 @@ namespace Gamnet
             {
                 Debug.Log("[Session.Callback_Disconnect] session_state:" + state.ToString() + ", exception:" + e.ToString());
                 Error(e);
-                Disconnect();
+                Close();
             }
         }
-        public virtual void OnReceive(Packet packet)
-        {
-        }
+
         public virtual void OnAccept()
         {
             throw new System.NotImplementedException("Session.OnAccept is not implemented");
@@ -274,7 +269,26 @@ namespace Gamnet
             throw new System.NotImplementedException("Session.OnError is not implemented");
         }
 
-        protected virtual void OnPacket(Packet packet)
+        public class ReceiveEvent : SessionEvent
+        {
+            private Packet packet;
+            public ReceiveEvent(Session session, Packet packet) : base(session)
+            {
+                this.packet = packet;
+            }
+
+            public override void OnEvent()
+            {
+                session.OnReceive(this.packet);
+            }
+        }
+        public virtual void OnReceive(Packet packet)
+        {
+            throw new System.NotImplementedException("Session.OnReceive is not implemented");
+        }
+
+        // 비동기 영역에서 호출.
+        protected virtual void OnAsyncReceive(Packet packet)
         {
             throw new System.NotImplementedException("Session.OnPacket is not implemented");
         }

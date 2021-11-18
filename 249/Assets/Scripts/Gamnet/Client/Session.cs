@@ -12,7 +12,7 @@ namespace Gamnet.Client
         private UInt32 recv_packet_seq = 0;
 
         public Action OnConnectEvent;
-        private IPEndPoint endPoint; // 자동 재접속을 위해
+        private Connector connector;
         public abstract class IPacketHandler
         {
             public abstract void OnReceive(Packet packet);
@@ -46,8 +46,13 @@ namespace Gamnet.Client
         public ConcurrentQueue<SessionEvent> sessionEventQueue = new ConcurrentQueue<SessionEvent>();
         public Session() : base(++Session.SESSION_KEY)
         {
+            this.connector = new Connector(this);
         }
 
+        public void AsyncConnect(string host, int port, int timeout_sec = 5)
+        {
+            this.connector.AsyncConnect(host, port, timeout_sec);
+        }
         public override void OnConnect()
         {
             this?.OnConnectEvent();
@@ -110,10 +115,18 @@ namespace Gamnet.Client
             }
         }
 
-        protected override void OnPacket(Packet packet)
+        public override void OnPause()
         {
-            ReceiveEvent evt = new ReceiveEvent(this, packet);
-            sessionEventQueue.Enqueue(evt);
+            socket.Close();
+        }
+
+        public override void OnResume()
+        {
+        }
+
+        public override void OnClose()
+        {
+            socket.Close();
         }
     }
 }

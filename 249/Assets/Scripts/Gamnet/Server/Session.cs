@@ -26,11 +26,5 @@ namespace Gamnet.Server
         {
 
         }
-
-        protected override void OnPacket(Packet packet)
-        {
-            ReceiveEvent evt = new ReceiveEvent(this, packet);
-            EventLoop.EnqueuEvent(evt);
-        }
     }
 }

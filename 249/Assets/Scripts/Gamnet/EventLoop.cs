@@ -71,20 +71,6 @@ namespace Gamnet
         }
     }
 
-    public class ReceiveEvent : SessionEvent
-    {
-        private Packet packet;
-        public ReceiveEvent(Session session, Packet packet) : base(session)
-        {
-            this.packet = packet;
-        }
-
-        public override void OnEvent()
-        {
-            session.OnReceive(this.packet);
-        }
-    }
-
     public class EventLoop
     {
         private ConcurrentQueue<SessionEvent> eventQueue = new ConcurrentQueue<SessionEvent>();
