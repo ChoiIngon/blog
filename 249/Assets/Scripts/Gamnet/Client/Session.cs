@@ -8,17 +8,12 @@ namespace Gamnet.Client
 {
     public class Session : Gamnet.Session
     {
-        private static UInt32 SESSION_KEY = 0;
-        private UInt32 recv_packet_seq = 0;
-
-        public Action OnConnectEvent;
-        private Connector connector;
-        public abstract class IPacketHandler
+        private abstract class IPacketHandler
         {
             public abstract void OnReceive(Packet packet);
         }
 
-        public class PacketHandler<T> : IPacketHandler where T : new()
+        private class PacketHandler<T> : IPacketHandler where T : new()
         {
             private Session session;
             public PacketHandler(Session session)
@@ -41,9 +36,13 @@ namespace Gamnet.Client
             }
         }
 
-        private Dictionary<uint, IPacketHandler> handlers = new Dictionary<uint, IPacketHandler>();
+        public          Action OnConnectEvent;
+        public          Action<System.Exception> OnErrorEvent;
+        private static  UInt32 SESSION_KEY = 0;
+        private         UInt32 recv_packet_seq = 0;
+        private         Connector connector;
+        private         Dictionary<uint, IPacketHandler> handlers = new Dictionary<uint, IPacketHandler>();
 
-        public ConcurrentQueue<SessionEvent> sessionEventQueue = new ConcurrentQueue<SessionEvent>();
         public Session() : base(++Session.SESSION_KEY)
         {
             this.connector = new Connector(this);
@@ -53,12 +52,44 @@ namespace Gamnet.Client
         {
             this.connector.AsyncConnect(host, port, timeout_sec);
         }
-        public override void OnConnect()
+
+        public void RegisterHandler<T>(uint msgId, Action<T> handler) where T : new()
+        {
+            PacketHandler<T> packetHandler = null;
+
+            if (true == handlers.ContainsKey(msgId))
+            {
+                packetHandler = (PacketHandler<T>)handlers[msgId];
+            }
+            else
+            {
+                packetHandler = new PacketHandler<T>(this);
+                handlers.Add(msgId, packetHandler);
+            }
+            packetHandler.onReceive += handler;
+        }
+
+        public void UnregisterHandler(uint msgId)
+        {
+            handlers.Remove(msgId);
+        }
+
+        public void Pause()
+        {
+            OnPause();
+        }
+
+        public void Resume()
+        {
+            OnResume();
+        }
+
+        protected override void OnConnect()
         {
             this?.OnConnectEvent();
         }
 
-        public override void OnReceive(Packet packet)
+        protected override void OnReceive(Packet packet)
         {
             try
             {
@@ -86,47 +117,23 @@ namespace Gamnet.Client
             }
         }
 
-        public void RegisterHandler<T>(uint msgId, Action<T> handler) where T : new()
-        {
-            PacketHandler<T> packetHandler = null;
-
-            if (true == handlers.ContainsKey(msgId))
-            {
-                packetHandler = (PacketHandler<T>)handlers[msgId];
-            }
-            else
-            {
-                packetHandler = new PacketHandler<T>(this);
-                handlers.Add(msgId, packetHandler);
-            }
-            packetHandler.onReceive += handler;
-        }
-
-        public void UnregisterHandler(uint msgId)
-        {
-            handlers.Remove(msgId);
-        }
-        public void Update()
-        {
-            SessionEvent evt;
-            while (true == sessionEventQueue.TryDequeue(out evt))
-            {
-                evt.OnEvent();
-            }
-        }
-
-        public override void OnPause()
+        protected override void OnPause()
         {
             socket.Close();
         }
 
-        public override void OnResume()
+        protected override void OnResume()
         {
         }
 
-        public override void OnClose()
+        protected override void OnClose()
         {
-            socket.Close();
+
+        }
+
+        protected override void OnError(Exception e)
+        {
+            Log.Write(Log.LogLevel.ERR, e.ToString());
         }
     }
 }

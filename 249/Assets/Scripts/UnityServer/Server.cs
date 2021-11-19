@@ -11,6 +11,15 @@ namespace UnityServer
     {
         public class Session : Gamnet.Server.Session
         {
+            protected override void OnClose()
+            {
+                Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, "server session closed");
+            }
+
+            protected override void OnError(Exception e)
+            {
+
+            }
         }
 
         Gamnet.Server.Acceptor<Session> acceptor = new Gamnet.Server.Acceptor<Session>();

@@ -56,14 +56,17 @@ namespace Gamnet.Server
             if (true == session.async_receives.TryGetValue(packet.Id, out asyncReceive))
             {
                 asyncReceive.OnReceive(packet);
+                session.async_receives.Remove(packet.Id);
+                session.current_coroutine = asyncReceive.coroutine;
+                session.current_coroutine.MoveNext();
                 return;
             }
 
             PacketHandler<T> packetHandler;
             if (true == handlers.TryGetValue(packet.Id, out packetHandler))
             {
-                session.enumerator = packetHandler.OnReceive(session, packet);
-                session.enumerator.MoveNext();
+                session.current_coroutine = packetHandler.OnReceive(session, packet);
+                session.current_coroutine.MoveNext();
             }
         }
     }

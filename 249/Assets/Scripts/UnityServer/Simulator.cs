@@ -4,15 +4,15 @@ namespace UnityServer
 {
     public class Simulator : MonoBehaviour
     {
+        public class Client : Gamnet.Simulation.Client
+        {
+            public int number;
+        }
         public string Host;
         public int Port;
         public int SessionCount;
         public int LoopCount;
         public string[] ScenarioNames;
-        public class Client : Gamnet.Simulation.Client
-        {
-            public int number;
-        }
 
         public void Init()
         {

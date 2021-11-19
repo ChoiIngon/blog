@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 
 namespace Gamnet.Async
@@ -11,26 +9,35 @@ namespace Gamnet.Async
     {
         public AsyncTask(Session session, Action action) : base(session)
         {
+            /*
+            if (Session.State.Connected != session.state)
+            {
+                this.Exception = new SocketException();
+                session.current_coroutine = coroutine;
+                session.current_coroutine.MoveNext();
+                return;
+            }
+            */
             Task.Run(() =>
             {
                 action();
-                AsyncTaskCompleteEvent evt = new AsyncTaskCompleteEvent(session, enumerator);
+                AsyncTaskCompleteEvent evt = new AsyncTaskCompleteEvent(session, coroutine);
                 EventLoop.EnqueuEvent(evt);
             });
         }
 
-        public class AsyncTaskCompleteEvent : SessionEvent
+        public class AsyncTaskCompleteEvent : Session.SessionEvent
         {
-            IEnumerator enumerator;
-            public AsyncTaskCompleteEvent(Session session, IEnumerator enumerator) : base(session)
+            IEnumerator coroutine;
+            public AsyncTaskCompleteEvent(Session session, IEnumerator coroutine) : base(session)
             {
-                this.enumerator = enumerator;
+                this.coroutine = coroutine;
             }
 
             public override void OnEvent()
             {
-                session.enumerator = enumerator;
-                enumerator.MoveNext();
+                session.current_coroutine = coroutine;
+                session.current_coroutine.MoveNext();
             }
         }
     }

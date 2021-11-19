@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Net.Sockets;
 using System.Timers;
 
 namespace Gamnet.Async
@@ -12,6 +13,15 @@ namespace Gamnet.Async
 
         public AsyncReceive(Session session, uint msgId, int expireTime) : base(session)
         {
+            /*
+            if (Session.State.Connected != session.state)
+            {
+                this.Exception = new SocketException();
+                session.current_coroutine = coroutine;
+                session.current_coroutine.MoveNext();
+                return;
+            }
+            */
             this.msgId = msgId;
 
             timer = new Timer();
@@ -28,19 +38,26 @@ namespace Gamnet.Async
             timer.Stop();
             timer.Dispose();
             this.Packet = packet;
-            enumerator.MoveNext();
-            session.enumerator = enumerator;
-            session.async_receives.Remove(msgId);
         }
 
-        public void OnTimeout()
+        public void Cancel()
+        {
+            timer.Stop();
+            timer.Dispose();
+            this.Packet = null;
+            this.Exception = new OperationCanceledException();
+            session.current_coroutine = coroutine;
+            session.current_coroutine.MoveNext();
+        }
+
+        private void OnTimeout()
         {
             this.Exception = new TimeoutException();
-            TimeoutEvent evt = new TimeoutEvent(session, msgId, enumerator);
+            TimeoutEvent evt = new TimeoutEvent(session, msgId, coroutine);
             EventLoop.EnqueuEvent(evt);
         }
 
-        public class TimeoutEvent : SessionEvent
+        private class TimeoutEvent : Session.SessionEvent
         {
             uint msgId;
             IEnumerator enumerator;

@@ -8,8 +8,10 @@ namespace Gamnet.Simulation
     {
         public Gamnet.Client.Session session = new Gamnet.Client.Session();
         private int scenario_index;
+        private int loop_count;
         public string Host;
         public int Port;
+
         private void Start()
         {
             session.AsyncConnect(Host, Port);
@@ -19,16 +21,17 @@ namespace Gamnet.Simulation
         {
             if (true == pause)
             {
-                session.OnPause();
+                session.Pause();
             }
             else
             {
-                session.OnResume();
+                session.Resume();
             }
         }
+
         private void OnApplicationQuit()
         {
-            session.OnClose();
+            session.Close();
         }
 
         public void AsyncConnect(string host, int port)
@@ -45,10 +48,6 @@ namespace Gamnet.Simulation
         {
             scenario_index++;
             Simulator.Execute(scenario_index, this);
-        }
-        private void Update()
-        {
-            session.Update();
         }
     }
 }

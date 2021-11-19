@@ -60,7 +60,7 @@ namespace UnityServer.Packet
             session.AsyncSend(ansPacket);
 
             // wait other message async
-            const int waitTimeoutSec = 2;
+            const int waitTimeoutSec = 60;
             var asyncReceive = new Gamnet.Async.AsyncReceive(session, MsgCliSvr_Greeting_Ntf.MSG_ID, waitTimeoutSec);
             yield return asyncReceive; // suspend. it would resume when MsgCliSvr_Greeting_Ntf arrives or timeout
             if (null != asyncReceive.Exception)
@@ -71,6 +71,14 @@ namespace UnityServer.Packet
 
             MsgCliSvr_Greeting_Ntf ntf = asyncReceive.Packet.Deserialize<MsgCliSvr_Greeting_Ntf>();
             Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, ntf.text);
+
+            var asyncReceive2 = new Gamnet.Async.AsyncReceive(session, MsgCliSvr_Greeting_Ntf.MSG_ID, waitTimeoutSec);
+            yield return asyncReceive2; // suspend. it would resume when MsgCliSvr_Greeting_Ntf arrives or timeout
+            if (null != asyncReceive2.Exception)
+            {
+                Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, asyncReceive2.Exception.ToString());
+            }
+            Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, "end of coroutine");
         }
 
         [Gamnet.Server.TestMethod]
@@ -80,6 +88,8 @@ namespace UnityServer.Packet
             {
                 client.number = 2;
                 client.session.UnregisterHandler(MsgSvrCli_Greeting_Ans.MSG_ID);
+
+                Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, ans.text);
 
                 MsgCliSvr_Greeting_Ntf ntf = new MsgCliSvr_Greeting_Ntf();
                 ntf.text = "fin" + client.number.ToString();

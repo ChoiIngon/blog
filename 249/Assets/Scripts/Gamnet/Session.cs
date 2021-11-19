@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading;
 using UnityEngine;
 
 namespace Gamnet
 {
     public class Session
     {
-        public readonly UInt32 session_key;
-        public enum ConnectionState
+        public enum State
         {
             Close,          // 연결이 되어 있지 않은 상태
             OnConnecting,   // 비동기 연결 시도 중. 아직 완료 안됨
@@ -20,48 +21,52 @@ namespace Gamnet
             Handover        // 모바일에서 이동 등으로 인해 접속이 잠시 끊긴 상태
         }
 
+        public readonly UInt32 session_key;
         public const int MAX_BUFFER_SIZE = 1024;
 
         public Socket socket;
-        public ConnectionState state = ConnectionState.Close;
+        public State state = State.Close;
 
-        private Timeout timeout = new Timeout();
+        public IEnumerator current_coroutine;
+        public Dictionary<uint, Async.AsyncReceive> async_receives;
+
+        //private Timeout timeout = new Timeout();
         //private System.Timers.Timer timer;
         //private int timeoutInterval = 5000; // 비동기 connect 실패 시간. 5초
 
         private byte[] receiveBytes = new byte[MAX_BUFFER_SIZE];
         private Buffer receiveBuffer = new Buffer();
 
+        private List<Packet> send_queue = new List<Packet>();
+        private int send_queue_index;
+        private UInt32 send_seq = 0;
+        private UInt32 recv_seq = 0;
 
-        private List<Packet> sendQueue = new List<Packet>();
-        private int sendQueueIndex;
-        private UInt32 sendPacketSeq = 0;
-
-        public IEnumerator enumerator;
-
-        public Dictionary<uint, Async.AsyncReceive> async_receives;
         public Session(UInt32 sessionKey)
         {
             this.session_key = sessionKey;
             this.async_receives = new Dictionary<uint, Async.AsyncReceive>();
         }
 
-        #region Receive
-
+        #region AsyncReceive
         public void AsyncReceive()
         {
+            if (false == socket.Connected)
+            {
+                return;
+            }
             try
             {
                 socket.BeginReceive(receiveBytes, 0, MAX_BUFFER_SIZE, 0, new AsyncCallback(AsyncReceiveCallback), null);
             }
             catch (SocketException e)
             {
-                Debug.LogError($"[Session.Receive] exception:{e.ToString()}");
                 Error(e);
                 Close();
             }
         }
-        void AsyncReceiveCallback(IAsyncResult result)
+
+        private void AsyncReceiveCallback(IAsyncResult result)
         {
             try
             {
@@ -78,7 +83,6 @@ namespace Gamnet
             }
             catch (SocketException e)
             {
-                Debug.LogError($"[Session.AsyncReceiveCallback] exception:{e.ToString()}");
                 Error(e);
                 Close();
                 return;
@@ -89,8 +93,7 @@ namespace Gamnet
                 Packet packet = new Packet(receiveBuffer);
                 if (packet.Length > Gamnet.Buffer.MAX_BUFFER_SIZE)
                 {
-                    Debug.LogError("[Session.OnReceive] The packet length is greater than the buffer max length.");
-                    Error(new System.Exception("The packet length is greater than the buffer max length."));
+                    Error(new System.OverflowException("The packet length is greater than the buffer max length."));
                     return;
                 }
 
@@ -114,17 +117,14 @@ namespace Gamnet
 
         public void Error(System.Exception e)
         {
-            ErrorEvent evt = new ErrorEvent(this);
+            ErrorEvent evt = new ErrorEvent(this, e);
             evt.exception = e;
-            lock (this)
-            {
-                EventLoop.EnqueuEvent(evt);
-            }
+            EventLoop.EnqueuEvent(evt);
         }
 
         public void Close()
         {
-            if (ConnectionState.Close == this.state)
+            if (State.Connected != this.state)
             {
                 return;
             }
@@ -136,7 +136,7 @@ namespace Gamnet
 
             try
             {
-                state = ConnectionState.Close;
+                state = State.Close;
                 //timer.Stop();
 
                 socket.BeginDisconnect(false, new AsyncCallback(CloseCallback), socket);
@@ -157,6 +157,7 @@ namespace Gamnet
             try
             {
                 socket.EndDisconnect(result);
+                socket.Close();
 
                 CloseEvent evt = new CloseEvent(this);
                 EventLoop.EnqueuEvent(evt);
@@ -169,29 +170,26 @@ namespace Gamnet
 
         public void AsyncSend(Packet packet)
         {
-            /*
-            if (null == endPoint)
-            {
-                Debug.LogError("[Session.Reconnect] invalid destination address");
-                return;
-            }
-            */
+            packet.Seq = ++send_seq;
 
-            packet.Seq = ++sendPacketSeq;
-            sendQueue.Add(packet);
-            if (false == socket.Connected)
+            lock (this)
             {
-                return;
-            }
+                send_queue.Add(packet);
 
-            if (1 != sendQueue.Count - sendQueueIndex)
-            {
-                return;
-            }
+                if (false == socket.Connected)
+                {
+                    return;
+                }
 
-            Packet packetToBeSent = sendQueue[sendQueueIndex];
-            Buffer bufferToBeSend = packetToBeSent.buffer;
-            socket.BeginSend(bufferToBeSend.ToByteArray(), 0, packetToBeSent.Length, 0, new AsyncCallback(AsyncSendCallback), null);
+                if (1 != send_queue.Count - send_queue_index)
+                {
+                    return;
+                }
+
+                Packet packetToBeSent = send_queue[send_queue_index];
+                Buffer bufferToBeSend = packetToBeSent.buffer;
+                socket.BeginSend(bufferToBeSend.ToByteArray(), 0, packetToBeSent.Length, 0, new AsyncCallback(AsyncSendCallback), null);
+            }
         }
 
         private void AsyncSendCallback(IAsyncResult result)
@@ -200,32 +198,35 @@ namespace Gamnet
             {
                 int writtenBytes = socket.EndSend(result);
 
-                Packet packet = sendQueue[sendQueueIndex];
-                if (false == packet.buffer.Remove(writtenBytes))
+                lock (this)
                 {
-                    throw new System.OverflowException();
-                }
+                    Packet packet = send_queue[send_queue_index];
+                    if (false == packet.buffer.Remove(writtenBytes))
+                    {
+                        throw new System.OverflowException();
+                    }
 
-                if (0 < packet.buffer.Size())
-                {
-                    socket.BeginSend(packet.buffer.ToByteArray(), packet.buffer.read_index, packet.buffer.Size(), 0, new AsyncCallback(AsyncSendCallback), null);
-                    return;
-                }
+                    if (0 < packet.buffer.Size())
+                    {
+                        socket.BeginSend(packet.buffer.ToByteArray(), packet.buffer.read_index, packet.buffer.Size(), 0, new AsyncCallback(AsyncSendCallback), null);
+                        return;
+                    }
 
-                if (true == packet.IsReliable)
-                {
-                    sendQueueIndex++;
-                }
-                else
-                {
-                    sendQueue.RemoveAt(sendQueueIndex);
-                }
+                    if (true == packet.IsReliable)
+                    {
+                        send_queue_index++;
+                    }
+                    else
+                    {
+                        send_queue.RemoveAt(send_queue_index);
+                    }
 
-                if (sendQueueIndex < sendQueue.Count)
-                {
-                    Packet packetToBeSent = sendQueue[sendQueueIndex];
-                    Buffer bufferToBeSend = packetToBeSent.buffer;
-                    socket.BeginSend(bufferToBeSend.ToByteArray(), 0, bufferToBeSend.Size(), 0, new AsyncCallback(AsyncSendCallback), null);
+                    if (send_queue_index < send_queue.Count)
+                    {
+                        Packet packetToBeSent = send_queue[send_queue_index];
+                        Buffer bufferToBeSend = packetToBeSent.buffer;
+                        socket.BeginSend(bufferToBeSend.ToByteArray(), 0, bufferToBeSend.Size(), 0, new AsyncCallback(AsyncSendCallback), null);
+                    }
                 }
             }
             catch (SocketException e)
@@ -236,35 +237,127 @@ namespace Gamnet
             }
         }
 
-        public virtual void OnAccept()
+        #region SessionEvent
+        public abstract class SessionEvent
+        {
+            protected Session session;
+            public SessionEvent(Session session)
+            {
+                this.session = session;
+            }
+            public abstract void OnEvent();
+        };
+
+        public class AcceptEvent : SessionEvent
+        {
+            public AcceptEvent(Session session) : base(session) { }
+            public override void OnEvent()
+            {
+                session.AsyncReceive();
+                session.OnAccept();
+            }
+        }
+
+        protected virtual void OnAccept()
         {
             throw new System.NotImplementedException("Session.OnAccept is not implemented");
         }
 
-        public virtual void OnConnect()
+        public class ConnectEvent : SessionEvent
+        {
+            public ConnectEvent(Session session) : base(session) { }
+            public override void OnEvent()
+            {
+                session.AsyncReceive();
+                session.OnConnect();
+            }
+        }
+
+        protected virtual void OnConnect()
         {
             throw new System.NotImplementedException("Session.OnConnect is not implemented");
         }
 
-        public virtual void OnReconnect()
+        public class ReconnectEvent : SessionEvent
+        {
+            public ReconnectEvent(Session session) : base(session) { }
+            public override void OnEvent()
+            {
+                session.AsyncReceive();
+                session.OnReconnect();
+            }
+        }
+
+        protected virtual void OnReconnect()
         {
             throw new System.NotImplementedException("Session.OnReconnect is not implemented");
         }
 
-        public virtual void OnPause()
+        public class PauseEvent : SessionEvent
+        {
+            public PauseEvent(Session session) : base(session) { }
+            public override void OnEvent()
+            {
+                session.OnPause();
+            }
+        }
+
+        protected virtual void OnPause()
         {
             throw new System.NotImplementedException("Session.OnPause is not implemented");
         }
 
-        public virtual void OnResume()
+        public class ResumeEvent : SessionEvent
+        {
+            public ResumeEvent(Session session) : base(session) { }
+            public override void OnEvent()
+            {
+                session.AsyncReceive();
+                session.OnResume();
+            }
+        }
+
+        protected virtual void OnResume()
         {
             throw new System.NotImplementedException("Session.OnResume is not implemented");
         }
-        public virtual void OnClose()
+
+        public class CloseEvent : SessionEvent
+        {
+            public CloseEvent(Session session) : base(session) { }
+            public override void OnEvent()
+            {
+                foreach (var pair in session.async_receives)
+                {
+                    Async.AsyncReceive asyncReceive = pair.Value;
+                    asyncReceive.Cancel();
+                }
+
+                session.async_receives.Clear();
+                session.current_coroutine = null;
+                session.OnClose();
+            }
+        }
+
+        protected virtual void OnClose()
         {
             throw new System.NotImplementedException("Session.OnClose is not implemented");
         }
-        public virtual void OnError(System.Exception e)
+
+        public class ErrorEvent : SessionEvent
+        {
+            public ErrorEvent(Session session, System.Exception exception) : base(session)
+            {
+                this.exception = exception;
+            }
+            public System.Exception exception;
+            public override void OnEvent()
+            {
+                session.OnError(exception);
+            }
+        }
+
+        protected virtual void OnError(System.Exception e)
         {
             throw new System.NotImplementedException("Session.OnError is not implemented");
         }
@@ -282,15 +375,11 @@ namespace Gamnet
                 session.OnReceive(this.packet);
             }
         }
-        public virtual void OnReceive(Packet packet)
+
+        protected virtual void OnReceive(Packet packet)
         {
             throw new System.NotImplementedException("Session.OnReceive is not implemented");
         }
-
-        // 비동기 영역에서 호출.
-        protected virtual void OnAsyncReceive(Packet packet)
-        {
-            throw new System.NotImplementedException("Session.OnPacket is not implemented");
-        }
+        #endregion
     }
 }

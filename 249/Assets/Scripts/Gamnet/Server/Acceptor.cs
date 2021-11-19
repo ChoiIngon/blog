@@ -17,6 +17,7 @@ namespace Gamnet.Server
         public int MaxSessionCount;
 
         System.Timers.Timer timer = new System.Timers.Timer();
+
         public void Init(int port, int maxSessionCount)
         {
             dispatcher.Init();
@@ -39,6 +40,7 @@ namespace Gamnet.Server
 
             SESSION_T session = new SESSION_T();
             session.socket = clientSocket;
+            session.state = Session.State.Connected;
             session.session_manager = session_manager;
             session.dispatcher = dispatcher;
 
@@ -46,18 +48,8 @@ namespace Gamnet.Server
 
             tcp_socket.BeginAccept(AcceptCallback, null);
 
-            SessionEvent evt = new AcceptEvent(session);
+            Gamnet.Session.SessionEvent evt = new Gamnet.Session.AcceptEvent(session);
             EventLoop.EnqueuEvent(evt);
-        }
-
-        public class AcceptEvent : SessionEvent
-        {
-            public AcceptEvent(Session session) : base(session) { }
-            public override void OnEvent()
-            {
-                session.AsyncReceive();
-                session.OnAccept();
-            }
         }
     }
 }
