@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Net;
 using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Gamnet.Client
 {
     public class Session : Gamnet.Session
     {
+        private static  UInt32 SESSION_KEY = 0;
         private abstract class IPacketHandler
         {
             public abstract void OnReceive(Packet packet);
@@ -36,12 +35,14 @@ namespace Gamnet.Client
             }
         }
 
-        public          Action OnConnectEvent;
-        public          Action<System.Exception> OnErrorEvent;
-        private static  UInt32 SESSION_KEY = 0;
-        private         UInt32 recv_packet_seq = 0;
-        private         Connector connector;
-        private         Dictionary<uint, IPacketHandler> handlers = new Dictionary<uint, IPacketHandler>();
+        public  Action OnCreateEvent;
+        public  Action OnConnectEvent;
+        public  Action OnCloseEvent;
+        public  Action<System.Exception> OnErrorEvent;
+
+        private UInt32 recv_packet_seq = 0;
+        private Connector connector;
+        private Dictionary<uint, IPacketHandler> handlers = new Dictionary<uint, IPacketHandler>();
 
         public Session() : base(++Session.SESSION_KEY)
         {
@@ -84,9 +85,14 @@ namespace Gamnet.Client
             OnResume();
         }
 
+        protected override void OnCreate()
+        {
+            OnCreateEvent?.Invoke();
+        }
+
         protected override void OnConnect()
         {
-            this?.OnConnectEvent();
+            OnConnectEvent?.Invoke();
         }
 
         protected override void OnReceive(Packet packet)
@@ -124,16 +130,18 @@ namespace Gamnet.Client
 
         protected override void OnResume()
         {
+            connector.AsyncReconnect();
         }
 
         protected override void OnClose()
         {
-
+            OnCloseEvent?.Invoke();
         }
 
         protected override void OnError(Exception e)
         {
             Log.Write(Log.LogLevel.ERR, e.ToString());
+            OnErrorEvent?.Invoke(e);
         }
     }
 }

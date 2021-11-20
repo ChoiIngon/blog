@@ -61,7 +61,7 @@ namespace Gamnet.Client
                 //_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendTimeout, 10000);
                 //_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, 10000);
                 Gamnet.Session.ConnectEvent evt = new Gamnet.Session.ConnectEvent(session);
-                EventLoop.EnqueuEvent(evt);
+                Gamnet.Session.EventLoop.EnqueuEvent(evt);
             }
             catch (SocketException e)
             {
@@ -72,7 +72,7 @@ namespace Gamnet.Client
         private void OnTimeout()
         {
             Gamnet.Session.ErrorEvent evt = new Gamnet.Session.ErrorEvent(session, new TimeoutException());
-            EventLoop.EnqueuEvent(evt);
+            Gamnet.Session.EventLoop.EnqueuEvent(evt);
         }
     }
 }

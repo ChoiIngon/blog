@@ -54,7 +54,7 @@ namespace Gamnet.Async
         {
             this.Exception = new TimeoutException();
             TimeoutEvent evt = new TimeoutEvent(session, msgId, coroutine);
-            EventLoop.EnqueuEvent(evt);
+            Session.EventLoop.EnqueuEvent(evt);
         }
 
         private class TimeoutEvent : Session.SessionEvent

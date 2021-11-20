@@ -2,60 +2,33 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Gamnet.Simulation
 {
-    public class Simulator
+    public class Simulator : MonoBehaviour
     {
-        private static IExecuter executer;
+        public string Host;
+        public int Port;
+        public int SessionCount;
+        public int LoopCount;
+        public string[] ScenarioNames;
+        private IExecuter executer;
 
-        public static void Init<CLIENT_T>(string host, int port, int sessionCount, int loopCount) where CLIENT_T : Gamnet.Simulation.Client
-        {
-            Executer<CLIENT_T> exec = new Executer<CLIENT_T>();
-            exec.Host = host;
-            exec.Port = port;
-            exec.SessionCount = sessionCount;
-            exec.LoopCount = loopCount;
-            exec.Init();
-            executer = exec;
-            exec.Run();
-        }
-
-        public static void AddScenario(string scenarioName)
-        {
-            executer.AddScenario(scenarioName);
-        }
-
-        public static void Execute(int scenarioIndex, Client client)
-        {
-            executer.Execute(scenarioIndex, client);
-        }
-        public static void Update()
-        {
-        }
+        private static Simulator instance;
 
         private interface IExecuter
         {
             void AddScenario(string scenarioName);
-            void Execute(int scenarioIndex, Client client);
+            void Execute(Client client);
         }
+
         private class Executer<CLIENT_T> : IExecuter where CLIENT_T : Gamnet.Simulation.Client
         {
-            public string Host;
-            public int Port;
-            public int SessionCount;
-            public int LoopCount;
             public Dictionary<string, Action<CLIENT_T>> scenarios = new Dictionary<string, Action<CLIENT_T>>();
-            private Dictionary<uint, CLIENT_T> clients = new Dictionary<uint, CLIENT_T>();
             public List<Action<CLIENT_T>> executes = new List<Action<CLIENT_T>>();
 
-            public void Init()
+            public Executer()
             {
                 string exeAssemblyName = Assembly.GetExecutingAssembly().GetName().Name;
                 AppDomain currentDomain = AppDomain.CurrentDomain;
@@ -92,33 +65,73 @@ namespace Gamnet.Simulation
                 }
                 executes.Add(scenario);
             }
-            public void Execute(int scenarioIndex, Client client)
+
+            public void Execute(Client client)
             {
-                CLIENT_T client_t = client as CLIENT_T;
-                if (scenarioIndex >= executes.Count)
+                if (client.ScenarioIndex >= executes.Count)
                 {
+                    if (1 < client.LoopCount)
+                    {
+                        CLIENT_T client_t = CreateClient();
+                        client_t.LoopCount = client.LoopCount - 1;
+                        client_t.AsyncConnect(instance.Host, instance.Port);
+                    }
+
                     client.session.Close();
-                    clients.Remove(client.session.session_key);
+                    client.transform.SetParent(null);
                     GameObject.Destroy(client.gameObject);
                     return;
                 }
-                executes[scenarioIndex](client_t);
-            }
 
-            public void Run()
-            {
-                for (int i = 0; i < SessionCount; i++)
                 {
-                    GameObject go = new GameObject();
-
-                    CLIENT_T client = go.AddComponent<CLIENT_T>();
-                    go.name = $"Scenario.Client.{client.session.session_key}";
-                    clients.Add(client.session.session_key, client);
-                    client.AsyncConnect(Host, Port);
+                    CLIENT_T client_t = client as CLIENT_T;
+                    executes[client.ScenarioIndex](client_t);
                 }
             }
+
+            public CLIENT_T CreateClient()
+            {
+                GameObject go = new GameObject();
+                CLIENT_T client_t = go.AddComponent<CLIENT_T>();
+                go.name = $"Scenario.Client.{client_t.session.session_key}";
+
+                Gamnet.Session.SessionEvent evt = new Gamnet.Session.CreateEvent(client_t.session);
+                Gamnet.Session.EventLoop.EnqueuEvent(evt);
+
+                client_t.transform.SetParent(instance.transform, false);
+                return client_t;
+            }
+        }
+
+        public void Init<CLIENT_T>() where CLIENT_T : Gamnet.Simulation.Client
+        {
+            Executer<CLIENT_T> executer = new Executer<CLIENT_T>();
+            this.executer = executer;
+
+            instance = (Simulator)GameObject.FindObjectOfType(typeof(Simulator));
+            if (null == instance)
+            {
+                GameObject container = new GameObject();
+                container.name = "Simulator";
+                instance = container.AddComponent<Simulator>();
+            }
+
+            foreach (string scenarioName in ScenarioNames)
+            {
+                executer.AddScenario(scenarioName);
+            }
+
+            for (int i = 0; i < SessionCount; i++)
+            {
+                CLIENT_T client_t = executer.CreateClient();
+                client_t.LoopCount = LoopCount;
+                client_t.AsyncConnect(Host, Port);
+            }
+        }
+
+        public static void Execute(Client client)
+        {
+            instance.executer.Execute(client);
         }
     }
-
-
 }

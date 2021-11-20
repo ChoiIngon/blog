@@ -42,7 +42,7 @@ namespace UnityServer.Packet
             {   // verrrry long term task
                 var asyncTask = new Gamnet.Async.AsyncTask(session, () =>
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(20);
                 });
                 yield return asyncTask; // suspend. but resume again when the task finish.
                 if (null != asyncTask.Exception) // check result of task. if null. success.
@@ -52,7 +52,7 @@ namespace UnityServer.Packet
             }
 
             MsgSvrCli_Greeting_Ans ans = new MsgSvrCli_Greeting_Ans();
-            ans.text = "Thanks";
+            ans.text = "ACK";
 
             Gamnet.Packet ansPacket = new Gamnet.Packet();
             ansPacket.Id = MsgSvrCli_Greeting_Ans.MSG_ID;
@@ -70,19 +70,10 @@ namespace UnityServer.Packet
             }
 
             MsgCliSvr_Greeting_Ntf ntf = asyncReceive.Packet.Deserialize<MsgCliSvr_Greeting_Ntf>();
-            Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, ntf.text);
-
-            var asyncReceive2 = new Gamnet.Async.AsyncReceive(session, MsgCliSvr_Greeting_Ntf.MSG_ID, waitTimeoutSec);
-            yield return asyncReceive2; // suspend. it would resume when MsgCliSvr_Greeting_Ntf arrives or timeout
-            if (null != asyncReceive2.Exception)
-            {
-                Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, asyncReceive2.Exception.ToString());
-            }
-            Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, "end of coroutine");
         }
 
         [Gamnet.Server.TestMethod]
-        public void Test_HelloWorld(UnityServer.Simulator.Client client)
+        public void Test_HelloWorld(UnityServer.SimulationClient client)
         {
             client.session.RegisterHandler(MsgSvrCli_Greeting_Ans.MSG_ID, (MsgSvrCli_Greeting_Ans ans) =>
             {
@@ -92,7 +83,7 @@ namespace UnityServer.Packet
                 Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, ans.text);
 
                 MsgCliSvr_Greeting_Ntf ntf = new MsgCliSvr_Greeting_Ntf();
-                ntf.text = "fin" + client.number.ToString();
+                ntf.text = "FIN_" + client.number.ToString();
 
                 Gamnet.Packet ntfPacket = new Gamnet.Packet();
                 ntfPacket.Id = MsgCliSvr_Greeting_Ntf.MSG_ID;
@@ -103,7 +94,7 @@ namespace UnityServer.Packet
 
             client.number = 1;
             MsgCliSvr_Greeting_Req req = new MsgCliSvr_Greeting_Req();
-            req.text = "Hello" + client.number.ToString();
+            req.text = "SIN_" + client.number.ToString();
 
             Gamnet.Packet packet = new Gamnet.Packet();
             packet.Id = MsgCliSvr_Greeting_Req.MSG_ID;

@@ -11,7 +11,6 @@ namespace Gamnet.Server
         private Socket tcp_socket;
         private Socket udp_socket;
 
-        private SessionManager<SESSION_T> session_manager = new SessionManager<SESSION_T>();
         private Dispatcher<SESSION_T> dispatcher = new Dispatcher<SESSION_T>();
 
         public int MaxSessionCount;
@@ -41,15 +40,19 @@ namespace Gamnet.Server
             SESSION_T session = new SESSION_T();
             session.socket = clientSocket;
             session.state = Session.State.Connected;
-            session.session_manager = session_manager;
             session.dispatcher = dispatcher;
 
-            session_manager.Add(session);
+            {
+                Gamnet.Session.SessionEvent evt = new Gamnet.Server.Session.CreateEvent(session);
+                Gamnet.Session.EventLoop.EnqueuEvent(evt);
+            }
+
+            {
+                Gamnet.Session.SessionEvent evt = new Gamnet.Session.AcceptEvent(session);
+                Gamnet.Session.EventLoop.EnqueuEvent(evt);
+            }
 
             tcp_socket.BeginAccept(AcceptCallback, null);
-
-            Gamnet.Session.SessionEvent evt = new Gamnet.Session.AcceptEvent(session);
-            EventLoop.EnqueuEvent(evt);
         }
     }
 }

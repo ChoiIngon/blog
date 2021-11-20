@@ -241,12 +241,47 @@ namespace Gamnet
         public abstract class SessionEvent
         {
             protected Session session;
+#if UNITY_EDITOR || USE_DEBUGGING
+            public readonly string CallStack;
+#endif
             public SessionEvent(Session session)
             {
                 this.session = session;
+#if UNITY_EDITOR || USE_DEBUGGING
+                CallStack = StackTraceUtility.ExtractStackTrace();
+#endif
             }
+
             public abstract void OnEvent();
         };
+
+        public class CreateEvent : SessionEvent
+        {
+            public CreateEvent(Session session) : base(session) { }
+            public override void OnEvent()
+            {
+                session.OnCreate();
+            }
+        }
+
+        protected virtual void OnCreate()
+        {
+            throw new System.NotImplementedException("Session.OnCreate is not implemented");
+        }
+
+        public class DestoryEvent : SessionEvent
+        {
+            public DestoryEvent(Session session) : base(session) { }
+            public override void OnEvent()
+            {
+                session.OnDestory();
+            }
+        }
+
+        protected virtual void OnDestory()
+        {
+            throw new System.NotImplementedException("Session.OnDestory is not implemented");
+        }
 
         public class AcceptEvent : SessionEvent
         {
@@ -380,6 +415,36 @@ namespace Gamnet
         {
             throw new System.NotImplementedException("Session.OnReceive is not implemented");
         }
-        #endregion
+#endregion
+
+        public class EventLoop
+        {
+            private ConcurrentQueue<Session.SessionEvent> eventQueue = new ConcurrentQueue<Session.SessionEvent>();
+            static private EventLoop instance = new EventLoop();
+
+            static public void Update()
+            {
+                Session.SessionEvent evt;
+                while (true == instance.eventQueue.TryDequeue(out evt))
+                {
+                    try
+                    {
+                        evt.OnEvent();
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogError($"{e.GetType().Name}(Event:{evt.GetType().Name}, Message:{e.Message})");
+#if UNITY_EDITOR || USE_DEBUGGING
+                        Debug.Log($"[Async Debug Info] Event Caller Location :\n{evt.CallStack}");
+#endif
+                    }
+                }
+            }
+
+            public static void EnqueuEvent(Session.SessionEvent evt)
+            {
+                instance.eventQueue.Enqueue(evt);
+            }
+        }
     }
 }

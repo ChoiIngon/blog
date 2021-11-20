@@ -11,6 +11,14 @@ namespace UnityServer
     {
         public class Session : Gamnet.Server.Session
         {
+            protected override void OnCreate()
+            {
+            }
+
+            protected override void OnAccept()
+            {
+            }
+
             protected override void OnClose()
             {
                 Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, "server session closed");
@@ -18,24 +26,28 @@ namespace UnityServer
 
             protected override void OnError(Exception e)
             {
-
             }
         }
 
-        Gamnet.Server.Acceptor<Session> acceptor = new Gamnet.Server.Acceptor<Session>();
+        private Gamnet.Server.Acceptor<Session> acceptor = new Gamnet.Server.Acceptor<Session>();
+
+        public int Port;
+        public int MaxSessionCount;
 
         void Start()
         {
             Gamnet.Log.Init("log", "UnityServer", 1);
-            acceptor.Init(4000, 8000);
-
-            Simulator simulator = GetComponent<Simulator>();
-            simulator?.Init();
+            acceptor.Init(Port, MaxSessionCount);
+            Gamnet.Simulation.Simulator simulator = GetComponent<Gamnet.Simulation.Simulator>();
+            if (null != simulator && true == simulator.enabled)
+            {
+                simulator.Init<SimulationClient>();
+            }
         }
 
         private void Update()
         {
-            Gamnet.EventLoop.Update();
+            Gamnet.Session.EventLoop.Update();
         }
     }
 }

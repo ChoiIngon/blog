@@ -22,7 +22,7 @@ namespace Gamnet.Async
             {
                 action();
                 AsyncTaskCompleteEvent evt = new AsyncTaskCompleteEvent(session, coroutine);
-                EventLoop.EnqueuEvent(evt);
+                Session.EventLoop.EnqueuEvent(evt);
             });
         }
 

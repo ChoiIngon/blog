@@ -152,6 +152,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c07acb5058fa23e4790a8560c72fb3ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Port: 4000
+  MaxSessionCount: 8000
 --- !u!4 &99786744
 Transform:
   m_ObjectHideFlags: 0
@@ -175,13 +177,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 99786742}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 39d637abe2de0ca499a5098d57d27d0c, type: 3}
+  m_Script: {fileID: 11500000, guid: 1d3107059dbccca4fa738e77c7351d7c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   Host: 127.0.0.1
   Port: 4000
-  SessionCount: 1
-  LoopCount: 1
+  SessionCount: 10
+  LoopCount: 1000
   ScenarioNames:
   - Test_HelloWorld
 --- !u!114 &99786746

@@ -7,15 +7,8 @@ namespace Gamnet.Simulation
     public class Client : MonoBehaviour
     {
         public Gamnet.Client.Session session = new Gamnet.Client.Session();
-        private int scenario_index;
-        private int loop_count;
-        public string Host;
-        public int Port;
-
-        private void Start()
-        {
-            session.AsyncConnect(Host, Port);
-        }
+        public int ScenarioIndex;
+        public int LoopCount;
 
         private void OnApplicationPause(bool pause)
         {
@@ -38,16 +31,14 @@ namespace Gamnet.Simulation
         {
             session.OnConnectEvent += () =>
             {
-                this.scenario_index = 0;
-                Simulator.Execute(scenario_index, this);
+                Simulator.Execute(this);
             };
-            Host = host;
-            Port = port;
+            session.AsyncConnect(host, port);
         }
         public void MoveNext()
         {
-            scenario_index++;
-            Simulator.Execute(scenario_index, this);
+            ScenarioIndex++;
+            Simulator.Execute(this);
         }
     }
 }
