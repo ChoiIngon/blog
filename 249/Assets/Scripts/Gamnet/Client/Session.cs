@@ -38,6 +38,9 @@ namespace Gamnet.Client
         public  Action OnCreateEvent;
         public  Action OnConnectEvent;
         public  Action OnCloseEvent;
+        public Action OnDestroyEvent;
+        public Action OnPauseEvent;
+        public Action OnResumeEvent;
         public  Action<System.Exception> OnErrorEvent;
 
         private UInt32 recv_packet_seq = 0;

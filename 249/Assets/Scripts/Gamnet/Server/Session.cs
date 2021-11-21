@@ -17,6 +17,11 @@ namespace Gamnet.Server
             dispatcher.OnReceive(this, packet);
         }
 
+        protected override void OnPassiveClose()
+        {
+            OnPause();
+        }
+
         public new class CreateEvent : SessionEvent
         {
             public CreateEvent(Session session) : base(session) { }

@@ -66,6 +66,8 @@ namespace Gamnet
             }
         }
 
+        // 요 부분을 서버와 클라이언트 분리해서, 서버에서는 소켓 closse가발생하면 바로 close하지 않고 Pause 이벤트 날리고,
+        // timeout 되거나, 클라이언트로 부터 명시적 close가 날아 오면 세션을 destroy하는 걸로 분리
         private void AsyncReceiveCallback(IAsyncResult result)
         {
             try
@@ -73,18 +75,20 @@ namespace Gamnet
                 Int32 recvBytesSize = socket.EndReceive(result);
                 if (0 == recvBytesSize)
                 {
-                    Close();
+                    SessionEvent evt = new PassiveCloseEvent(this);
+                    Session.EventLoop.EnqueuEvent(evt);
                     return;
                 }
                 receiveBuffer.Append(this.receiveBytes, 0, recvBytesSize);
             }
-            catch (System.ObjectDisposedException)
+            catch (ObjectDisposedException e)
             {
+                Error(e);
+                return;
             }
             catch (SocketException e)
             {
                 Error(e);
-                Close();
                 return;
             }
 
@@ -122,6 +126,10 @@ namespace Gamnet
             EventLoop.EnqueuEvent(evt);
         }
 
+        // 요 부분도 서버 클라 분리해서 서버에서는 close하면 바로 socket close하고 destroy 까지
+        // 클라이언트는 서버에게 명시적으로 close 메시지를 보내는 걸로 분리
+        // abstract Session 클래스 같은걸 하나 만들어야 겠다.
+        // 단순 tcp연결 말고도 handover 과정도 처리 할 수 있도록..ㅇㅇ
         public void Close()
         {
             if (State.Connected != this.state)
@@ -157,7 +165,6 @@ namespace Gamnet
             try
             {
                 socket.EndDisconnect(result);
-                socket.Close();
 
                 CloseEvent evt = new CloseEvent(this);
                 EventLoop.EnqueuEvent(evt);
@@ -388,6 +395,7 @@ namespace Gamnet
             public System.Exception exception;
             public override void OnEvent()
             {
+                Log.Write(Log.LogLevel.ERR, CallStack);
                 session.OnError(exception);
             }
         }
@@ -414,6 +422,21 @@ namespace Gamnet
         protected virtual void OnReceive(Packet packet)
         {
             throw new System.NotImplementedException("Session.OnReceive is not implemented");
+        }
+
+        public class PassiveCloseEvent : SessionEvent
+        {
+            public PassiveCloseEvent(Session session) : base(session)
+            {
+            }
+
+            public override void OnEvent()
+            {
+                session.OnPassiveClose();
+            }
+        }
+        protected virtual void OnPassiveClose()
+        {
         }
 #endregion
 

@@ -182,8 +182,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Host: 127.0.0.1
   Port: 4000
-  SessionCount: 10
-  LoopCount: 1000
+  SessionCount: 1
+  LoopCount: 1
   ScenarioNames:
   - Test_HelloWorld
 --- !u!114 &99786746

@@ -25,6 +25,7 @@ namespace Gamnet.Server
     {
         void OnReceive(Session session, Packet packet);
     }
+
     class Dispatcher<T> : IDispatcher where T : Session
     {
         private Dictionary<uint, PacketHandler<T>> handlers = new Dictionary<uint, PacketHandler<T>>();
@@ -43,6 +44,11 @@ namespace Gamnet.Server
                 PacketHandler<T> packetHandler = Activator.CreateInstance(type) as PacketHandler<T>;
                 handlers.Add(packetHandler.Id(), packetHandler);
             }
+
+            {
+                PacketHandler<T> packetHandler = new SystemMessage.SystemMsgCliSvr_Connect<T>();
+                handlers.Add(packetHandler.Id(), packetHandler);
+            }
         }
 
         public void OnReceive(Session session, Packet packet)
@@ -50,7 +56,8 @@ namespace Gamnet.Server
             T session_t = session as T;
             OnReceive(session_t, packet);
         }
-        public void OnReceive(T session, Packet packet)
+
+        private void OnReceive(T session, Packet packet)
         {
             Async.AsyncReceive asyncReceive;
             if (true == session.async_receives.TryGetValue(packet.Id, out asyncReceive))
