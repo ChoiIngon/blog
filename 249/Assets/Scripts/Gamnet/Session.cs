@@ -438,6 +438,11 @@ namespace Gamnet
         protected virtual void OnPassiveClose()
         {
         }
+
+        protected virtual void OnReliableMode(bool flag)
+        {
+            throw new System.NotImplementedException("Session.OnReliableMode is not implemented");
+        }
 #endregion
 
         public class EventLoop
