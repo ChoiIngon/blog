@@ -46,7 +46,23 @@ namespace Gamnet.Server
             }
 
             {
-                PacketHandler<T> packetHandler = new SystemMessage.SystemMsgCliSvr_Connect<T>();
+                PacketHandler<T> packetHandler = new SystemPacketHandler.PacketHandler_Connect<T>();
+                handlers.Add(packetHandler.Id(), packetHandler);
+            }
+            {
+                PacketHandler<T> packetHandler = new SystemPacketHandler.PacketHandler_Reconnect<T>();
+                handlers.Add(packetHandler.Id(), packetHandler);
+            }
+            {
+                PacketHandler<T> packetHandler = new SystemPacketHandler.PacketHandler_Close<T>();
+                handlers.Add(packetHandler.Id(), packetHandler);
+            }
+            {
+                PacketHandler<T> packetHandler = new SystemPacketHandler.PacketHandler_HeartBeat<T>();
+                handlers.Add(packetHandler.Id(), packetHandler);
+            }
+            {
+                PacketHandler<T> packetHandler = new SystemPacketHandler.PacketHandler_ReliableAck<T>();
                 handlers.Add(packetHandler.Id(), packetHandler);
             }
         }

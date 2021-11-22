@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Gamnet.SystemPacket;
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization.Formatters.Binary;
+using UnityEngine;
 
 namespace Gamnet.Client
 {
@@ -50,6 +52,12 @@ namespace Gamnet.Client
         public Session() : base(++Session.SESSION_KEY)
         {
             this.connector = new Connector(this);
+
+            RegisterHandler<MsgSvrCli_Connect_Ans>(SystemPacket.MsgSvrCli_Connect_Ans.MSG_ID, Recv_Connect_Ans);
+            RegisterHandler<MsgSvrCli_Close_Ans>(SystemPacket.MsgSvrCli_Close_Ans.MSG_ID, Recv_Close_Ans);
+            RegisterHandler<MsgSvrCli_Reconnect_Ans>(SystemPacket.MsgSvrCli_Reconnect_Ans.MSG_ID, Recv_Reconnect_Ans);
+            RegisterHandler<MsgSvrCli_HeartBeat_Ans>(SystemPacket.MsgSvrCli_HeartBeat_Ans.MSG_ID, Recv_HeartBeat_Ans);
+            RegisterHandler<MsgSvrCli_ReliableAck_Ntf>(SystemPacket.MsgSvrCli_ReliableAck_Ntf.MSG_ID, Recv_ReliableAck_Ntf);
         }
 
         public void AsyncConnect(string host, int port, int timeout_sec = 5)
@@ -145,6 +153,74 @@ namespace Gamnet.Client
         {
             Log.Write(Log.LogLevel.ERR, e.ToString());
             OnErrorEvent?.Invoke(e);
+        }
+
+        void Send_Connect_Req()
+        {
+            Gamnet.Packet packet = new Gamnet.Packet();
+            packet.Id = SystemPacket.MsgCliSvr_Connect_Req.MSG_ID;
+            SystemPacket.MsgCliSvr_Connect_Req req = new SystemPacket.MsgCliSvr_Connect_Req();
+            packet.Serialize(req);
+            AsyncSend(packet);
+        }
+
+        void Recv_Connect_Ans(MsgSvrCli_Connect_Ans ans)
+        {
+            if (0 != ans.error_code)
+            {
+                Debug.LogError("connect fail(error_code:" + ans.error_code + ")");
+                Error(null);
+                return;
+            }
+
+            //session_token = ans.session_token;
+
+            ConnectEvent evt = new ConnectEvent(this);
+            Session.EventLoop.EnqueuEvent(evt); // already locked
+        }
+
+        void Recv_Close_Ans(MsgSvrCli_Close_Ans ans)
+        {
+            if (0 != ans.error_code)
+            {
+                Debug.LogError("connect fail(error_code:" + ans.error_code + ")");
+                Error(null);
+                return;
+            }
+
+            //session_token = ans.session_token;
+
+            CloseEvent evt = new CloseEvent(this);
+            Session.EventLoop.EnqueuEvent(evt); // already locked
+        }
+
+        void Recv_Reconnect_Ans(MsgSvrCli_Reconnect_Ans ans)
+        {
+            if (0 != ans.error_code)
+            {
+                Debug.LogError("connect fail(error_code:" + ans.error_code + ")");
+                Error(null);
+                return;
+            }
+
+            //session_token = ans.session_token;
+            OnResume();
+        }
+
+        void Recv_HeartBeat_Ans(MsgSvrCli_HeartBeat_Ans ans)
+        {
+            if (0 != ans.error_code)
+            {
+                Debug.LogError("connect fail(error_code:" + ans.error_code + ")");
+                Error(null);
+                return;
+            }
+
+            //session_token = ans.session_token;
+        }
+
+        void Recv_ReliableAck_Ntf(MsgSvrCli_ReliableAck_Ntf ntf)
+        {
         }
     }
 }

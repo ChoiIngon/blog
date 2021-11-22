@@ -7,6 +7,7 @@ namespace Gamnet.Server
         public static UInt32 SESSION_KEY = 0;
         public static SessionManager session_manager = new SessionManager();
         public IDispatcher dispatcher;
+        public string session_token;
 
         public Session() : base(++SESSION_KEY)
         {
