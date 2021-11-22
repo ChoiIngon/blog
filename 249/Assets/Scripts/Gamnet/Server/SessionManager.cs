@@ -1,23 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Gamnet.Server
 {
-    public class SessionManager
+    public partial class Session : Gamnet.Session
     {
-        private Dictionary<uint, Session> sessions = new Dictionary<uint, Session>();
-
-        public void Add(Session session)
+        private class SessionManager
         {
-            sessions.Add(session.session_key, session);
-        }
+            private Dictionary<uint, Session> sessions = new Dictionary<uint, Session>();
+            private static SessionManager instance = new SessionManager();
 
-        public void Remove(Session session)
-        {
-            sessions.Remove(session.session_key);
+            public static void Add(Session session)
+            {
+                instance.sessions.Add(session.session_key, session);
+            }
+
+            public static void Remove(Session session)
+            {
+                instance.sessions.Remove(session.session_key);
+            }
         }
     }
 }

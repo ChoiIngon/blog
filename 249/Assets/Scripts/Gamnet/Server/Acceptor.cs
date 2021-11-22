@@ -42,15 +42,8 @@ namespace Gamnet.Server
             session.state = Session.State.Connected;
             session.dispatcher = dispatcher;
 
-            {
-                Gamnet.Session.SessionEvent evt = new Gamnet.Server.Session.CreateEvent(session);
-                Gamnet.Session.EventLoop.EnqueuEvent(evt);
-            }
-
-            {
-                Gamnet.Session.SessionEvent evt = new Gamnet.Session.AcceptEvent(session);
-                Gamnet.Session.EventLoop.EnqueuEvent(evt);
-            }
+            Gamnet.Session.EventLoop.EnqueuEvent(new Session.CreateEvent(session));
+            Gamnet.Session.EventLoop.EnqueuEvent(new Session.AcceptEvent(session));
 
             tcp_socket.BeginAccept(AcceptCallback, null);
         }

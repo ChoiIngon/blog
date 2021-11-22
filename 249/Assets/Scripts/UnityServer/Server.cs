@@ -24,6 +24,11 @@ namespace UnityServer
                 Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, "server session closed");
             }
 
+            protected override void OnDestory()
+            {
+                Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, "server session destroyed");
+            }
+
             protected override void OnError(Exception e)
             {
             }

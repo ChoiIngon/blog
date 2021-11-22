@@ -31,10 +31,12 @@ namespace Gamnet.Simulation
         {
             session.OnConnectEvent += () =>
             {
+                session.EnableHandOver(true);
                 Simulator.Execute(this);
             };
             session.AsyncConnect(host, port);
         }
+
         public void MoveNext()
         {
             ScenarioIndex++;
