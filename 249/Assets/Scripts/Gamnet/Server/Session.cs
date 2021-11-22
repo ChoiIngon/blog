@@ -10,10 +10,11 @@ namespace Gamnet.Server
         public static SessionManager session_manager = new SessionManager();
         public IDispatcher dispatcher;
         public string session_token;
-        public bool reliable_mode;
+        public bool enable_handover { get; private set; }
 
         public Session() : base(++SESSION_KEY)
         {
+            enable_handover = false;
         }
 
         protected override void OnReceive(Packet packet)
@@ -26,9 +27,9 @@ namespace Gamnet.Server
             OnPause();
         }
 
-        protected override void OnReliableMode(bool flag)
+        protected override void OnEnableHandOver(bool flag)
         {
-            reliable_mode = flag;
+            enable_handover = flag;
         }
 
         public new class CreateEvent : SessionEvent
@@ -53,27 +54,41 @@ namespace Gamnet.Server
             }
         }
 
-        public class PacketHandler_Connect<SESSION_T> : PacketHandler<SESSION_T> where SESSION_T : Server.Session
+        public class PacketHandler_EnableHandOver<SESSION_T> : PacketHandler<SESSION_T> where SESSION_T : Server.Session
         {
             public override uint Id()
             {
-                return Gamnet.SystemPacket.MsgCliSvr_Connect_Req.MSG_ID;
+                return Gamnet.SystemPacket.MsgCliSvr_EnableHandOver_Req.MSG_ID;
             }
 
             public override IEnumerator OnReceive(SESSION_T session, Gamnet.Packet packet)
             {
-                Gamnet.SystemPacket.MsgCliSvr_Connect_Req req = packet.Deserialize<Gamnet.SystemPacket.MsgCliSvr_Connect_Req>();
-                Gamnet.SystemPacket.MsgSvrCli_Connect_Ans ans = new Gamnet.SystemPacket.MsgSvrCli_Connect_Ans();
+                Gamnet.SystemPacket.MsgCliSvr_EnableHandOver_Req req = packet.Deserialize<Gamnet.SystemPacket.MsgCliSvr_EnableHandOver_Req>();
+                Gamnet.SystemPacket.MsgSvrCli_EnableHandOver_Ans ans = new Gamnet.SystemPacket.MsgSvrCli_EnableHandOver_Ans();
                 ans.error_code = 0;
+                ans.flag = session.enable_handover;
+
                 try
                 {
-                    if (string.Empty != session.session_token)
+                    if (session.enable_handover == req.flag)
                     {
-                        throw new System.Exception();
+                        ans.flag = req.flag;
+                    }
+                    else
+                    {
+                        if (true == req.flag)
+                        {
+                            if (string.Empty != session.session_token)
+                            {
+                                throw new System.Exception();
+                            }
+                        }
                     }
 
+                    
+
                     session.session_token = System.Guid.NewGuid().ToString();
-                    session.OnReliableMode(true);
+                    session.OnEnableHandOver(true);
 
                     ans.session_key = session.session_key;
                     ans.session_token = session.session_token;
@@ -82,6 +97,11 @@ namespace Gamnet.Server
                 {
                     Debug.LogError(e.ToString());
                 }
+
+                Gamnet.Packet ansPacket = new Gamnet.Packet();
+                ansPacket.Id = Gamnet.SystemPacket.MsgSvrCli_EnableHandOver_Ans.MSG_ID;
+                ansPacket.Serialize(ans);
+                session.AsyncSend(ansPacket);
                 yield break;
             }
         }

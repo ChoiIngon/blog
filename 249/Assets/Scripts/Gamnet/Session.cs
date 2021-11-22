@@ -439,7 +439,7 @@ namespace Gamnet
         {
         }
 
-        protected virtual void OnReliableMode(bool flag)
+        protected virtual void OnEnableHandOver(bool flag)
         {
             throw new System.NotImplementedException("Session.OnReliableMode is not implemented");
         }

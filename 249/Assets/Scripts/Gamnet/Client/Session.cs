@@ -53,7 +53,7 @@ namespace Gamnet.Client
         {
             this.connector = new Connector(this);
 
-            RegisterHandler<MsgSvrCli_Connect_Ans>(SystemPacket.MsgSvrCli_Connect_Ans.MSG_ID, Recv_Connect_Ans);
+            RegisterHandler<MsgSvrCli_EnableHandOver_Ans>(SystemPacket.MsgSvrCli_EnableHandOver_Ans.MSG_ID, OnReceive_EnableHandOver_Ans);
             RegisterHandler<MsgSvrCli_Close_Ans>(SystemPacket.MsgSvrCli_Close_Ans.MSG_ID, Recv_Close_Ans);
             RegisterHandler<MsgSvrCli_Reconnect_Ans>(SystemPacket.MsgSvrCli_Reconnect_Ans.MSG_ID, Recv_Reconnect_Ans);
             RegisterHandler<MsgSvrCli_HeartBeat_Ans>(SystemPacket.MsgSvrCli_HeartBeat_Ans.MSG_ID, Recv_HeartBeat_Ans);
@@ -155,16 +155,18 @@ namespace Gamnet.Client
             OnErrorEvent?.Invoke(e);
         }
 
-        void Send_Connect_Req()
+        public void EnableHandOver(bool flag)
         {
+            SystemPacket.MsgCliSvr_EnableHandOver_Req req = new SystemPacket.MsgCliSvr_EnableHandOver_Req();
+            req.flag = flag;
+
             Gamnet.Packet packet = new Gamnet.Packet();
-            packet.Id = SystemPacket.MsgCliSvr_Connect_Req.MSG_ID;
-            SystemPacket.MsgCliSvr_Connect_Req req = new SystemPacket.MsgCliSvr_Connect_Req();
+            packet.Id = SystemPacket.MsgCliSvr_EnableHandOver_Req.MSG_ID;
             packet.Serialize(req);
             AsyncSend(packet);
         }
 
-        void Recv_Connect_Ans(MsgSvrCli_Connect_Ans ans)
+        void OnReceive_EnableHandOver_Ans(MsgSvrCli_EnableHandOver_Ans ans)
         {
             if (0 != ans.error_code)
             {
@@ -172,11 +174,7 @@ namespace Gamnet.Client
                 Error(null);
                 return;
             }
-
-            //session_token = ans.session_token;
-
-            ConnectEvent evt = new ConnectEvent(this);
-            Session.EventLoop.EnqueuEvent(evt); // already locked
+            OnEnableHandOver(ans.flag);
         }
 
         void Recv_Close_Ans(MsgSvrCli_Close_Ans ans)

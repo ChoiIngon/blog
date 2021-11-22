@@ -32,7 +32,7 @@ namespace Gamnet.Server
         public void Init()
         {
             handlers.Clear();
-            handlers.Add(SystemPacket.MsgCliSvr_Connect_Req.MSG_ID, new Session.PacketHandler_Connect<SESSION_T>());
+            handlers.Add(SystemPacket.MsgCliSvr_EnableHandOver_Req.MSG_ID, new Session.PacketHandler_EnableHandOver<SESSION_T>());
             handlers.Add(SystemPacket.MsgCliSvr_Reconnect_Req.MSG_ID, new Session.PacketHandler_Reconnect<SESSION_T>());
             handlers.Add(SystemPacket.MsgCliSvr_Close_Req.MSG_ID, new Session.PacketHandler_Close<SESSION_T>());
             handlers.Add(SystemPacket.MsgCliSvr_HeartBeat_Req.MSG_ID, new Session.PacketHandler_HeartBeat<SESSION_T>());

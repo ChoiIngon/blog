@@ -11,17 +11,19 @@ namespace Gamnet.SystemPacket
         Success
     }
     [System.Serializable]
-    class MsgCliSvr_Connect_Req
+    class MsgCliSvr_EnableHandOver_Req
     {
         public const uint MSG_ID = uint.MaxValue - 1;
+        public bool flag;
     }
 
     [System.Serializable]
-    class MsgSvrCli_Connect_Ans
+    class MsgSvrCli_EnableHandOver_Ans
     {
         public const uint MSG_ID = uint.MaxValue - 1;
 
         public int error_code = 0;
+        public bool flag;
         public uint session_key = 0;
         public string session_token = "";
     }
