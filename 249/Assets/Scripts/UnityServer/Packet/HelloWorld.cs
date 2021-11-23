@@ -101,5 +101,12 @@ namespace UnityServer.Packet
             packet.Serialize(req);
             client.session.AsyncSend(packet);
         }
+
+        [Gamnet.Server.TestMethod]
+        public void Test_PauseAndResume(UnityServer.SimulationClient client)
+        {
+            client.session.Pause();
+            client.session.Resume();
+        }
     }
 }

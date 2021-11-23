@@ -24,9 +24,10 @@ namespace Gamnet.Server
                     {
                         throw new System.InvalidOperationException($"already linked session");
                     }
-                        
+
                     session.session_token = System.Guid.NewGuid().ToString();
                     session.enable_handover = true;
+                    session.OnConnect();
                 }
                 catch (System.Exception e)
                 {
@@ -45,7 +46,7 @@ namespace Gamnet.Server
             }
         }
 
-        public class PacketHandler_Reconnect<SESSION_T> : PacketHandler<SESSION_T> where SESSION_T : Server.Session
+        public class PacketHandler_RecoverSessionLink<SESSION_T> : PacketHandler<SESSION_T> where SESSION_T : Server.Session
         {
             public override uint Id()
             {
@@ -59,11 +60,33 @@ namespace Gamnet.Server
                 ans.error_code = 0;
                 try
                 {
+                    Session prevSession = Session.SessionManager.Find(req.session_key);
+                    if (null == prevSession)
+                    {
+                        throw new System.Exception();
+                    }
+
+                    if (prevSession.session_token != req.session_token)
+                    {
+                        throw new System.Exception();
+                    }
+
+                    prevSession.socket = session.socket;
+
+                    prevSession.enable_handover = true;
+                    session.socket = null;
+                    Session.SessionManager.Remove(session);
+                    prevSession.OnResume();
                 }
                 catch (System.Exception e)
                 {
                     Debug.LogError(e.ToString());
                 }
+
+                Gamnet.Packet ansPacket = new Gamnet.Packet();
+                ansPacket.Id = Gamnet.SystemPacket.MsgSvrCli_RecoverSessionLink_Ans.MSG_ID;
+                ansPacket.Serialize(ans);
+                session.AsyncSend(ansPacket);
                 yield break;
             }
         }
@@ -80,15 +103,13 @@ namespace Gamnet.Server
                 Gamnet.SystemPacket.MsgCliSvr_DestroySessionLink_Req req = packet.Deserialize<Gamnet.SystemPacket.MsgCliSvr_DestroySessionLink_Req>();
                 Gamnet.SystemPacket.MsgSvrCli_DestroySessionLink_Ans ans = new Gamnet.SystemPacket.MsgSvrCli_DestroySessionLink_Ans();
                 ans.error_code = 0;
-
                 try
                 {
-                    if (string.Empty == session.session_token)
+                    if (false == session.enable_handover)
                     {
-                        throw new System.InvalidOperationException($"already linked session");
+                        throw new System.InvalidOperationException($"not linked session");
                     }
 
-                    session.session_token = "";
                     session.enable_handover = false;
                 }
                 catch (System.Exception e)

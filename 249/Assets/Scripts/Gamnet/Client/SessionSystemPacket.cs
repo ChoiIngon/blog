@@ -13,7 +13,7 @@ namespace Gamnet.Client
         private void Send_EstablishSessionLink_Req()
         {
             SystemPacket.MsgCliSvr_EstablishSessionLink_Req req = new SystemPacket.MsgCliSvr_EstablishSessionLink_Req();
-            
+
             Gamnet.Packet packet = new Gamnet.Packet();
             packet.Id = SystemPacket.MsgCliSvr_EstablishSessionLink_Req.MSG_ID;
             packet.Serialize(req);
@@ -32,32 +32,8 @@ namespace Gamnet.Client
             session_key = ans.session_key;
             session_token = ans.session_token;
 
-            OnCreate();
             OnConnect();
         }
-
-        private void Send_DestroySessionLink_Req()
-        {
-            SystemPacket.MsgCliSvr_DestroySessionLink_Req req = new SystemPacket.MsgCliSvr_DestroySessionLink_Req();
-
-            Gamnet.Packet packet = new Gamnet.Packet();
-            packet.Id = SystemPacket.MsgCliSvr_DestroySessionLink_Req.MSG_ID;
-            packet.Serialize(req);
-            AsyncSend(packet);
-        }
-
-        private void Recv_DestroySessionLink_Ans(MsgSvrCli_DestroySessionLink_Ans ans)
-        {
-            if (0 != ans.error_code)
-            {
-                Debug.LogError("connect fail(error_code:" + ans.error_code + ")");
-                Error(null);
-                return;
-            }
-
-            session_token = "";
-        }
-
         private void Send_RecoverSessionLink_Req()
         {
             SystemPacket.MsgCliSvr_RecoverSessionLink_Req req = new SystemPacket.MsgCliSvr_RecoverSessionLink_Req();
@@ -65,7 +41,7 @@ namespace Gamnet.Client
             req.session_token = session_token;
 
             Gamnet.Packet packet = new Gamnet.Packet();
-            packet.Id = SystemPacket.MsgCliSvr_DestroySessionLink_Req.MSG_ID;
+            packet.Id = SystemPacket.MsgCliSvr_RecoverSessionLink_Req.MSG_ID;
             packet.Serialize(req);
             AsyncSend(packet);
         }
@@ -79,7 +55,6 @@ namespace Gamnet.Client
                 return;
             }
 
-            //session_token = ans.session_token;
             OnResume();
         }
 

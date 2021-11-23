@@ -23,13 +23,5 @@ namespace Gamnet.Client
                 }
             }
         }
-
-        public new class DestoryEvent : SessionEvent
-        {
-            public DestoryEvent(Session session) : base(session) { }
-            public override void OnEvent()
-            {
-            }
-        }
     }
 }

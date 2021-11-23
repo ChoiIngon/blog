@@ -40,11 +40,9 @@ namespace Gamnet.Server
 
             SESSION_T session = new SESSION_T();
             session.socket = clientSocket;
-            session.state = Session.State.Connected;
             session.dispatcher = dispatcher;
 
             Gamnet.Session.EventLoop.EnqueuEvent(new Session.AcceptEvent(session));
-
         }
     }
 }

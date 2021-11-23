@@ -27,39 +27,6 @@ namespace Gamnet
             public abstract void OnEvent();
         };
 
-        public class CreateEvent : SessionEvent
-        {
-            public CreateEvent(Session session) : base(session) { }
-            public override void OnEvent()
-            {
-                session.OnCreate();
-            }
-        }
-
-        protected virtual void OnCreate()
-        {
-            throw new System.NotImplementedException("Session.OnCreate is not implemented");
-        }
-
-        public class DestoryEvent : SessionEvent
-        {
-            public DestoryEvent(Session session) : base(session) { }
-            public override void OnEvent()
-            {
-                session.OnDestory();
-            }
-        }
-
-        protected virtual void OnDestory()
-        {
-            throw new System.NotImplementedException("Session.OnDestory is not implemented");
-        }
-
-        protected virtual void OnAccept()
-        {
-            throw new System.NotImplementedException("Session.OnAccept is not implemented");
-        }
-
         protected virtual void OnConnect()
         {
             throw new System.NotImplementedException("Session.OnConnect is not implemented");

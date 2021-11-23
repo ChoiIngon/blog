@@ -10,6 +10,35 @@ namespace Gamnet.Simulation
         public int ScenarioIndex;
         public int LoopCount;
 
+        private void Start()
+        {
+            session.OnConnectEvent += () =>
+            {
+                Debug.Log("client session connected");
+                Simulator.Execute(this);
+            };
+            session.OnPauseEvent += () =>
+            {
+                Debug.Log("client session pause");
+            };
+            session.OnResumeEvent += () =>
+            {
+                Debug.Log("client session resume");
+            };
+            session.OnCloseEvent += () =>
+            {
+                Debug.Log("client session close");
+            };
+        }
+
+        private void OnDestroy()
+        {
+            session.OnConnectEvent = null;
+            session.OnPauseEvent = null;
+            session.OnResumeEvent = null;
+            session.OnConnectEvent = null;
+        }
+
         private void OnApplicationPause(bool pause)
         {
             if (true == pause)
@@ -29,10 +58,7 @@ namespace Gamnet.Simulation
 
         public void AsyncConnect(string host, int port)
         {
-            session.OnConnectEvent += () =>
-            {
-                Simulator.Execute(this);
-            };
+
             session.AsyncConnect(host, port);
         }
 

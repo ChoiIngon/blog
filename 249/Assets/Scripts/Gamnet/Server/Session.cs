@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Net.Sockets;
 using System.Threading;
+using UnityEngine;
 
 namespace Gamnet.Server
 {
@@ -25,9 +27,50 @@ namespace Gamnet.Server
             dispatcher.OnReceive(this, packet);
         }
 
-        public override void Destroy()
+        public override void Close()
         {
-            EventLoop.EnqueuEvent(new DestoryEvent(this));
+            if (null == socket)
+            {
+                return;
+            }
+
+            if (false == socket.Connected)
+            {
+                return;
+            }
+
+            try
+            {
+                socket.BeginDisconnect(false, new AsyncCallback(CloseCallback), socket);
+            }
+            catch (SocketException e)
+            {
+                Debug.LogError("[Session.Disconnect] exception:" + e.ToString());
+            }
+            catch (ObjectDisposedException e)
+            {
+                Debug.LogError("[Session.Disconnect] exception:" + e.ToString());
+            }
+        }
+
+        private void CloseCallback(IAsyncResult result)
+        {
+            try
+            {
+                socket.EndDisconnect(result);
+                if (true == enable_handover)
+                {
+                    EventLoop.EnqueuEvent(new PauseEvent(this));
+                }
+                else
+                {
+                    EventLoop.EnqueuEvent(new CloseEvent(this));
+                }
+            }
+            catch (SocketException e)
+            {
+                Debug.Log($"[{Gamnet.Util.Debug.__FUNC__()}] session_state:" + state.ToString() + ", exception:" + e.ToString());
+            }
         }
     }
 }

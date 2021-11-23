@@ -33,7 +33,7 @@ namespace Gamnet.Server
         {
             handlers.Clear();
             handlers.Add(SystemPacket.MsgCliSvr_EstablishSessionLink_Req.MSG_ID, new Session.PacketHandler_EstablishSessionLink<SESSION_T>());
-            handlers.Add(SystemPacket.MsgCliSvr_RecoverSessionLink_Req.MSG_ID, new Session.PacketHandler_Reconnect<SESSION_T>());
+            handlers.Add(SystemPacket.MsgCliSvr_RecoverSessionLink_Req.MSG_ID, new Session.PacketHandler_RecoverSessionLink<SESSION_T>());
             handlers.Add(SystemPacket.MsgCliSvr_DestroySessionLink_Req.MSG_ID, new Session.PacketHandler_DestroySessionLink<SESSION_T>());
             handlers.Add(SystemPacket.MsgCliSvr_HeartBeat_Req.MSG_ID, new Session.PacketHandler_HeartBeat<SESSION_T>());
             handlers.Add(SystemPacket.MsgCliSvr_ReliableAck_Ntf.MSG_ID, new Session.PacketHandler_ReliableAck<SESSION_T>());

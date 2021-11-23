@@ -11,12 +11,9 @@ namespace UnityServer
     {
         public class Session : Gamnet.Server.Session
         {
-            protected override void OnCreate()
+            protected override void OnConnect()
             {
-            }
-
-            protected override void OnAccept()
-            {
+                Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, "server session connected");
             }
 
             protected override void OnClose()
@@ -24,13 +21,14 @@ namespace UnityServer
                 Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, "server session closed");
             }
 
-            protected override void OnDestory()
+            protected override void OnResume()
             {
-                Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, "server session destroyed");
+                Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, "server session resume");
             }
 
-            protected override void OnError(Exception e)
+            protected override void OnPause()
             {
+                Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, "server session pause");
             }
         }
 

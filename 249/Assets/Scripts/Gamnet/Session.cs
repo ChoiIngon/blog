@@ -19,8 +19,6 @@ namespace Gamnet
             Handover        // 모바일에서 이동 등으로 인해 접속이 잠시 끊긴 상태
         }
 
-        private static int SESSION_KEY = 0;
-        
         public const int MAX_BUFFER_SIZE = 1024;
 
         public Socket socket;
@@ -34,7 +32,7 @@ namespace Gamnet
         //private int timeoutInterval = 5000; // 비동기 connect 실패 시간. 5초
 
         private byte[] receiveBytes = new byte[MAX_BUFFER_SIZE];
-        private Buffer receiveBuffer = new Buffer();
+        public Buffer receiveBuffer = new Buffer();
 
         private List<Packet> send_queue = new List<Packet>();
         private int send_queue_index;
@@ -55,18 +53,17 @@ namespace Gamnet
             }
             try
             {
-                socket.BeginReceive(receiveBytes, 0, MAX_BUFFER_SIZE, 0, new AsyncCallback(AsyncReceiveCallback), null);
+                socket.BeginReceive(receiveBytes, 0, MAX_BUFFER_SIZE, 0, new AsyncCallback(ReceiveCallback), null);
             }
             catch (SocketException e)
             {
-                Error(e);
                 Close();
             }
         }
 
         // 요 부분을 서버와 클라이언트 분리해서, 서버에서는 소켓 closse가발생하면 바로 close하지 않고 Pause 이벤트 날리고,
         // timeout 되거나, 클라이언트로 부터 명시적 close가 날아 오면 세션을 destroy하는 걸로 분리
-        private void AsyncReceiveCallback(IAsyncResult result)
+        private void ReceiveCallback(IAsyncResult result)
         {
             try
             {
@@ -80,12 +77,12 @@ namespace Gamnet
             }
             catch (ObjectDisposedException e)
             {
-                Error(e);
+                Close();
                 return;
             }
             catch (SocketException e)
             {
-                Error(e);
+                Close();
                 return;
             }
 
@@ -94,7 +91,7 @@ namespace Gamnet
                 Packet packet = new Packet(receiveBuffer);
                 if (packet.Length > Gamnet.Buffer.MAX_BUFFER_SIZE)
                 {
-                    Error(new System.OverflowException("The packet length is greater than the buffer max length."));
+                    Close();
                     return;
                 }
 
@@ -115,60 +112,6 @@ namespace Gamnet
             BeginReceive();
         }
         #endregion
-
-        public void Error(System.Exception e)
-        {
-            ErrorEvent evt = new ErrorEvent(this, e);
-            evt.exception = e;
-            EventLoop.EnqueuEvent(evt);
-        }
-
-        public virtual void Close()
-        {
-            if (null == socket)
-            {
-                return;
-            }
-
-            if (false == socket.Connected)
-            {
-                return;
-            }
-
-            try
-            {
-                socket.BeginDisconnect(false, new AsyncCallback(CloseCallback), socket);
-            }
-            catch (SocketException e)
-            {
-                Debug.LogError("[Session.Disconnect] exception:" + e.ToString());
-                Error(e);
-            }
-            catch (ObjectDisposedException e)
-            {
-                Debug.LogError("[Session.Disconnect] exception:" + e.ToString());
-            }
-        }
-
-        private void CloseCallback(IAsyncResult result)
-        {
-            try
-            {
-                socket.EndDisconnect(result);
-
-                EventLoop.EnqueuEvent(new CloseEvent(this));
-                Destroy();
-            }
-            catch (SocketException e)
-            {
-                Debug.Log("[Session.Callback_Disconnect] session_state:" + state.ToString() + ", exception:" + e.ToString());
-            }
-        }
-
-        public virtual void Destroy()
-        {
-            EventLoop.EnqueuEvent(new DestoryEvent(this));
-        }
 
         public void AsyncSend(Packet packet)
         {
@@ -234,9 +177,13 @@ namespace Gamnet
             catch (SocketException e)
             {
                 Debug.Log("[Session.Callback_Disconnect] session_state:" + state.ToString() + ", exception:" + e.ToString());
-                Error(e);
                 Close();
             }
+        }
+
+        public virtual void Close()
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

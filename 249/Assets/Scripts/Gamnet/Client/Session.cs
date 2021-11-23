@@ -1,6 +1,7 @@
 ﻿using Gamnet.SystemPacket;
 using System;
 using System.Collections.Generic;
+using System.Net.Sockets;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 
@@ -10,6 +11,7 @@ namespace Gamnet.Client
     {
         public uint session_key { get; private set; }
         public string session_token { get; private set; }
+
         private abstract class IPacketHandler
         {
             public abstract void OnReceive(Packet packet);
@@ -38,10 +40,8 @@ namespace Gamnet.Client
             }
         }
 
-        public Action OnCreateEvent;
         public Action OnConnectEvent;
         public Action OnCloseEvent;
-        public Action OnDestroyEvent;
         public Action OnPauseEvent;
         public Action OnResumeEvent;
         public Action<System.Exception> OnErrorEvent;
@@ -90,23 +90,12 @@ namespace Gamnet.Client
 
         public void Pause()
         {
-            base.Close();
+            SocketClose();
         }
-
-		public override void Close()
-		{
-            Send_DestroySessionLink_Req();
-            base.Close();
-		}
 
 		public void Resume()
         {
             connector.AsyncReconnect();
-        }
-
-        protected override void OnCreate()
-        {
-            OnCreateEvent?.Invoke();
         }
 
         protected override void OnConnect()
@@ -152,11 +141,6 @@ namespace Gamnet.Client
             connector.AsyncReconnect();
         }
 
-        protected override void OnDestory()
-        {
-            OnDestroyEvent?.Invoke();
-        }
-
         protected override void OnClose()
         {
             OnCloseEvent?.Invoke();
@@ -166,6 +150,100 @@ namespace Gamnet.Client
         {
             Log.Write(Log.LogLevel.ERR, e.ToString());
             OnErrorEvent?.Invoke(e);
+        }
+
+        #region Close
+        public override void Close()
+        {
+            if (0 != session_key)
+            {
+                Send_DestroySessionLink_Req();
+                return;
+            }
+            SocketClose();
+        }
+
+        private void Send_DestroySessionLink_Req()
+        {
+            if (false == socket.Connected)
+            {
+                return;
+            }
+            SystemPacket.MsgCliSvr_DestroySessionLink_Req req = new SystemPacket.MsgCliSvr_DestroySessionLink_Req();
+
+            Gamnet.Packet packet = new Gamnet.Packet();
+            packet.Id = SystemPacket.MsgCliSvr_DestroySessionLink_Req.MSG_ID;
+            packet.Serialize(req);
+            AsyncSend(packet);
+        }
+
+        private void Recv_DestroySessionLink_Ans(MsgSvrCli_DestroySessionLink_Ans ans)
+        {
+            if (0 != ans.error_code)
+            {
+                Debug.LogError("connect fail(error_code:" + ans.error_code + ")");
+                Error(null);
+                return;
+            }
+
+            session_key = 0;
+            session_token = "";
+            SocketClose();
+        }
+
+        private void SocketClose()
+        {
+            if (null == socket)
+            {
+                return;
+            }
+
+            if (false == socket.Connected)
+            {
+                return;
+            }
+
+            try
+            {
+                socket.BeginDisconnect(false, new AsyncCallback(SocketCloseCallback), socket);
+            }
+            catch (SocketException e)
+            {
+                Debug.LogError("[Session.Disconnect] exception:" + e.ToString());
+                Error(e);
+            }
+            catch (ObjectDisposedException e)
+            {
+                Debug.LogError("[Session.Disconnect] exception:" + e.ToString());
+            }
+        }
+
+        private void SocketCloseCallback(IAsyncResult result)
+        {
+            try
+            {
+                socket.EndDisconnect(result);
+                if (0 != session_key)
+                {
+                    EventLoop.EnqueuEvent(new PauseEvent(this));
+                }
+                else
+                {
+                    EventLoop.EnqueuEvent(new CloseEvent(this));
+                }
+            }
+            catch (SocketException e)
+            {
+                Debug.Log($"[{Gamnet.Util.Debug.__FUNC__()}] session_state:" + state.ToString() + ", exception:" + e.ToString());
+            }
+        }
+        #endregion
+
+        public void Error(System.Exception e)
+        {
+            ErrorEvent evt = new ErrorEvent(this, e);
+            evt.exception = e;
+            EventLoop.EnqueuEvent(evt);
         }
     }
 }

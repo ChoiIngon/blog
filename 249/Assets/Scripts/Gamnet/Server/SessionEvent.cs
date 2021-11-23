@@ -12,33 +12,18 @@ namespace Gamnet.Server
             public override void OnEvent()
             {
                 Session serverSession = session as Session;
+                SessionManager.Add(serverSession);
                 serverSession.BeginReceive();
             }
         }
 
-        public new class CreateEvent : SessionEvent
+        public new class CloseEvent : Gamnet.Session.CloseEvent
         {
-            public CreateEvent(Session session) : base(session) { }
+            public CloseEvent(Session session) : base(session) { }
             public override void OnEvent()
             {
+                base.OnEvent();
                 Session serverSession = session as Session;
-                SessionManager.Add(serverSession);
-                serverSession.OnCreate();
-            }
-        }
-
-        public new class DestoryEvent : SessionEvent
-        {
-            public DestoryEvent(Session session) : base(session) { }
-            public override void OnEvent()
-            {
-                Session serverSession = session as Session;
-                if (true == serverSession.enable_handover)
-                {
-                    return;
-                }
-
-                serverSession.OnDestory();
                 SessionManager.Remove(serverSession);
             }
         }

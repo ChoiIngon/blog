@@ -94,10 +94,6 @@ namespace Gamnet.Simulation
                 GameObject go = new GameObject();
                 CLIENT_T client_t = go.AddComponent<CLIENT_T>();
                 go.name = $"Scenario.Client.{client_t.session.session_key}";
-
-                Gamnet.Session.SessionEvent evt = new Gamnet.Session.CreateEvent(client_t.session);
-                Gamnet.Session.EventLoop.EnqueuEvent(evt);
-
                 client_t.transform.SetParent(instance.transform, false);
                 return client_t;
             }

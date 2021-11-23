@@ -18,6 +18,16 @@ namespace Gamnet.Server
             {
                 instance.sessions.Remove(session.session_key);
             }
+
+            public static Session Find(uint sessionKey)
+            {
+                Session session = null;
+                if (false == instance.sessions.TryGetValue(sessionKey, out session))
+                {
+                    return null;
+                }
+                return session;
+            }
         }
     }
 }

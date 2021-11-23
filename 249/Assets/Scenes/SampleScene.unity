@@ -186,6 +186,7 @@ MonoBehaviour:
   LoopCount: 1
   ScenarioNames:
   - Test_HelloWorld
+  - Test_PauseAndResume
 --- !u!114 &99786746
 MonoBehaviour:
   m_ObjectHideFlags: 0
