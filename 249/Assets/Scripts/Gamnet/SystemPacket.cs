@@ -11,44 +11,45 @@ namespace Gamnet.SystemPacket
         Success
     }
     [System.Serializable]
-    class MsgCliSvr_EnableHandOver_Req
+    class MsgCliSvr_EstablishSessionLink_Req
     {
         public const uint MSG_ID = uint.MaxValue - 1;
-        public bool flag;
     }
 
     [System.Serializable]
-    class MsgSvrCli_EnableHandOver_Ans
+    class MsgSvrCli_EstablishSessionLink_Ans
     {
         public const uint MSG_ID = uint.MaxValue - 1;
 
         public int error_code = 0;
-        public bool flag;
         public uint session_key = 0;
         public string session_token = "";
     }
 
     [System.Serializable]
-    class MsgCliSvr_Close_Req
+    class MsgCliSvr_DestroySessionLink_Req
     {
         public const uint MSG_ID = uint.MaxValue - 2;
     }
 
     [System.Serializable]
-    class MsgSvrCli_Close_Ans
+    class MsgSvrCli_DestroySessionLink_Ans
     {
         public const uint MSG_ID = uint.MaxValue - 2;
         public int error_code = 0;
     }
 
     [System.Serializable]
-    class MsgCliSvr_Reconnect_Req
+    class MsgCliSvr_RecoverSessionLink_Req
     {
         public const uint MSG_ID = uint.MaxValue - 3;
+
+        public uint session_key;
+        public string session_token;
     }
 
     [System.Serializable]
-    class MsgSvrCli_Reconnect_Ans
+    class MsgSvrCli_RecoverSessionLink_Ans
     {
         public const uint MSG_ID = uint.MaxValue - 3;
         public int error_code = 0;

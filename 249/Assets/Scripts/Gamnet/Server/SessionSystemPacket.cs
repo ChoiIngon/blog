@@ -5,45 +5,28 @@ namespace Gamnet.Server
 {
     public partial class Session : Gamnet.Session
     {
-        public class PacketHandler_EnableHandOver<SESSION_T> : PacketHandler<SESSION_T> where SESSION_T : Server.Session
+        public class PacketHandler_EstablishSessionLink<SESSION_T> : PacketHandler<SESSION_T> where SESSION_T : Server.Session
         {
             public override uint Id()
             {
-                return Gamnet.SystemPacket.MsgCliSvr_EnableHandOver_Req.MSG_ID;
+                return Gamnet.SystemPacket.MsgCliSvr_EstablishSessionLink_Req.MSG_ID;
             }
 
             public override IEnumerator OnReceive(SESSION_T session, Gamnet.Packet packet)
             {
-                SystemPacket.MsgCliSvr_EnableHandOver_Req req = packet.Deserialize<SystemPacket.MsgCliSvr_EnableHandOver_Req>();
-                SystemPacket.MsgSvrCli_EnableHandOver_Ans ans = new SystemPacket.MsgSvrCli_EnableHandOver_Ans();
+                SystemPacket.MsgCliSvr_EstablishSessionLink_Req req = packet.Deserialize<SystemPacket.MsgCliSvr_EstablishSessionLink_Req>();
+                SystemPacket.MsgSvrCli_EstablishSessionLink_Ans ans = new SystemPacket.MsgSvrCli_EstablishSessionLink_Ans();
 
                 ans.error_code = 0;
-                ans.flag = session.enable_handover;
-
                 try
                 {
-                    if (session.enable_handover == req.flag)
+                    if (string.Empty != session.session_token)
                     {
-                        ans.flag = req.flag;
+                        throw new System.InvalidOperationException($"already linked session");
                     }
-                    else
-                    {
-                        if (true == req.flag)
-                        {
-                            if (string.Empty != session.session_token)
-                            {
-                                throw new System.Exception();
-                            }
-
-                            session.session_token = System.Guid.NewGuid().ToString();
-                            session.enable_handover = true;
-                        }
-                        else
-                        {
-                            session.session_token = string.Empty;
-                            session.enable_handover = false;
-                        }
-                    }
+                        
+                    session.session_token = System.Guid.NewGuid().ToString();
+                    session.enable_handover = true;
                 }
                 catch (System.Exception e)
                 {
@@ -55,7 +38,7 @@ namespace Gamnet.Server
                 ans.session_token = session.session_token;
 
                 Gamnet.Packet ansPacket = new Gamnet.Packet();
-                ansPacket.Id = Gamnet.SystemPacket.MsgSvrCli_EnableHandOver_Ans.MSG_ID;
+                ansPacket.Id = Gamnet.SystemPacket.MsgSvrCli_EstablishSessionLink_Ans.MSG_ID;
                 ansPacket.Serialize(ans);
                 session.AsyncSend(ansPacket);
                 yield break;
@@ -66,13 +49,13 @@ namespace Gamnet.Server
         {
             public override uint Id()
             {
-                return Gamnet.SystemPacket.MsgCliSvr_Reconnect_Req.MSG_ID;
+                return Gamnet.SystemPacket.MsgCliSvr_RecoverSessionLink_Req.MSG_ID;
             }
 
             public override IEnumerator OnReceive(SESSION_T session, Gamnet.Packet packet)
             {
-                Gamnet.SystemPacket.MsgCliSvr_Reconnect_Req req = packet.Deserialize<Gamnet.SystemPacket.MsgCliSvr_Reconnect_Req>();
-                Gamnet.SystemPacket.MsgSvrCli_Reconnect_Ans ans = new Gamnet.SystemPacket.MsgSvrCli_Reconnect_Ans();
+                Gamnet.SystemPacket.MsgCliSvr_RecoverSessionLink_Req req = packet.Deserialize<Gamnet.SystemPacket.MsgCliSvr_RecoverSessionLink_Req>();
+                Gamnet.SystemPacket.MsgSvrCli_RecoverSessionLink_Ans ans = new Gamnet.SystemPacket.MsgSvrCli_RecoverSessionLink_Ans();
                 ans.error_code = 0;
                 try
                 {
@@ -85,25 +68,39 @@ namespace Gamnet.Server
             }
         }
 
-        public class PacketHandler_Close<SESSION_T> : PacketHandler<SESSION_T> where SESSION_T : Server.Session
+        public class PacketHandler_DestroySessionLink<SESSION_T> : PacketHandler<SESSION_T> where SESSION_T : Server.Session
         {
             public override uint Id()
             {
-                return Gamnet.SystemPacket.MsgCliSvr_Close_Req.MSG_ID;
+                return Gamnet.SystemPacket.MsgCliSvr_DestroySessionLink_Req.MSG_ID;
             }
 
             public override IEnumerator OnReceive(SESSION_T session, Gamnet.Packet packet)
             {
-                Gamnet.SystemPacket.MsgCliSvr_Close_Req req = packet.Deserialize<Gamnet.SystemPacket.MsgCliSvr_Close_Req>();
-                Gamnet.SystemPacket.MsgSvrCli_Close_Ans ans = new Gamnet.SystemPacket.MsgSvrCli_Close_Ans();
+                Gamnet.SystemPacket.MsgCliSvr_DestroySessionLink_Req req = packet.Deserialize<Gamnet.SystemPacket.MsgCliSvr_DestroySessionLink_Req>();
+                Gamnet.SystemPacket.MsgSvrCli_DestroySessionLink_Ans ans = new Gamnet.SystemPacket.MsgSvrCli_DestroySessionLink_Ans();
                 ans.error_code = 0;
+
                 try
                 {
+                    if (string.Empty == session.session_token)
+                    {
+                        throw new System.InvalidOperationException($"already linked session");
+                    }
+
+                    session.session_token = "";
+                    session.enable_handover = false;
                 }
                 catch (System.Exception e)
                 {
+                    ans.error_code = e.HResult;
                     Debug.LogError(e.ToString());
                 }
+
+                Gamnet.Packet ansPacket = new Gamnet.Packet();
+                ansPacket.Id = Gamnet.SystemPacket.MsgSvrCli_DestroySessionLink_Ans.MSG_ID;
+                ansPacket.Serialize(ans);
+                session.AsyncSend(ansPacket);
                 yield break;
             }
         }

@@ -60,8 +60,7 @@ namespace Gamnet.Client
                 session.state = Session.State.Connected;
                 //_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendTimeout, 10000);
                 //_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, 10000);
-                Gamnet.Session.ConnectEvent evt = new Gamnet.Session.ConnectEvent(session);
-                Gamnet.Session.EventLoop.EnqueuEvent(evt);
+                Gamnet.Session.EventLoop.EnqueuEvent(new Gamnet.Client.Session.ConnectEvent(session));
             }
             catch (SocketException e)
             {

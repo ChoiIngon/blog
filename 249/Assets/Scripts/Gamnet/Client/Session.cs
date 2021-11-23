@@ -9,6 +9,7 @@ namespace Gamnet.Client
     public partial class Session : Gamnet.Session
     {
         public uint session_key { get; private set; }
+        public string session_token { get; private set; }
         private abstract class IPacketHandler
         {
             public abstract void OnReceive(Packet packet);
@@ -37,13 +38,13 @@ namespace Gamnet.Client
             }
         }
 
-        public  Action OnCreateEvent;
-        public  Action OnConnectEvent;
-        public  Action OnCloseEvent;
+        public Action OnCreateEvent;
+        public Action OnConnectEvent;
+        public Action OnCloseEvent;
         public Action OnDestroyEvent;
         public Action OnPauseEvent;
         public Action OnResumeEvent;
-        public  Action<System.Exception> OnErrorEvent;
+        public Action<System.Exception> OnErrorEvent;
 
         private UInt32 recv_packet_seq = 0;
         private Connector connector;
@@ -54,9 +55,9 @@ namespace Gamnet.Client
             session_key = 0;
             this.connector = new Connector(this);
 
-            RegisterHandler<MsgSvrCli_EnableHandOver_Ans>(SystemPacket.MsgSvrCli_EnableHandOver_Ans.MSG_ID, OnReceive_EnableHandOver_Ans);
-            RegisterHandler<MsgSvrCli_Close_Ans>(SystemPacket.MsgSvrCli_Close_Ans.MSG_ID, Recv_Close_Ans);
-            RegisterHandler<MsgSvrCli_Reconnect_Ans>(SystemPacket.MsgSvrCli_Reconnect_Ans.MSG_ID, Recv_Reconnect_Ans);
+            RegisterHandler<MsgSvrCli_EstablishSessionLink_Ans>(SystemPacket.MsgSvrCli_EstablishSessionLink_Ans.MSG_ID, Recv_EstabilshSessionLink_Ans);
+            RegisterHandler<MsgSvrCli_DestroySessionLink_Ans>(SystemPacket.MsgSvrCli_DestroySessionLink_Ans.MSG_ID, Recv_DestroySessionLink_Ans);
+            RegisterHandler<MsgSvrCli_RecoverSessionLink_Ans>(SystemPacket.MsgSvrCli_RecoverSessionLink_Ans.MSG_ID, Recv_RecoverSessionLink_Ans);
             RegisterHandler<MsgSvrCli_HeartBeat_Ans>(SystemPacket.MsgSvrCli_HeartBeat_Ans.MSG_ID, Recv_HeartBeat_Ans);
             RegisterHandler<MsgSvrCli_ReliableAck_Ntf>(SystemPacket.MsgSvrCli_ReliableAck_Ntf.MSG_ID, Recv_ReliableAck_Ntf);
         }
@@ -89,10 +90,16 @@ namespace Gamnet.Client
 
         public void Pause()
         {
-            Close();
+            base.Close();
         }
 
-        public void Resume()
+		public override void Close()
+		{
+            Send_DestroySessionLink_Req();
+            base.Close();
+		}
+
+		public void Resume()
         {
             connector.AsyncReconnect();
         }

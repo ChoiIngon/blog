@@ -10,28 +10,17 @@ namespace Gamnet.Client
 {
     public partial class Session : Gamnet.Session
     {
-        public void EnableHandOver(bool flag)
+        private void Send_EstablishSessionLink_Req()
         {
-            SystemPacket.MsgCliSvr_EnableHandOver_Req req = new SystemPacket.MsgCliSvr_EnableHandOver_Req();
-            req.flag = flag;
-
+            SystemPacket.MsgCliSvr_EstablishSessionLink_Req req = new SystemPacket.MsgCliSvr_EstablishSessionLink_Req();
+            
             Gamnet.Packet packet = new Gamnet.Packet();
-            packet.Id = SystemPacket.MsgCliSvr_EnableHandOver_Req.MSG_ID;
+            packet.Id = SystemPacket.MsgCliSvr_EstablishSessionLink_Req.MSG_ID;
             packet.Serialize(req);
             AsyncSend(packet);
         }
 
-        void OnReceive_EnableHandOver_Ans(MsgSvrCli_EnableHandOver_Ans ans)
-        {
-            if (0 != ans.error_code)
-            {
-                Debug.LogError("connect fail(error_code:" + ans.error_code + ")");
-                Error(null);
-                return;
-            }
-        }
-
-        void Recv_Close_Ans(MsgSvrCli_Close_Ans ans)
+        private void Recv_EstabilshSessionLink_Ans(MsgSvrCli_EstablishSessionLink_Ans ans)
         {
             if (0 != ans.error_code)
             {
@@ -40,13 +29,48 @@ namespace Gamnet.Client
                 return;
             }
 
-            //session_token = ans.session_token;
+            session_key = ans.session_key;
+            session_token = ans.session_token;
 
-            CloseEvent evt = new CloseEvent(this);
-            Session.EventLoop.EnqueuEvent(evt); // already locked
+            OnCreate();
+            OnConnect();
         }
 
-        void Recv_Reconnect_Ans(MsgSvrCli_Reconnect_Ans ans)
+        private void Send_DestroySessionLink_Req()
+        {
+            SystemPacket.MsgCliSvr_DestroySessionLink_Req req = new SystemPacket.MsgCliSvr_DestroySessionLink_Req();
+
+            Gamnet.Packet packet = new Gamnet.Packet();
+            packet.Id = SystemPacket.MsgCliSvr_DestroySessionLink_Req.MSG_ID;
+            packet.Serialize(req);
+            AsyncSend(packet);
+        }
+
+        private void Recv_DestroySessionLink_Ans(MsgSvrCli_DestroySessionLink_Ans ans)
+        {
+            if (0 != ans.error_code)
+            {
+                Debug.LogError("connect fail(error_code:" + ans.error_code + ")");
+                Error(null);
+                return;
+            }
+
+            session_token = "";
+        }
+
+        private void Send_RecoverSessionLink_Req()
+        {
+            SystemPacket.MsgCliSvr_RecoverSessionLink_Req req = new SystemPacket.MsgCliSvr_RecoverSessionLink_Req();
+            req.session_key = session_key;
+            req.session_token = session_token;
+
+            Gamnet.Packet packet = new Gamnet.Packet();
+            packet.Id = SystemPacket.MsgCliSvr_DestroySessionLink_Req.MSG_ID;
+            packet.Serialize(req);
+            AsyncSend(packet);
+        }
+
+        private void Recv_RecoverSessionLink_Ans(MsgSvrCli_RecoverSessionLink_Ans ans)
         {
             if (0 != ans.error_code)
             {

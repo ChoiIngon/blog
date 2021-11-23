@@ -36,16 +36,15 @@ namespace Gamnet.Server
         void AcceptCallback(IAsyncResult ar)
         {
             Socket clientSocket = tcp_socket.EndAccept(ar);
+            tcp_socket.BeginAccept(AcceptCallback, null);
 
             SESSION_T session = new SESSION_T();
             session.socket = clientSocket;
             session.state = Session.State.Connected;
             session.dispatcher = dispatcher;
 
-            Gamnet.Session.EventLoop.EnqueuEvent(new Session.CreateEvent(session));
             Gamnet.Session.EventLoop.EnqueuEvent(new Session.AcceptEvent(session));
 
-            tcp_socket.BeginAccept(AcceptCallback, null);
         }
     }
 }

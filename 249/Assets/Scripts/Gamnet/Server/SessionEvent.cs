@@ -6,6 +6,16 @@ namespace Gamnet.Server
 {
     public partial class Session : Gamnet.Session
     {
+        public class AcceptEvent : SessionEvent
+        {
+            public AcceptEvent(Session session) : base(session) { }
+            public override void OnEvent()
+            {
+                Session serverSession = session as Session;
+                serverSession.BeginReceive();
+            }
+        }
+
         public new class CreateEvent : SessionEvent
         {
             public CreateEvent(Session session) : base(session) { }
