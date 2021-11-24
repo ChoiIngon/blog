@@ -10,6 +10,8 @@ namespace Gamnet
     {
         public class Receiver
         {
+            public const int MAX_BUFFER_SIZE = 1024;
+
             public Session session;
             private byte[] receiveBytes = new byte[MAX_BUFFER_SIZE];
             private Buffer receiveBuffer = new Buffer();
@@ -27,7 +29,10 @@ namespace Gamnet
                 }
                 try
                 {
-                    session.socket.BeginReceive(receiveBytes, 0, MAX_BUFFER_SIZE, 0, new AsyncCallback(ReceiveCallback), null);
+                    session.socket.BeginReceive(receiveBytes, 0, MAX_BUFFER_SIZE, 0, new AsyncCallback((IAsyncResult result) =>
+                    {
+                        Session.EventLoop.EnqueuEvent(new EndReceiveEvent(session, result));
+                    }), null);
                 }
                 catch (SocketException e)
                 {
@@ -35,8 +40,23 @@ namespace Gamnet
                 }
             }
 
-            private void ReceiveCallback(IAsyncResult result)
+            class EndReceiveEvent : Gamnet.Session.SessionEvent
             {
+                private IAsyncResult result;
+                public EndReceiveEvent(Session session, IAsyncResult result) : base(session)
+                {
+                    this.result = result;
+                }
+
+                public override void OnEvent()
+                {
+                    session.receiver.OnEndReceive(result);
+                }
+            }
+
+            private void OnEndReceive(IAsyncResult result)
+            {
+                Debug.Assert(Gamnet.Util.Debug.IsMainThread());
                 try
                 {
                     Int32 recvBytesSize = session.socket.EndReceive(result);
@@ -76,9 +96,7 @@ namespace Gamnet
 
                     receiveBuffer.Remove(packet.Length);
                     receiveBuffer = new Buffer(receiveBuffer);
-
-                    ReceiveEvent evt = new ReceiveEvent(session, packet);
-                    EventLoop.EnqueuEvent(evt);
+                    session.OnReceive(packet);
                 }
 
                 BeginReceive();

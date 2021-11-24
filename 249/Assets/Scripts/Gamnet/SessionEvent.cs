@@ -61,23 +61,6 @@ namespace Gamnet
             throw new System.NotImplementedException("Session.OnPause is not implemented");
         }
 
-        public class CloseEvent : SessionEvent
-        {
-            public CloseEvent(Session session) : base(session) { }
-            public override void OnEvent()
-            {
-                foreach (var pair in session.async_receives)
-                {
-                    Async.AsyncReceive asyncReceive = pair.Value;
-                    asyncReceive.Cancel();
-                }
-
-                session.async_receives.Clear();
-                session.current_coroutine = null;
-                session.OnClose();
-            }
-        }
-
         protected virtual void OnClose()
         {
             throw new System.NotImplementedException("Session.OnClose is not implemented");
@@ -102,20 +85,6 @@ namespace Gamnet
             throw new System.NotImplementedException("Session.OnError is not implemented");
         }
 
-        public class ReceiveEvent : SessionEvent
-        {
-            private Packet packet;
-            public ReceiveEvent(Session session, Packet packet) : base(session)
-            {
-                this.packet = packet;
-            }
-
-            public override void OnEvent()
-            {
-                session.OnReceive(this.packet);
-            }
-        }
-
         protected virtual void OnReceive(Packet packet)
         {
             throw new System.NotImplementedException("Session.OnReceive is not implemented");
@@ -131,17 +100,17 @@ namespace Gamnet
                 SessionEvent evt;
                 while (true == instance.eventQueue.TryDequeue(out evt))
                 {
-                    try
-                    {
+                    //try
+                    //{
                         evt.OnEvent();
-                    }
-                    catch (System.Exception e)
-                    {
-                        Debug.LogError($"{e.GetType().Name}(Event:{evt.GetType().Name}, Message:{e.Message})");
-#if UNITY_EDITOR || USE_DEBUGGING
-                        Debug.Log($"[Async Debug Info] Event Caller Location :\n{evt.CallStack}");
-#endif
-                    }
+                    //}
+                    //catch (System.Exception e)
+                    //{
+                    //    Debug.LogError($"{e.GetType().Name}(Event:{evt.GetType().Name}, Message:{e.Message})");
+//#if UNITY_EDITOR || USE_DEBUGGING
+                    //    Debug.Log($"[Async Debug Info] Event Caller Location :\n{evt.CallStack}");
+//#endif              //
+                    //}
                 }
             }
 

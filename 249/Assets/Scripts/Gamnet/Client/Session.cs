@@ -88,16 +88,6 @@ namespace Gamnet.Client
             handlers.Remove(msgId);
         }
 
-        public void Pause()
-        {
-            SocketClose();
-        }
-
-		public void Resume()
-        {
-            connector.AsyncReconnect();
-        }
-
         protected override void OnConnect()
         {
             OnConnectEvent?.Invoke();
@@ -138,7 +128,7 @@ namespace Gamnet.Client
 
         protected override void OnResume()
         {
-            connector.AsyncReconnect();
+            OnResumeEvent?.Invoke();
         }
 
         protected override void OnClose()
@@ -148,63 +138,29 @@ namespace Gamnet.Client
 
         protected override void OnError(Exception e)
         {
-            Log.Write(Log.LogLevel.ERR, e.ToString());
+            //Log.Write(Log.LogLevel.ERR, e.ToString());
             OnErrorEvent?.Invoke(e);
         }
 
-        #region Close
+        public void Pause()
+        {
+            socket.Close();
+        }
+
+        public void Resume()
+        {
+            connector.AsyncReconnect();
+        }
+
         public override void Close()
         {
-            Session.EventLoop.EnqueuEvent(new CloseEvent(this));
-        }
-
-        private void SocketClose()
-        {
-            if (null == socket)
+            if (true == link_establish)
             {
+                Send_DestroySessionLink_Req();
                 return;
             }
-
-            if (false == socket.Connected)
-            {
-                return;
-            }
-
-            try
-            {
-                socket.BeginDisconnect(false, new AsyncCallback(SocketCloseCallback), socket);
-            }
-            catch (SocketException e)
-            {
-                Debug.LogError("[Session.Disconnect] exception:" + e.ToString());
-                Error(e);
-            }
-            catch (ObjectDisposedException e)
-            {
-                Debug.LogError("[Session.Disconnect] exception:" + e.ToString());
-            }
+            socket.Close();
         }
-
-        private void SocketCloseCallback(IAsyncResult result)
-        {
-            try
-            {
-                socket.EndDisconnect(result);
-                if (0 != session_key)
-                {
-                    EventLoop.EnqueuEvent(new PauseEvent(this));
-                }
-                else
-                {
-                    EventLoop.EnqueuEvent(new CloseEvent(this));
-                }
-            }
-            catch (SocketException e)
-            {
-                Debug.Log($"[{Gamnet.Util.Debug.__FUNC__()}] session_state:" + state.ToString() + ", exception:" + e.ToString());
-            }
-        }
-        #endregion
 
         public void Error(System.Exception e)
         {

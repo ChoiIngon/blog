@@ -24,7 +24,7 @@ namespace Gamnet
         public Receiver receiver;
         public IEnumerator current_coroutine;
         public Dictionary<uint, Async.AsyncReceive> async_receives;
-        public bool establish_link { get; protected set; }
+        public bool link_establish { get; protected set; }
         //private Timeout timeout = new Timeout();
         //private System.Timers.Timer timer;
         //private int timeoutInterval = 5000; // 비동기 connect 실패 시간. 5초
@@ -39,7 +39,7 @@ namespace Gamnet
 
         public Session()
         {
-            this.establish_link = false;
+            this.link_establish = false;
             this.async_receives = new Dictionary<uint, Async.AsyncReceive>();
             this.receiver = new Receiver(this);
         }
@@ -48,71 +48,95 @@ namespace Gamnet
         {
             receiver.BeginReceive();
         }
+
         public void Send(Packet packet)
         {
+            Debug.Assert(Gamnet.Util.Debug.IsMainThread());
+
             packet.Seq = ++send_seq;
 
-            lock (this)
+            send_queue.Add(packet);
+
+            if (false == socket.Connected)
             {
-                send_queue.Add(packet);
+                return;
+            }
 
-                if (false == socket.Connected)
-                {
-                    return;
-                }
+            if (1 != send_queue.Count - send_queue_index)
+            {
+                return;
+            }
 
-                if (1 != send_queue.Count - send_queue_index)
-                {
-                    return;
-                }
+            Packet packetToBeSent = send_queue[send_queue_index];
+            Buffer bufferToBeSend = packetToBeSent.buffer;
+            socket.BeginSend(bufferToBeSend.ToByteArray(), 0, packetToBeSent.Length, 0, new AsyncCallback((IAsyncResult result) => {
+                Session.EventLoop.EnqueuEvent(new EndSendEvent(this, result));
+            }), null);
+        }
 
-                Packet packetToBeSent = send_queue[send_queue_index];
-                Buffer bufferToBeSend = packetToBeSent.buffer;
-                socket.BeginSend(bufferToBeSend.ToByteArray(), 0, packetToBeSent.Length, 0, new AsyncCallback(SendCallback), null);
+        class EndSendEvent : Gamnet.Session.SessionEvent
+        {
+            private IAsyncResult result;
+            public EndSendEvent(Session session, IAsyncResult result) : base(session)
+            {
+                this.result = result;
+            }
+
+            public override void OnEvent()
+            {
+                session.OnEndSend(result);
             }
         }
 
-        private void SendCallback(IAsyncResult result)
+        private void OnEndSend(IAsyncResult result)
         {
+            Debug.Assert(Gamnet.Util.Debug.IsMainThread());
             try
             {
                 int writtenBytes = socket.EndSend(result);
 
-                lock (this)
+                Packet packet = send_queue[send_queue_index];
+                if (false == packet.buffer.Remove(writtenBytes))
                 {
-                    Packet packet = send_queue[send_queue_index];
-                    if (false == packet.buffer.Remove(writtenBytes))
-                    {
-                        throw new System.OverflowException();
-                    }
-
-                    if (0 < packet.buffer.Size())
-                    {
-                        socket.BeginSend(packet.buffer.ToByteArray(), packet.buffer.read_index, packet.buffer.Size(), 0, new AsyncCallback(SendCallback), null);
-                        return;
-                    }
-
-                    if (true == packet.IsReliable)
-                    {
-                        send_queue_index++;
-                    }
-                    else
-                    {
-                        send_queue.RemoveAt(send_queue_index);
-                    }
-
-                    if (send_queue_index < send_queue.Count)
-                    {
-                        Packet packetToBeSent = send_queue[send_queue_index];
-                        Buffer bufferToBeSend = packetToBeSent.buffer;
-                        socket.BeginSend(bufferToBeSend.ToByteArray(), 0, bufferToBeSend.Size(), 0, new AsyncCallback(SendCallback), null);
-                    }
+                    throw new System.OverflowException();
                 }
+
+                if (0 < packet.buffer.Size())
+                {
+                    socket.BeginSend(packet.buffer.ToByteArray(), packet.buffer.read_index, packet.buffer.Size(), 0, new AsyncCallback((IAsyncResult r) =>
+                    {
+                        Session.EventLoop.EnqueuEvent(new EndSendEvent(this, r));
+                    }), null);
+                    return;
+                }
+
+                if (true == packet.IsReliable)
+                {
+                    send_queue_index++;
+                }
+                else
+                {
+                    send_queue.RemoveAt(send_queue_index);
+                }
+
+                if (send_queue_index < send_queue.Count)
+                {
+                    Packet packetToBeSent = send_queue[send_queue_index];
+                    Buffer bufferToBeSend = packetToBeSent.buffer;
+                    socket.BeginSend(bufferToBeSend.ToByteArray(), 0, bufferToBeSend.Size(), 0, new AsyncCallback((IAsyncResult r) =>
+                    {
+                        Session.EventLoop.EnqueuEvent(new EndSendEvent(this, r));
+                    }), null);
+                }
+            }
+            catch (ObjectDisposedException e)
+            {
+                Debug.Log($"[{Gamnet.Util.Debug.__FUNC__()}] {this.GetType().Name}, Exception:{e.GetType().Name}, Message:{ e.Message}");
+                Debug.Log($"[{Gamnet.Util.Debug.__FUNC__()}] fail to send:{send_queue[send_queue_index].Id}");
             }
             catch (SocketException e)
             {
                 Debug.Log("[Session.Callback_Disconnect] session_state:" + state.ToString() + ", exception:" + e.ToString());
-                Close();
             }
         }
 

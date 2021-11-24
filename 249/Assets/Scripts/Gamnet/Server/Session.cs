@@ -12,7 +12,7 @@ namespace Gamnet.Server
 
         public IDispatcher dispatcher;
         public string session_token;
-        
+
         public Session()
         {
             int sessionKey = Interlocked.Increment(ref SESSION_KEY);
@@ -28,6 +28,12 @@ namespace Gamnet.Server
 
         public override void Close()
         {
+            Debug.Log($"[{Util.Debug.__FUNC__()}] server");
+            BeginDisconnect();
+        }
+
+        private void BeginDisconnect()
+        {
             if (null == socket)
             {
                 return;
@@ -37,33 +43,58 @@ namespace Gamnet.Server
             {
                 return;
             }
-
+            Debug.Log($"[{Util.Debug.__FUNC__()}] server");
             try
             {
-                socket.BeginDisconnect(false, new AsyncCallback(CloseCallback), socket);
+                socket.BeginDisconnect(false, new AsyncCallback((IAsyncResult result) => {
+                    Session.EventLoop.EnqueuEvent(new EndDisconnectEvent(this, result));
+                }), socket);
             }
             catch (SocketException e)
             {
-                Debug.LogError("[Session.Disconnect] exception:" + e.ToString());
+                Debug.LogError("[Session.BeginDisconnect] exception:" + e.ToString());
             }
             catch (ObjectDisposedException e)
             {
-                Debug.LogError("[Session.Disconnect] exception:" + e.ToString());
+                Debug.LogError("[Session.BeginDisconnect] exception:" + e.ToString());
             }
         }
 
-        private void CloseCallback(IAsyncResult result)
+        public class EndDisconnectEvent : SessionEvent
+        {
+            private IAsyncResult result;
+            public EndDisconnectEvent(Session session, IAsyncResult result) : base(session)
+            {
+                this.result = result;
+            }
+            public override void OnEvent()
+            {
+                Session serverSession = session as Session;
+                serverSession.OnEndDisconnect(result);
+            }
+        }
+
+        private void OnEndDisconnect(IAsyncResult result)
         {
             try
             {
                 socket.EndDisconnect(result);
-                if (true == establish_link)
+                if (true == link_establish)
                 {
-                    EventLoop.EnqueuEvent(new PauseEvent(this));
+                    OnPause();
                 }
                 else
                 {
-                    EventLoop.EnqueuEvent(new CloseEvent(this));
+                    foreach (var pair in async_receives)
+                    {
+                        Async.AsyncReceive asyncReceive = pair.Value;
+                        asyncReceive.Cancel();
+                    }
+
+                    async_receives.Clear();
+                    current_coroutine = null;
+                    OnClose();
+                    SessionManager.Remove(this);
                 }
             }
             catch (SocketException e)

@@ -107,6 +107,7 @@ namespace UnityServer.Packet
         {
             client.session.Pause();
             client.session.Resume();
+            client.MoveNext();
         }
     }
 }

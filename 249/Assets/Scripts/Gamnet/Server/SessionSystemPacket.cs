@@ -14,6 +14,7 @@ namespace Gamnet.Server
 
             public override IEnumerator OnReceive(SESSION_T session, Gamnet.Packet packet)
             {
+                Debug.Log($"[MsgCliSvr_EstablishSessionLink_Req] server");
                 SystemPacket.MsgCliSvr_EstablishSessionLink_Req req = packet.Deserialize<SystemPacket.MsgCliSvr_EstablishSessionLink_Req>();
                 SystemPacket.MsgSvrCli_EstablishSessionLink_Ans ans = new SystemPacket.MsgSvrCli_EstablishSessionLink_Ans();
 
@@ -26,7 +27,7 @@ namespace Gamnet.Server
                     }
 
                     session.session_token = System.Guid.NewGuid().ToString();
-                    session.establish_link = true;
+                    session.link_establish = true;
                     session.OnConnect();
                 }
                 catch (System.Exception e)
@@ -55,6 +56,7 @@ namespace Gamnet.Server
 
             public override IEnumerator OnReceive(SESSION_T session, Gamnet.Packet packet)
             {
+                Debug.Log($"[MsgCliSvr_RecoverSessionLink_Req] server");
                 Gamnet.SystemPacket.MsgCliSvr_RecoverSessionLink_Req req = packet.Deserialize<Gamnet.SystemPacket.MsgCliSvr_RecoverSessionLink_Req>();
                 Gamnet.SystemPacket.MsgSvrCli_RecoverSessionLink_Ans ans = new Gamnet.SystemPacket.MsgSvrCli_RecoverSessionLink_Ans();
                 Gamnet.Packet ansPacket = new Gamnet.Packet();
@@ -76,7 +78,7 @@ namespace Gamnet.Server
                     prevSession.socket = session.socket;
                     prevSession.receiver = session.receiver;
                     prevSession.receiver.session = prevSession;
-                    prevSession.establish_link = true;
+                    prevSession.link_establish = true;
                     session.socket = null;
                     session.receiver = null;
                     Session.SessionManager.Remove(session);
@@ -105,17 +107,18 @@ namespace Gamnet.Server
 
             public override IEnumerator OnReceive(SESSION_T session, Gamnet.Packet packet)
             {
+                Debug.Log($"[MsgCliSvr_DestroySessionLink_Req] server");
                 Gamnet.SystemPacket.MsgCliSvr_DestroySessionLink_Req req = packet.Deserialize<Gamnet.SystemPacket.MsgCliSvr_DestroySessionLink_Req>();
                 Gamnet.SystemPacket.MsgSvrCli_DestroySessionLink_Ans ans = new Gamnet.SystemPacket.MsgSvrCli_DestroySessionLink_Ans();
                 ans.error_code = 0;
                 try
                 {
-                    if (false == session.establish_link)
+                    if (false == session.link_establish)
                     {
                         throw new System.InvalidOperationException($"not linked session");
                     }
 
-                    session.establish_link = false;
+                    session.link_establish = false;
                 }
                 catch (System.Exception e)
                 {
