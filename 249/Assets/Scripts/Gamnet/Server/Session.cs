@@ -12,14 +12,13 @@ namespace Gamnet.Server
 
         public IDispatcher dispatcher;
         public string session_token;
-        public bool enable_handover { get; private set; }
+        
         public Session()
         {
             int sessionKey = Interlocked.Increment(ref SESSION_KEY);
             this.session_key = unchecked((uint)sessionKey);
 
             session_token = "";
-            enable_handover = false;
         }
 
         protected override void OnReceive(Packet packet)
@@ -58,7 +57,7 @@ namespace Gamnet.Server
             try
             {
                 socket.EndDisconnect(result);
-                if (true == enable_handover)
+                if (true == establish_link)
                 {
                     EventLoop.EnqueuEvent(new PauseEvent(this));
                 }

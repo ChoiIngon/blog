@@ -155,40 +155,7 @@ namespace Gamnet.Client
         #region Close
         public override void Close()
         {
-            if (0 != session_key)
-            {
-                Send_DestroySessionLink_Req();
-                return;
-            }
-            SocketClose();
-        }
-
-        private void Send_DestroySessionLink_Req()
-        {
-            if (false == socket.Connected)
-            {
-                return;
-            }
-            SystemPacket.MsgCliSvr_DestroySessionLink_Req req = new SystemPacket.MsgCliSvr_DestroySessionLink_Req();
-
-            Gamnet.Packet packet = new Gamnet.Packet();
-            packet.Id = SystemPacket.MsgCliSvr_DestroySessionLink_Req.MSG_ID;
-            packet.Serialize(req);
-            AsyncSend(packet);
-        }
-
-        private void Recv_DestroySessionLink_Ans(MsgSvrCli_DestroySessionLink_Ans ans)
-        {
-            if (0 != ans.error_code)
-            {
-                Debug.LogError("connect fail(error_code:" + ans.error_code + ")");
-                Error(null);
-                return;
-            }
-
-            session_key = 0;
-            session_token = "";
-            SocketClose();
+            Session.EventLoop.EnqueuEvent(new CloseEvent(this));
         }
 
         private void SocketClose()

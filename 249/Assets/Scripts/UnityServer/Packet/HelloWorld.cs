@@ -57,7 +57,7 @@ namespace UnityServer.Packet
             Gamnet.Packet ansPacket = new Gamnet.Packet();
             ansPacket.Id = MsgSvrCli_Greeting_Ans.MSG_ID;
             ansPacket.Serialize(ans);
-            session.AsyncSend(ansPacket);
+            session.Send(ansPacket);
 
             // wait other message async
             const int waitTimeoutSec = 60;
@@ -88,7 +88,7 @@ namespace UnityServer.Packet
                 Gamnet.Packet ntfPacket = new Gamnet.Packet();
                 ntfPacket.Id = MsgCliSvr_Greeting_Ntf.MSG_ID;
                 ntfPacket.Serialize(ntf);
-                client.session.AsyncSend(ntfPacket);
+                client.session.Send(ntfPacket);
                 client.MoveNext();
             });
 
@@ -99,7 +99,7 @@ namespace UnityServer.Packet
             Gamnet.Packet packet = new Gamnet.Packet();
             packet.Id = MsgCliSvr_Greeting_Req.MSG_ID;
             packet.Serialize(req);
-            client.session.AsyncSend(packet);
+            client.session.Send(packet);
         }
 
         [Gamnet.Server.TestMethod]

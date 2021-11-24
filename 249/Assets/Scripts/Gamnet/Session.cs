@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net.Sockets;
-using System.Threading;
 using UnityEngine;
 
 namespace Gamnet
 {
-    public partial class Session
+	public partial class Session
     {
         public enum State
         {
@@ -23,16 +21,16 @@ namespace Gamnet
 
         public Socket socket;
         public State state = State.Close;
-
+        public Receiver receiver;
         public IEnumerator current_coroutine;
         public Dictionary<uint, Async.AsyncReceive> async_receives;
-
+        public bool establish_link { get; protected set; }
         //private Timeout timeout = new Timeout();
         //private System.Timers.Timer timer;
         //private int timeoutInterval = 5000; // 비동기 connect 실패 시간. 5초
 
         private byte[] receiveBytes = new byte[MAX_BUFFER_SIZE];
-        public Buffer receiveBuffer = new Buffer();
+        private Buffer receiveBuffer = new Buffer();
 
         private List<Packet> send_queue = new List<Packet>();
         private int send_queue_index;
@@ -41,79 +39,16 @@ namespace Gamnet
 
         public Session()
         {
+            this.establish_link = false;
             this.async_receives = new Dictionary<uint, Async.AsyncReceive>();
+            this.receiver = new Receiver(this);
         }
 
-        #region AsyncReceive
         public void BeginReceive()
         {
-            if (false == socket.Connected)
-            {
-                return;
-            }
-            try
-            {
-                socket.BeginReceive(receiveBytes, 0, MAX_BUFFER_SIZE, 0, new AsyncCallback(ReceiveCallback), null);
-            }
-            catch (SocketException e)
-            {
-                Close();
-            }
+            receiver.BeginReceive();
         }
-
-        // 요 부분을 서버와 클라이언트 분리해서, 서버에서는 소켓 closse가발생하면 바로 close하지 않고 Pause 이벤트 날리고,
-        // timeout 되거나, 클라이언트로 부터 명시적 close가 날아 오면 세션을 destroy하는 걸로 분리
-        private void ReceiveCallback(IAsyncResult result)
-        {
-            try
-            {
-                Int32 recvBytesSize = socket.EndReceive(result);
-                if (0 == recvBytesSize)
-                {
-                    Close();
-                    return;
-                }
-                receiveBuffer.Append(this.receiveBytes, 0, recvBytesSize);
-            }
-            catch (ObjectDisposedException e)
-            {
-                Close();
-                return;
-            }
-            catch (SocketException e)
-            {
-                Close();
-                return;
-            }
-
-            while (Packet.HEADER_SIZE <= receiveBuffer.Size())
-            {
-                Packet packet = new Packet(receiveBuffer);
-                if (packet.Length > Gamnet.Buffer.MAX_BUFFER_SIZE)
-                {
-                    Close();
-                    return;
-                }
-
-                if (packet.Length > receiveBuffer.Size())
-                {
-                    // not enough
-                    BeginReceive();
-                    return;
-                }
-
-                receiveBuffer.Remove(packet.Length);
-                receiveBuffer = new Buffer(receiveBuffer);
-
-                ReceiveEvent evt = new ReceiveEvent(this, packet);
-                EventLoop.EnqueuEvent(evt);
-            }
-
-            BeginReceive();
-        }
-        #endregion
-
-        public void AsyncSend(Packet packet)
+        public void Send(Packet packet)
         {
             packet.Seq = ++send_seq;
 
@@ -133,11 +68,11 @@ namespace Gamnet
 
                 Packet packetToBeSent = send_queue[send_queue_index];
                 Buffer bufferToBeSend = packetToBeSent.buffer;
-                socket.BeginSend(bufferToBeSend.ToByteArray(), 0, packetToBeSent.Length, 0, new AsyncCallback(AsyncSendCallback), null);
+                socket.BeginSend(bufferToBeSend.ToByteArray(), 0, packetToBeSent.Length, 0, new AsyncCallback(SendCallback), null);
             }
         }
 
-        private void AsyncSendCallback(IAsyncResult result)
+        private void SendCallback(IAsyncResult result)
         {
             try
             {
@@ -153,7 +88,7 @@ namespace Gamnet
 
                     if (0 < packet.buffer.Size())
                     {
-                        socket.BeginSend(packet.buffer.ToByteArray(), packet.buffer.read_index, packet.buffer.Size(), 0, new AsyncCallback(AsyncSendCallback), null);
+                        socket.BeginSend(packet.buffer.ToByteArray(), packet.buffer.read_index, packet.buffer.Size(), 0, new AsyncCallback(SendCallback), null);
                         return;
                     }
 
@@ -170,7 +105,7 @@ namespace Gamnet
                     {
                         Packet packetToBeSent = send_queue[send_queue_index];
                         Buffer bufferToBeSend = packetToBeSent.buffer;
-                        socket.BeginSend(bufferToBeSend.ToByteArray(), 0, bufferToBeSend.Size(), 0, new AsyncCallback(AsyncSendCallback), null);
+                        socket.BeginSend(bufferToBeSend.ToByteArray(), 0, bufferToBeSend.Size(), 0, new AsyncCallback(SendCallback), null);
                     }
                 }
             }
@@ -185,5 +120,6 @@ namespace Gamnet
         {
             throw new System.NotImplementedException();
         }
+
     }
 }

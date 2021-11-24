@@ -26,7 +26,7 @@ namespace Gamnet.Server
                     }
 
                     session.session_token = System.Guid.NewGuid().ToString();
-                    session.enable_handover = true;
+                    session.establish_link = true;
                     session.OnConnect();
                 }
                 catch (System.Exception e)
@@ -41,7 +41,7 @@ namespace Gamnet.Server
                 Gamnet.Packet ansPacket = new Gamnet.Packet();
                 ansPacket.Id = Gamnet.SystemPacket.MsgSvrCli_EstablishSessionLink_Ans.MSG_ID;
                 ansPacket.Serialize(ans);
-                session.AsyncSend(ansPacket);
+                session.Send(ansPacket);
                 yield break;
             }
         }
@@ -57,6 +57,8 @@ namespace Gamnet.Server
             {
                 Gamnet.SystemPacket.MsgCliSvr_RecoverSessionLink_Req req = packet.Deserialize<Gamnet.SystemPacket.MsgCliSvr_RecoverSessionLink_Req>();
                 Gamnet.SystemPacket.MsgSvrCli_RecoverSessionLink_Ans ans = new Gamnet.SystemPacket.MsgSvrCli_RecoverSessionLink_Ans();
+                Gamnet.Packet ansPacket = new Gamnet.Packet();
+                ansPacket.Id = Gamnet.SystemPacket.MsgSvrCli_RecoverSessionLink_Ans.MSG_ID;
                 ans.error_code = 0;
                 try
                 {
@@ -72,21 +74,24 @@ namespace Gamnet.Server
                     }
 
                     prevSession.socket = session.socket;
-
-                    prevSession.enable_handover = true;
+                    prevSession.receiver = session.receiver;
+                    prevSession.receiver.session = prevSession;
+                    prevSession.establish_link = true;
                     session.socket = null;
+                    session.receiver = null;
                     Session.SessionManager.Remove(session);
                     prevSession.OnResume();
+                    ansPacket.Serialize(ans);
+                    prevSession.Send(ansPacket);
+                    yield break;
                 }
                 catch (System.Exception e)
                 {
                     Debug.LogError(e.ToString());
                 }
 
-                Gamnet.Packet ansPacket = new Gamnet.Packet();
-                ansPacket.Id = Gamnet.SystemPacket.MsgSvrCli_RecoverSessionLink_Ans.MSG_ID;
                 ansPacket.Serialize(ans);
-                session.AsyncSend(ansPacket);
+                session.Send(ansPacket);
                 yield break;
             }
         }
@@ -105,12 +110,12 @@ namespace Gamnet.Server
                 ans.error_code = 0;
                 try
                 {
-                    if (false == session.enable_handover)
+                    if (false == session.establish_link)
                     {
                         throw new System.InvalidOperationException($"not linked session");
                     }
 
-                    session.enable_handover = false;
+                    session.establish_link = false;
                 }
                 catch (System.Exception e)
                 {
@@ -121,7 +126,7 @@ namespace Gamnet.Server
                 Gamnet.Packet ansPacket = new Gamnet.Packet();
                 ansPacket.Id = Gamnet.SystemPacket.MsgSvrCli_DestroySessionLink_Ans.MSG_ID;
                 ansPacket.Serialize(ans);
-                session.AsyncSend(ansPacket);
+                session.Send(ansPacket);
                 yield break;
             }
         }

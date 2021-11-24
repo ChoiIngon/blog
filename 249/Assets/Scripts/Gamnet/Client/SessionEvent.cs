@@ -23,5 +23,20 @@ namespace Gamnet.Client
                 }
             }
         }
+
+        public new class CloseEvent : SessionEvent
+        {
+            public CloseEvent(Session session) : base(session) { }
+            public override void OnEvent()
+            {
+                Session clientSession = session as Session;
+                if (true == clientSession.establish_link)
+                {
+                    clientSession.Send_DestroySessionLink_Req();
+                    return;
+                }
+                clientSession.SocketClose();
+            }
+        }
     }
 }

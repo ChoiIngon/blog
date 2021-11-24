@@ -17,7 +17,7 @@ namespace Gamnet.Client
             Gamnet.Packet packet = new Gamnet.Packet();
             packet.Id = SystemPacket.MsgCliSvr_EstablishSessionLink_Req.MSG_ID;
             packet.Serialize(req);
-            AsyncSend(packet);
+            Send(packet);
         }
 
         private void Recv_EstabilshSessionLink_Ans(MsgSvrCli_EstablishSessionLink_Ans ans)
@@ -31,7 +31,7 @@ namespace Gamnet.Client
 
             session_key = ans.session_key;
             session_token = ans.session_token;
-
+            establish_link = true;
             OnConnect();
         }
         private void Send_RecoverSessionLink_Req()
@@ -43,7 +43,7 @@ namespace Gamnet.Client
             Gamnet.Packet packet = new Gamnet.Packet();
             packet.Id = SystemPacket.MsgCliSvr_RecoverSessionLink_Req.MSG_ID;
             packet.Serialize(req);
-            AsyncSend(packet);
+            Send(packet);
         }
 
         private void Recv_RecoverSessionLink_Ans(MsgSvrCli_RecoverSessionLink_Ans ans)
@@ -55,9 +55,37 @@ namespace Gamnet.Client
                 return;
             }
 
+            establish_link = true;
             OnResume();
         }
 
+        private void Send_DestroySessionLink_Req()
+        {
+            if (false == socket.Connected)
+            {
+                return;
+            }
+
+            establish_link = false;
+            SystemPacket.MsgCliSvr_DestroySessionLink_Req req = new SystemPacket.MsgCliSvr_DestroySessionLink_Req();
+
+            Gamnet.Packet packet = new Gamnet.Packet();
+            packet.Id = SystemPacket.MsgCliSvr_DestroySessionLink_Req.MSG_ID;
+            packet.Serialize(req);
+            Send(packet);
+        }
+
+        private void Recv_DestroySessionLink_Ans(MsgSvrCli_DestroySessionLink_Ans ans)
+        {
+            if (0 != ans.error_code)
+            {
+                Debug.LogError("connect fail(error_code:" + ans.error_code + ")");
+                Error(null);
+                return;
+            }
+
+            SocketClose();
+        }
         void Recv_HeartBeat_Ans(MsgSvrCli_HeartBeat_Ans ans)
         {
             if (0 != ans.error_code)
