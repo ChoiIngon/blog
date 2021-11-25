@@ -14,20 +14,20 @@ namespace Gamnet.Simulation
         {
             session.OnConnectEvent += () =>
             {
-                Debug.Log("client session connected");
+                Debug.Log($"UnityServer.Simulation.Client:OnConnectEvent");
                 Simulator.Execute(this);
             };
             session.OnPauseEvent += () =>
             {
-                Debug.Log("client session pause");
+                Debug.Log($"UnityServer.Simulation.Client:OnPauseEvent");
             };
             session.OnResumeEvent += () =>
             {
-                Debug.Log("client session resume");
+                Debug.Log($"UnityServer.Simulation.Client:OnResumeEvent");
             };
             session.OnCloseEvent += () =>
             {
-                Debug.Log("client session close");
+                Debug.Log($"UnityServer.Simulation.Client:OnCloseEvent");
             };
         }
 

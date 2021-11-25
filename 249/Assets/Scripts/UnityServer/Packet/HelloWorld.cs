@@ -37,8 +37,6 @@ namespace UnityServer.Packet
         public override IEnumerator OnReceive(Server.Session session, Gamnet.Packet packet)
         {
             MsgCliSvr_Greeting_Req req = packet.Deserialize<MsgCliSvr_Greeting_Req>();
-            Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, req.text);
-
             {   // verrrry long term task
                 var asyncTask = new Gamnet.Async.AsyncTask(session, () =>
                 {
@@ -79,8 +77,6 @@ namespace UnityServer.Packet
             {
                 client.number = 2;
                 client.session.UnregisterHandler(MsgSvrCli_Greeting_Ans.MSG_ID);
-
-                Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, ans.text);
 
                 MsgCliSvr_Greeting_Ntf ntf = new MsgCliSvr_Greeting_Ntf();
                 ntf.text = "FIN_" + client.number.ToString();

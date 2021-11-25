@@ -14,7 +14,8 @@ namespace Gamnet.Server
 
             public override IEnumerator OnReceive(SESSION_T session, Gamnet.Packet packet)
             {
-                Debug.Log($"[MsgCliSvr_EstablishSessionLink_Req] server");
+                Debug.Assert(Gamnet.Util.Debug.IsMainThread());
+                Debug.Log($"Gamnet.Server.Session.PacketHandler_EstablishSessionLink.OnReceive");
                 SystemPacket.MsgCliSvr_EstablishSessionLink_Req req = packet.Deserialize<SystemPacket.MsgCliSvr_EstablishSessionLink_Req>();
                 SystemPacket.MsgSvrCli_EstablishSessionLink_Ans ans = new SystemPacket.MsgSvrCli_EstablishSessionLink_Ans();
 
@@ -56,7 +57,7 @@ namespace Gamnet.Server
 
             public override IEnumerator OnReceive(SESSION_T session, Gamnet.Packet packet)
             {
-                Debug.Log($"[MsgCliSvr_RecoverSessionLink_Req] server");
+                Debug.Log($"Gamnet.Server.Session.PacketHandler_RecoverSessionLink.OnReceive");
                 Gamnet.SystemPacket.MsgCliSvr_RecoverSessionLink_Req req = packet.Deserialize<Gamnet.SystemPacket.MsgCliSvr_RecoverSessionLink_Req>();
                 Gamnet.SystemPacket.MsgSvrCli_RecoverSessionLink_Ans ans = new Gamnet.SystemPacket.MsgSvrCli_RecoverSessionLink_Ans();
                 Gamnet.Packet ansPacket = new Gamnet.Packet();
@@ -107,7 +108,7 @@ namespace Gamnet.Server
 
             public override IEnumerator OnReceive(SESSION_T session, Gamnet.Packet packet)
             {
-                Debug.Log($"[MsgCliSvr_DestroySessionLink_Req] server");
+                Debug.Log($"Gamnet.Server.Session.PacketHandler_DestroySessionLink.OnReceive");
                 Gamnet.SystemPacket.MsgCliSvr_DestroySessionLink_Req req = packet.Deserialize<Gamnet.SystemPacket.MsgCliSvr_DestroySessionLink_Req>();
                 Gamnet.SystemPacket.MsgSvrCli_DestroySessionLink_Ans ans = new Gamnet.SystemPacket.MsgSvrCli_DestroySessionLink_Ans();
                 ans.error_code = 0;

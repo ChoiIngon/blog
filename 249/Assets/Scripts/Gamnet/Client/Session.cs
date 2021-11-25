@@ -144,22 +144,32 @@ namespace Gamnet.Client
 
         public void Pause()
         {
+            Debug.Log($"{Util.Debug.__FUNC__()}");
             socket.Close();
+            OnClose();
         }
 
         public void Resume()
         {
+            Debug.Log($"{Util.Debug.__FUNC__()}");
             connector.AsyncReconnect();
         }
 
         public override void Close()
         {
+            if (false == socket.Connected)
+            {
+                return;
+            }
+            Debug.Log($"{Util.Debug.__FUNC__()}");
+
             if (true == link_establish)
             {
                 Send_DestroySessionLink_Req();
                 return;
             }
             socket.Close();
+            OnClose();
         }
 
         public void Error(System.Exception e)

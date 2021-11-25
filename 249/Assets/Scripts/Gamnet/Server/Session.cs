@@ -28,7 +28,7 @@ namespace Gamnet.Server
 
         public override void Close()
         {
-            Debug.Log($"[{Util.Debug.__FUNC__()}] server");
+            Debug.Log($"{Util.Debug.__FUNC__()}");
             BeginDisconnect();
         }
 
@@ -43,7 +43,7 @@ namespace Gamnet.Server
             {
                 return;
             }
-            Debug.Log($"[{Util.Debug.__FUNC__()}] server");
+            Debug.Log($"{Util.Debug.__FUNC__()}");
             try
             {
                 socket.BeginDisconnect(false, new AsyncCallback((IAsyncResult result) => {
@@ -76,9 +76,12 @@ namespace Gamnet.Server
 
         private void OnEndDisconnect(IAsyncResult result)
         {
+            Debug.Assert(Gamnet.Util.Debug.IsMainThread());
+            Debug.Log($"{Util.Debug.__FUNC__()}");
             try
             {
-                socket.EndDisconnect(result);
+                Socket socketWouldBeClosed = (Socket)result.AsyncState;
+                socketWouldBeClosed.EndDisconnect(result);
                 if (true == link_establish)
                 {
                     OnPause();

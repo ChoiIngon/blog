@@ -57,6 +57,12 @@ namespace Gamnet
 
             send_queue.Add(packet);
 
+            if (null == socket)
+            {
+                Debug.LogError($"{GetType().Namespace}.{GetType().Name}");
+                return;
+            }
+
             if (false == socket.Connected)
             {
                 return;
@@ -93,6 +99,10 @@ namespace Gamnet
             Debug.Assert(Gamnet.Util.Debug.IsMainThread());
             try
             {
+                if (null == socket)
+                {
+                    return;
+                }
                 int writtenBytes = socket.EndSend(result);
 
                 Packet packet = send_queue[send_queue_index];
@@ -136,7 +146,7 @@ namespace Gamnet
             }
             catch (SocketException e)
             {
-                Debug.Log("[Session.Callback_Disconnect] session_state:" + state.ToString() + ", exception:" + e.ToString());
+                Debug.Log($"[{Gamnet.Util.Debug.__FUNC__()}] {state.ToString()}, exception:{e.ToString()}");
             }
         }
 

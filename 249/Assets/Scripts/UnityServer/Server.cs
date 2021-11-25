@@ -13,22 +13,22 @@ namespace UnityServer
         {
             protected override void OnConnect()
             {
-                Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, "server session connected");
+                Debug.Log($"{Gamnet.Util.Debug.__FUNC__()}");
             }
 
             protected override void OnClose()
             {
-                Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, "server session closed");
+                Debug.Log($"{Gamnet.Util.Debug.__FUNC__()}");
             }
 
             protected override void OnResume()
             {
-                Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, "server session resume");
+                Debug.Log($"{Gamnet.Util.Debug.__FUNC__()}");
             }
 
             protected override void OnPause()
             {
-                Gamnet.Log.Write(Gamnet.Log.LogLevel.DEV, "server session pause");
+                Debug.Log($"{Gamnet.Util.Debug.__FUNC__()}");
             }
         }
 

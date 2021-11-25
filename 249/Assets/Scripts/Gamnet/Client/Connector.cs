@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Timers;
+using UnityEngine;
 
 namespace Gamnet.Client
 {
@@ -48,7 +49,9 @@ namespace Gamnet.Client
                 timer.Start();
                 session.state = Session.State.OnConnecting;
                 session.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                session.socket.BeginConnect(endpoint, new AsyncCallback(OnEndConnect), null);
+                session.socket.BeginConnect(endpoint, new AsyncCallback((IAsyncResult result) => { 
+                    Gamnet.Session.EventLoop.EnqueuEvent(new EndConnectEvent(session, result)); 
+                }), null);
             }
 
             class EndConnectEvent : Gamnet.Session.SessionEvent
@@ -68,6 +71,7 @@ namespace Gamnet.Client
 
             private void OnEndConnect(IAsyncResult result)
             {
+                Debug.Assert(Gamnet.Util.Debug.IsMainThread());
                 timer.Stop();
                 try
                 {
@@ -77,7 +81,16 @@ namespace Gamnet.Client
                     session.state = Session.State.Connected;
                     //_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendTimeout, 10000);
                     //_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, 10000);
-                    Gamnet.Session.EventLoop.EnqueuEvent(new Gamnet.Client.Session.ConnectEvent(session));
+                    session.BeginReceive();
+                    Session clientSession = session as Session;
+                    if (false == clientSession.link_establish)
+                    {
+                        clientSession.Send_EstablishSessionLink_Req();
+                    }
+                    else
+                    {
+                        clientSession.Send_RecoverSessionLink_Req();
+                    }
                 }
                 catch (SocketException e)
                 {
