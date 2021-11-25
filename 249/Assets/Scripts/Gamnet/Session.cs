@@ -8,7 +8,6 @@ namespace Gamnet
 {
 	public partial class Session
     {
-        public const int MAX_BUFFER_SIZE = 1024;
         public Socket socket;
         public uint session_key { get; protected set; }
         public Receiver receiver;
@@ -65,7 +64,7 @@ namespace Gamnet
             Buffer bufferToBeSend = packetToBeSent.buffer;
             socket.BeginSend(bufferToBeSend.ToByteArray(), 0, packetToBeSent.Length, 0, new AsyncCallback((IAsyncResult result) => {
                 Session.EventLoop.EnqueuEvent(new EndSendEvent(this, result));
-            }), null);
+            }), socket);
         }
 
         class EndSendEvent : Gamnet.Session.SessionEvent
@@ -87,10 +86,12 @@ namespace Gamnet
             Debug.Assert(Gamnet.Util.Debug.IsMainThread());
             try
             {
-                if (null == socket)
+                Socket socket = (Socket)result.AsyncState;
+                if (false == socket.Connected)
                 {
                     return;
                 }
+
                 int writtenBytes = socket.EndSend(result);
 
                 Packet packet = send_queue[send_queue_index];
@@ -104,7 +105,7 @@ namespace Gamnet
                     socket.BeginSend(packet.buffer.ToByteArray(), packet.buffer.read_index, packet.buffer.Size(), 0, new AsyncCallback((IAsyncResult r) =>
                     {
                         Session.EventLoop.EnqueuEvent(new EndSendEvent(this, r));
-                    }), null);
+                    }), socket);
                     return;
                 }
 
@@ -124,7 +125,7 @@ namespace Gamnet
                     socket.BeginSend(bufferToBeSend.ToByteArray(), 0, bufferToBeSend.Size(), 0, new AsyncCallback((IAsyncResult r) =>
                     {
                         Session.EventLoop.EnqueuEvent(new EndSendEvent(this, r));
-                    }), null);
+                    }), socket);
                 }
             }
             catch (ObjectDisposedException e)
@@ -134,7 +135,7 @@ namespace Gamnet
             }
             catch (SocketException e)
             {
-                Debug.Log($"[{Gamnet.Util.Debug.__FUNC__()}] exception:{e.ToString()}");
+                Debug.Log($"[{Gamnet.Util.Debug.__FUNC__()}] session_key:{session_key}, exception:{e.ToString()}");
             }
         }
 
@@ -142,6 +143,5 @@ namespace Gamnet
         {
             throw new System.NotImplementedException();
         }
-
     }
 }

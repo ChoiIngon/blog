@@ -28,15 +28,15 @@ namespace Gamnet.Server
 
             tcp_socket.Bind(endPoint);
             tcp_socket.Listen(maxSessionCount/2);
-            tcp_socket.BeginAccept(AcceptCallback, null);
+            tcp_socket.BeginAccept(OnEndAcceptot, null);
 
             udp_socket.Bind(endPoint);
         }
 
-        void AcceptCallback(IAsyncResult ar)
+        void OnEndAcceptot(IAsyncResult ar)
         {
             Socket clientSocket = tcp_socket.EndAccept(ar);
-            tcp_socket.BeginAccept(AcceptCallback, null);
+            tcp_socket.BeginAccept(OnEndAcceptot, null);
 
             SESSION_T session = new SESSION_T();
             session.socket = clientSocket;

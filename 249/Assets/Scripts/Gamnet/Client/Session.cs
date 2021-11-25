@@ -66,6 +66,11 @@ namespace Gamnet.Client
             this.connector.AsyncConnect(host, port, timeout_sec);
         }
 
+        public void Connect(string host, int port, int timeout_sec = 5)
+        {
+            this.connector.Connect(host, port, timeout_sec);
+        }
+
         public void RegisterHandler<T>(uint msgId, Action<T> handler) where T : new()
         {
             PacketHandler<T> packetHandler = null;
@@ -149,7 +154,10 @@ namespace Gamnet.Client
 
         public void Resume()
         {
-            Debug.Log($"{Util.Debug.__FUNC__()}");
+            if (true == socket.Connected)
+            {
+                return;
+            }
             connector.AsyncReconnect();
         }
 

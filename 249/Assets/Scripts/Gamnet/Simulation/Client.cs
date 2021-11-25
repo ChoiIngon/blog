@@ -58,8 +58,12 @@ namespace Gamnet.Simulation
 
         public void AsyncConnect(string host, int port)
         {
-
             session.AsyncConnect(host, port);
+        }
+
+        public void Connect(string host, int port)
+        {
+            session.Connect(host, port);
         }
 
         public void MoveNext()

@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Gamnet.Server
@@ -15,7 +16,7 @@ namespace Gamnet.Server
             public override IEnumerator OnReceive(SESSION_T session, Gamnet.Packet packet)
             {
                 Debug.Assert(Gamnet.Util.Debug.IsMainThread());
-                Debug.Log($"Gamnet.Server.Session.PacketHandler_EstablishSessionLink.OnReceive");
+                //Debug.Log($"Gamnet.Server.Session.PacketHandler_EstablishSessionLink.OnReceive");
                 SystemPacket.MsgCliSvr_EstablishSessionLink_Req req = packet.Deserialize<SystemPacket.MsgCliSvr_EstablishSessionLink_Req>();
                 SystemPacket.MsgSvrCli_EstablishSessionLink_Ans ans = new SystemPacket.MsgSvrCli_EstablishSessionLink_Ans();
 
@@ -62,7 +63,7 @@ namespace Gamnet.Server
 
             public override IEnumerator OnReceive(SESSION_T session, Gamnet.Packet packet)
             {
-                Debug.Log($"Gamnet.Server.Session.PacketHandler_RecoverSessionLink.OnReceive");
+                // Debug.Log($"Gamnet.Server.Session.PacketHandler_RecoverSessionLink.OnReceive");
                 Gamnet.SystemPacket.MsgCliSvr_RecoverSessionLink_Req req = packet.Deserialize<Gamnet.SystemPacket.MsgCliSvr_RecoverSessionLink_Req>();
                 Gamnet.SystemPacket.MsgSvrCli_RecoverSessionLink_Ans ans = new Gamnet.SystemPacket.MsgSvrCli_RecoverSessionLink_Ans();
                 Gamnet.Packet ansPacket = new Gamnet.Packet();
@@ -88,9 +89,23 @@ namespace Gamnet.Server
                     session.socket = null;
                     session.receiver = null;
                     Session.SessionManager.Remove(session);
+
+                    List<Packet> unsendPacketQueue = new List<Packet>();
+                    foreach (Packet unsentPacket in prevSession.send_queue)
+                    {
+                        unsendPacketQueue.Add(unsentPacket);
+                    }
+
+                    prevSession.send_queue_index = 0;
+                    prevSession.send_queue.Clear();
+
                     prevSession.OnResume();
                     ansPacket.Serialize(ans);
                     prevSession.Send(ansPacket);
+                    foreach (Packet unsentPacket in unsendPacketQueue)
+                    {
+                        prevSession.Send(unsentPacket);
+                    }
                     yield break;
                 }
                 catch (System.Exception e)
@@ -117,7 +132,7 @@ namespace Gamnet.Server
 
             public override IEnumerator OnReceive(SESSION_T session, Gamnet.Packet packet)
             {
-                Debug.Log($"Gamnet.Server.Session.PacketHandler_DestroySessionLink.OnReceive");
+                // Debug.Log($"Gamnet.Server.Session.PacketHandler_DestroySessionLink.OnReceive");
                 Gamnet.SystemPacket.MsgCliSvr_DestroySessionLink_Req req = packet.Deserialize<Gamnet.SystemPacket.MsgCliSvr_DestroySessionLink_Req>();
                 Gamnet.SystemPacket.MsgSvrCli_DestroySessionLink_Ans ans = new Gamnet.SystemPacket.MsgSvrCli_DestroySessionLink_Ans();
                 ans.error_code = 0;

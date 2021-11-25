@@ -74,7 +74,7 @@ namespace Gamnet.Simulation
                     {
                         CLIENT_T client_t = CreateClient();
                         client_t.LoopCount = client.LoopCount - 1;
-                        client_t.AsyncConnect(instance.Host, instance.Port);
+                        client_t.Connect(instance.Host, instance.Port);
                     }
 
                     client.session.Close();
@@ -121,7 +121,7 @@ namespace Gamnet.Simulation
             {
                 CLIENT_T client_t = executer.CreateClient();
                 client_t.LoopCount = LoopCount;
-                client_t.AsyncConnect(Host, Port);
+                client_t.Connect(Host, Port);
             }
         }
 

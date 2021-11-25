@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Net;
 using System.Net.Sockets;
 using System.Timers;
@@ -18,6 +19,52 @@ namespace Gamnet.Client
             {
                 this.session = session;
                 this.timer = new Timer();
+            }
+
+            public void Connect(string host, int port, int expireTime = 5)
+            {
+                IPAddress ipAddress = null;
+                try
+                {
+                    ipAddress = IPAddress.Parse(host);
+                }
+                catch (System.FormatException)
+                {
+                    IPHostEntry hostEntry = Dns.GetHostEntry(host);
+                    if (hostEntry.AddressList.Length > 0)
+                    {
+                        ipAddress = hostEntry.AddressList[0];
+                    }
+                }
+
+                timer.Interval = expireTime * 1000;
+                timer.AutoReset = false;
+                timer.Elapsed += delegate { OnTimeout(); };
+                endpoint = new IPEndPoint(ipAddress, port);
+
+                Reconnect();
+            }
+
+            public void Reconnect()
+            {
+                timer.Start();
+                session.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                session.socket.Connect(endpoint);
+                timer.Stop();
+                session.socket.ReceiveBufferSize = Gamnet.Buffer.MAX_BUFFER_SIZE;
+                session.socket.SendBufferSize = Gamnet.Buffer.MAX_BUFFER_SIZE;
+                //_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendTimeout, 10000);
+                //_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, 10000);
+                session.BeginReceive();
+                Session clientSession = session as Session;
+                if (false == clientSession.link_establish)
+                {
+                    clientSession.Send_EstablishSessionLink_Req();
+                }
+                else
+                {
+                    clientSession.Send_RecoverSessionLink_Req();
+                }
             }
 
             public void AsyncConnect(string host, int port, int expireTime = 5)
@@ -48,9 +95,9 @@ namespace Gamnet.Client
             {
                 timer.Start();
                 session.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                session.socket.BeginConnect(endpoint, new AsyncCallback((IAsyncResult result) => { 
-                    Gamnet.Session.EventLoop.EnqueuEvent(new EndConnectEvent(session, result)); 
-                }), null);
+                session.socket.BeginConnect(endpoint, new AsyncCallback((IAsyncResult result) => {
+                    Gamnet.Session.EventLoop.EnqueuEvent(new EndConnectEvent(session, result));
+                }), session.socket);
             }
 
             class EndConnectEvent : Gamnet.Session.SessionEvent
@@ -71,12 +118,13 @@ namespace Gamnet.Client
             private void OnEndConnect(IAsyncResult result)
             {
                 Debug.Assert(Gamnet.Util.Debug.IsMainThread());
+                Socket socket = (Socket)result.AsyncState;
                 timer.Stop();
                 try
                 {
-                    session.socket.EndConnect(result);
-                    session.socket.ReceiveBufferSize = Gamnet.Session.MAX_BUFFER_SIZE;
-                    session.socket.SendBufferSize = Gamnet.Session.MAX_BUFFER_SIZE;
+                    socket.EndConnect(result);
+                    socket.ReceiveBufferSize = Gamnet.Buffer.MAX_BUFFER_SIZE;
+                    socket.SendBufferSize = Gamnet.Buffer.MAX_BUFFER_SIZE;
                     //_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendTimeout, 10000);
                     //_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, 10000);
                     session.BeginReceive();
@@ -98,6 +146,7 @@ namespace Gamnet.Client
 
             private void OnTimeout()
             {
+                session.Close();
                 Gamnet.Session.ErrorEvent evt = new Gamnet.Session.ErrorEvent(session, new TimeoutException());
                 Gamnet.Session.EventLoop.EnqueuEvent(evt);
             }
