@@ -31,29 +31,10 @@ namespace Gamnet
         {
             throw new System.NotImplementedException("Session.OnConnect is not implemented");
         }
-
-        public class ResumeEvent : SessionEvent
-        {
-            public ResumeEvent(Session session) : base(session) { }
-            public override void OnEvent()
-            {
-                session.BeginReceive();
-                session.OnResume();
-            }
-        }
-
+        
         protected virtual void OnResume()
         {
             throw new System.NotImplementedException("Session.OnResume is not implemented");
-        }
-
-        public class PauseEvent : SessionEvent
-        {
-            public PauseEvent(Session session) : base(session) { }
-            public override void OnEvent()
-            {
-                session.OnPause();
-            }
         }
 
         protected virtual void OnPause()
