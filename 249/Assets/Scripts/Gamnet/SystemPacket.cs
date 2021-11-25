@@ -56,16 +56,20 @@ namespace Gamnet.SystemPacket
     }
 
     [System.Serializable]
-    class MsgCliSvr_HeartBeat_Req
+    class MsgSvrCli_HeartBeat_Req
     {
         public const uint MSG_ID = uint.MaxValue - 3; // 4294967292
+        public uint recv_seq;
+        public DateTime date_time;
     }
 
     [System.Serializable]
-    class MsgSvrCli_HeartBeat_Ans
+    class MsgCliSvr_HeartBeat_Ans
     {
         public const uint MSG_ID = uint.MaxValue - 3; // 4294967292
         public int error_code = 0;
+        public uint recv_seq;
+        public DateTime date_time;
     }
 
     [System.Serializable]

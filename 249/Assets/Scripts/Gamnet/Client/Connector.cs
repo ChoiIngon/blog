@@ -146,9 +146,7 @@ namespace Gamnet.Client
 
             private void OnTimeout()
             {
-                session.Close();
-                Gamnet.Session.ErrorEvent evt = new Gamnet.Session.ErrorEvent(session, new TimeoutException());
-                Gamnet.Session.EventLoop.EnqueuEvent(evt);
+                Gamnet.Session.EventLoop.EnqueuEvent(new Gamnet.Session.ErrorEvent(session, new TimeoutException()));
             }
         }
     }

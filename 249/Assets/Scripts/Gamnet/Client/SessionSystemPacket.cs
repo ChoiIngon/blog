@@ -102,16 +102,20 @@ namespace Gamnet.Client
             socket.Close();
             OnClose();
         }
-        void Recv_HeartBeat_Ans(MsgSvrCli_HeartBeat_Ans ans)
-        {
-            if (0 != ans.error_code)
-            {
-                Debug.LogError("connect fail(error_code:" + ans.error_code + ")");
-                Error(null);
-                return;
-            }
 
-            //session_token = ans.session_token;
+        void Recv_HeartBeat_Req(MsgSvrCli_HeartBeat_Req req)
+        {
+            RemoveSentPacket(req.recv_seq);
+
+            SystemPacket.MsgCliSvr_HeartBeat_Ans ans = new SystemPacket.MsgCliSvr_HeartBeat_Ans();
+            ans.recv_seq = recv_seq;
+            ans.date_time = req.date_time;
+            ans.error_code = 0;
+
+            Gamnet.Packet packet = new Gamnet.Packet();
+            packet.Id = SystemPacket.MsgCliSvr_HeartBeat_Ans.MSG_ID;
+            packet.Serialize(req);
+            Send(packet);
         }
 
         void Recv_ReliableAck_Ntf(MsgSvrCli_ReliableAck_Ntf ntf)

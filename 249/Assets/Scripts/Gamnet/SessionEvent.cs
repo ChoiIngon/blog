@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using UnityEngine;
@@ -27,11 +28,25 @@ namespace Gamnet
             public abstract void OnEvent();
         };
 
+        public class ActionEvent : SessionEvent
+        {
+            private Action action;
+            public ActionEvent(Session session, Action action) : base(session)
+            {
+                this.action = action;
+            }
+
+            public override void OnEvent()
+            {
+                action();
+            }
+        }
+
         protected virtual void OnConnect()
         {
             throw new System.NotImplementedException("Session.OnConnect is not implemented");
         }
-        
+
         protected virtual void OnResume()
         {
             throw new System.NotImplementedException("Session.OnResume is not implemented");
@@ -58,6 +73,7 @@ namespace Gamnet
             {
                 Log.Write(Log.LogLevel.ERR, CallStack);
                 session.OnError(exception);
+                session.Close();
             }
         }
 

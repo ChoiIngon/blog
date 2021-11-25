@@ -45,7 +45,6 @@ namespace Gamnet.Client
         public Action OnResumeEvent;
         public Action<System.Exception> OnErrorEvent;
 
-        private UInt32 recv_packet_seq = 0;
         private Connector connector;
         private Dictionary<uint, IPacketHandler> handlers = new Dictionary<uint, IPacketHandler>();
 
@@ -57,8 +56,8 @@ namespace Gamnet.Client
             RegisterHandler<MsgSvrCli_EstablishSessionLink_Ans>(SystemPacket.MsgSvrCli_EstablishSessionLink_Ans.MSG_ID, Recv_EstabilshSessionLink_Ans);
             RegisterHandler<MsgSvrCli_DestroySessionLink_Ans>(SystemPacket.MsgSvrCli_DestroySessionLink_Ans.MSG_ID, Recv_DestroySessionLink_Ans);
             RegisterHandler<MsgSvrCli_RecoverSessionLink_Ans>(SystemPacket.MsgSvrCli_RecoverSessionLink_Ans.MSG_ID, Recv_RecoverSessionLink_Ans);
-            RegisterHandler<MsgSvrCli_HeartBeat_Ans>(SystemPacket.MsgSvrCli_HeartBeat_Ans.MSG_ID, Recv_HeartBeat_Ans);
             RegisterHandler<MsgSvrCli_ReliableAck_Ntf>(SystemPacket.MsgSvrCli_ReliableAck_Ntf.MSG_ID, Recv_ReliableAck_Ntf);
+            RegisterHandler<MsgSvrCli_HeartBeat_Req>(SystemPacket.MsgSvrCli_HeartBeat_Req.MSG_ID, Recv_HeartBeat_Req);
         }
 
         public void AsyncConnect(string host, int port, int timeout_sec = 5)
@@ -106,18 +105,8 @@ namespace Gamnet.Client
                     throw new System.Exception("can't find registered msg(id:" + packet.Id + ")");
                 }
 
-                if (false == packet.IsReliable || recv_packet_seq < packet.Seq)
-                {
-                    IPacketHandler handler = handlers[packet.Id];
-
-                    handler.OnReceive(packet);
-
-                    recv_packet_seq = Math.Max(recv_packet_seq, packet.Seq);
-                    if (true == packet.IsReliable)
-                    {
-                        //Send_ReliableAck_Ntf(_recv_seq);
-                    }
-                }
+                IPacketHandler handler = handlers[packet.Id];
+                handler.OnReceive(packet);
             }
             catch (System.Exception e)
             {
@@ -163,6 +152,11 @@ namespace Gamnet.Client
 
         public override void Close()
         {
+            if (null == socket)
+            {
+                return;
+            }
+
             if (false == socket.Connected)
             {
                 return;

@@ -45,6 +45,8 @@ namespace Gamnet.Server
                 ansPacket.Id = Gamnet.SystemPacket.MsgSvrCli_EstablishSessionLink_Ans.MSG_ID;
                 ansPacket.Serialize(ans);
                 session.Send(ansPacket);
+
+                session.StartHeartBeatTimer();
                 yield break;
             }
 
@@ -106,6 +108,8 @@ namespace Gamnet.Server
                     {
                         prevSession.Send(unsentPacket);
                     }
+
+                    session.StartHeartBeatTimer();
                     yield break;
                 }
                 catch (System.Exception e)
@@ -132,7 +136,7 @@ namespace Gamnet.Server
 
             public override IEnumerator OnReceive(SESSION_T session, Gamnet.Packet packet)
             {
-                // Debug.Log($"Gamnet.Server.Session.PacketHandler_DestroySessionLink.OnReceive");
+// Debug.Log($"Gamnet.Server.Session.PacketHandler_DestroySessionLink.OnReceive");
                 Gamnet.SystemPacket.MsgCliSvr_DestroySessionLink_Req req = packet.Deserialize<Gamnet.SystemPacket.MsgCliSvr_DestroySessionLink_Req>();
                 Gamnet.SystemPacket.MsgSvrCli_DestroySessionLink_Ans ans = new Gamnet.SystemPacket.MsgSvrCli_DestroySessionLink_Ans();
                 ans.error_code = 0;
@@ -168,16 +172,15 @@ namespace Gamnet.Server
         {
             public override uint Id()
             {
-                return Gamnet.SystemPacket.MsgCliSvr_HeartBeat_Req.MSG_ID;
+                return Gamnet.SystemPacket.MsgCliSvr_HeartBeat_Ans.MSG_ID;
             }
 
             public override IEnumerator OnReceive(SESSION_T session, Gamnet.Packet packet)
             {
-                Gamnet.SystemPacket.MsgCliSvr_HeartBeat_Req req = packet.Deserialize<Gamnet.SystemPacket.MsgCliSvr_HeartBeat_Req>();
-                Gamnet.SystemPacket.MsgSvrCli_HeartBeat_Ans ans = new Gamnet.SystemPacket.MsgSvrCli_HeartBeat_Ans();
-                ans.error_code = 0;
+                Gamnet.SystemPacket.MsgCliSvr_HeartBeat_Ans ans = packet.Deserialize<Gamnet.SystemPacket.MsgCliSvr_HeartBeat_Ans>();
                 try
                 {
+                    session.RemoveSentPacket(ans.recv_seq);
                 }
                 catch (System.Exception e)
                 {

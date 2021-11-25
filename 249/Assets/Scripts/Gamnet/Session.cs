@@ -21,7 +21,7 @@ namespace Gamnet
         protected List<Packet> send_queue = new List<Packet>();
         protected int send_queue_index;
         private UInt32 send_seq = 0;
-        private UInt32 recv_seq = 0;
+        protected UInt32 recv_seq = 0;
 
         public Session()
         {
@@ -142,6 +142,22 @@ namespace Gamnet
         public virtual void Close()
         {
             throw new System.NotImplementedException();
+        }
+
+        protected void RemoveSentPacket(uint msg_seq)
+        {
+            while (0 < send_queue.Count)
+            {
+                if (send_queue[0].Seq > msg_seq)
+                {
+                    break;
+                }
+                if (true == send_queue[0].IsReliable)
+                {
+                    send_queue_index--;
+                }
+                send_queue.RemoveAt(0);
+            }
         }
     }
 }
