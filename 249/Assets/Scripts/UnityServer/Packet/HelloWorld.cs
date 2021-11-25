@@ -60,7 +60,6 @@ namespace UnityServer.Packet
 
             // wait other message async
             const int waitTimeoutSec = 60;
-            /*
             var asyncReceive = new Gamnet.Async.AsyncReceive(session, MsgCliSvr_Greeting_Ntf.MSG_ID, waitTimeoutSec);
             yield return asyncReceive; // suspend. it would resume when MsgCliSvr_Greeting_Ntf arrives or timeout
             if (null != asyncReceive.Exception)
@@ -70,7 +69,6 @@ namespace UnityServer.Packet
             }
 
             MsgCliSvr_Greeting_Ntf ntf = asyncReceive.Packet.Deserialize<MsgCliSvr_Greeting_Ntf>();
-            */
         }
 
         [Gamnet.Server.TestMethod]
@@ -84,10 +82,10 @@ namespace UnityServer.Packet
                 MsgCliSvr_Greeting_Ntf ntf = new MsgCliSvr_Greeting_Ntf();
                 ntf.text = "FIN_" + client.number.ToString();
 
-                ///Gamnet.Packet ntfPacket = new Gamnet.Packet();
-                ///ntfPacket.Id = MsgCliSvr_Greeting_Ntf.MSG_ID;
-                ///ntfPacket.Serialize(ntf);
-                ///client.session.Send(ntfPacket);
+                Gamnet.Packet ntfPacket = new Gamnet.Packet();
+                ntfPacket.Id = MsgCliSvr_Greeting_Ntf.MSG_ID;
+                ntfPacket.Serialize(ntf);
+                client.session.Send(ntfPacket);
                 client.MoveNext();
             });
 
@@ -98,6 +96,8 @@ namespace UnityServer.Packet
             Gamnet.Packet packet = new Gamnet.Packet();
             packet.Id = MsgCliSvr_Greeting_Req.MSG_ID;
             packet.Serialize(req);
+            
+            Debug.Log($"HelloWorld.MsgCliSvr_Greeting_Req");
             client.session.Send(packet);
         }
 

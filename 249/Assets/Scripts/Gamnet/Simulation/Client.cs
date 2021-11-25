@@ -24,7 +24,6 @@ namespace Gamnet.Simulation
             session.OnResumeEvent += () =>
             {
                 Debug.Log($"UnityServer.Simulation.Client:OnResumeEvent");
-                Simulator.Execute(this);
             };
             session.OnCloseEvent += () =>
             {

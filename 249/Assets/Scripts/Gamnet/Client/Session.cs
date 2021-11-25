@@ -122,7 +122,7 @@ namespace Gamnet.Client
 
         protected override void OnPause()
         {
-            socket.Close();
+            OnPauseEvent?.Invoke();
         }
 
         protected override void OnResume()
@@ -143,9 +143,8 @@ namespace Gamnet.Client
 
         public void Pause()
         {
-            Debug.Log($"{Util.Debug.__FUNC__()}");
             socket.Close();
-            OnClose();
+            OnPause();
         }
 
         public void Resume()
@@ -160,7 +159,6 @@ namespace Gamnet.Client
             {
                 return;
             }
-            Debug.Log($"{Util.Debug.__FUNC__()}");
 
             if (true == link_establish)
             {

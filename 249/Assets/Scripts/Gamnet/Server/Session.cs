@@ -28,7 +28,6 @@ namespace Gamnet.Server
         public override void Close()
         {
             Debug.Assert(Gamnet.Util.Debug.IsMainThread());
-            Debug.Log($"{Util.Debug.__FUNC__()}");
             try
             {
                 socket.Close();
@@ -52,7 +51,7 @@ namespace Gamnet.Server
             }
             catch (SocketException e)
             {
-                Debug.Log($"[{Gamnet.Util.Debug.__FUNC__()}] session_state:" + state.ToString() + ", exception:" + e.ToString());
+                Debug.Log($"[{Gamnet.Util.Debug.__FUNC__()}] exception:" + e.ToString());
             }
         }
 

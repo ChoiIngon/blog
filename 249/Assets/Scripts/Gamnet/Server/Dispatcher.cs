@@ -78,7 +78,7 @@ namespace Gamnet.Server
             {
                 if (false == session.link_establish && false == packetHandler.IsSystemPacket)
                 {
-                    Debug.Assert(false, "invalid link");
+                    Debug.Assert(false, $"packet_name:{packetHandler.GetType().Name}({packet.Id}), session_key:{session.session_key}");
                     session.Close();
                     return;
                 }

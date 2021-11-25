@@ -14,7 +14,7 @@ namespace Gamnet.Client
             Gamnet.Packet packet = new Gamnet.Packet();
             packet.Id = SystemPacket.MsgCliSvr_EstablishSessionLink_Req.MSG_ID;
             packet.Serialize(req);
-            SendSystemPacket(packet);
+            Send(packet);
         }
 
         private void Recv_EstabilshSessionLink_Ans(MsgSvrCli_EstablishSessionLink_Ans ans)
@@ -40,10 +40,24 @@ namespace Gamnet.Client
             req.session_key = session_key;
             req.session_token = session_token;
 
+            List<Packet> unsendPacketQueue = new List<Packet>();
+            foreach (Packet unsentPacket in send_queue)
+            {
+                unsendPacketQueue.Add(unsentPacket);
+            }
+
+            send_queue_index = 0;
+            send_queue.Clear();
+            
             Gamnet.Packet packet = new Gamnet.Packet();
             packet.Id = SystemPacket.MsgCliSvr_RecoverSessionLink_Req.MSG_ID;
             packet.Serialize(req);
-            SendSystemPacket(packet);
+            Send(packet);
+
+            foreach (Packet unsentPacket in unsendPacketQueue)
+            {
+                Send(unsentPacket);
+            }
         }
 
         private void Recv_RecoverSessionLink_Ans(MsgSvrCli_RecoverSessionLink_Ans ans)
@@ -57,7 +71,6 @@ namespace Gamnet.Client
             }
 
             link_establish = true;
-            Resend();
             OnResume();
         }
 
@@ -75,7 +88,7 @@ namespace Gamnet.Client
             Gamnet.Packet packet = new Gamnet.Packet();
             packet.Id = SystemPacket.MsgCliSvr_DestroySessionLink_Req.MSG_ID;
             packet.Serialize(req);
-            SendSystemPacket(packet);
+            Send(packet);
         }
 
         private void Recv_DestroySessionLink_Ans(MsgSvrCli_DestroySessionLink_Ans ans)
@@ -88,6 +101,7 @@ namespace Gamnet.Client
             }
 
             socket.Close();
+            OnClose();
         }
         void Recv_HeartBeat_Ans(MsgSvrCli_HeartBeat_Ans ans)
         {

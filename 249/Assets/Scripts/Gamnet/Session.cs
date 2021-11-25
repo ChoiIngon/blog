@@ -8,19 +8,9 @@ namespace Gamnet
 {
 	public partial class Session
     {
-        public enum State
-        {
-            Close,          // 연결이 되어 있지 않은 상태
-            OnConnecting,   // 비동기 연결 시도 중. 아직 완료 안됨
-            Connected,      // 연결 완료 상태
-            Pause,          // 모바일에서 앱이 백그라운드로 넘어가 일시적으로 접속이 끊긴 상태
-            Handover        // 모바일에서 이동 등으로 인해 접속이 잠시 끊긴 상태
-        }
-
         public const int MAX_BUFFER_SIZE = 1024;
         public Socket socket;
         public uint session_key { get; protected set; }
-        public State state = State.Close;
         public Receiver receiver;
         public IEnumerator current_coroutine;
         public Dictionary<uint, Async.AsyncReceive> async_receives;
@@ -56,12 +46,13 @@ namespace Gamnet
 
             if (null == socket)
             {
-                Debug.LogError($"{GetType().Namespace}.{GetType().Name}(session_key:{this.session_key})");
+                Debug.LogWarning($"{GetType().Namespace}.{GetType().Name}(session_key:{this.session_key})");
                 return;
             }
 
             if (false == socket.Connected)
             {
+                Debug.LogWarning($"{GetType().Namespace}.{GetType().Name} disconnected (session_key:{this.session_key})");
                 return;
             }
 
@@ -75,57 +66,6 @@ namespace Gamnet
             socket.BeginSend(bufferToBeSend.ToByteArray(), 0, packetToBeSent.Length, 0, new AsyncCallback((IAsyncResult result) => {
                 Session.EventLoop.EnqueuEvent(new EndSendEvent(this, result));
             }), null);
-        }
-
-        protected void Resend()
-        {
-            List<Packet> unsentQueue = new List<Packet>();
-            foreach (Packet unsentPacket in send_queue)
-            {
-                unsentQueue.Add(unsentPacket);
-            }
-
-            send_queue.Clear();
-            send_queue_index = 0;
-
-            foreach (Packet unsentPacket in unsentQueue)
-            {
-                Send(unsentPacket);
-            }
-        }
-
-        protected void SendSystemPacket(Packet packet)
-        {
-            if (null == socket)
-            {
-                Debug.LogError($"{GetType().Namespace}.{GetType().Name}(session_key:{this.session_key})");
-                return;
-            }
-
-            if (false == socket.Connected)
-            {
-                return;
-            }
-
-            Buffer bufferToBeSend = packet.buffer;
-            socket.BeginSend(bufferToBeSend.ToByteArray(), 0, packet.Length, 0, new AsyncCallback((IAsyncResult result) => {}), null);
-        }
-
-        protected void ReSend()
-        {
-            List<Packet> resendQueue = new List<Packet>();
-            foreach (Packet packet in send_queue)
-            {
-                resendQueue.Add(packet);
-            }
-
-            send_queue_index = 0;
-            send_queue.Clear();
-
-            foreach (Packet packet in resendQueue)
-            {
-                Send(packet);
-            }
         }
 
         class EndSendEvent : Gamnet.Session.SessionEvent
@@ -194,7 +134,7 @@ namespace Gamnet
             }
             catch (SocketException e)
             {
-                Debug.Log($"[{Gamnet.Util.Debug.__FUNC__()}] {state.ToString()}, exception:{e.ToString()}");
+                Debug.Log($"[{Gamnet.Util.Debug.__FUNC__()}] exception:{e.ToString()}");
             }
         }
 

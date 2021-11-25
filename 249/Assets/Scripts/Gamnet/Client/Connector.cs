@@ -77,7 +77,6 @@ namespace Gamnet.Client
                     session.socket.EndConnect(result);
                     session.socket.ReceiveBufferSize = Gamnet.Session.MAX_BUFFER_SIZE;
                     session.socket.SendBufferSize = Gamnet.Session.MAX_BUFFER_SIZE;
-                    session.state = Session.State.Connected;
                     //_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendTimeout, 10000);
                     //_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, 10000);
                     session.BeginReceive();
