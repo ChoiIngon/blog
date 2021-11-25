@@ -1,4 +1,5 @@
 ﻿using Gamnet.SystemPacket;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Gamnet.Client
@@ -13,7 +14,7 @@ namespace Gamnet.Client
             Gamnet.Packet packet = new Gamnet.Packet();
             packet.Id = SystemPacket.MsgCliSvr_EstablishSessionLink_Req.MSG_ID;
             packet.Serialize(req);
-            Send(packet);
+            SendSystemPacket(packet);
         }
 
         private void Recv_EstabilshSessionLink_Ans(MsgSvrCli_EstablishSessionLink_Ans ans)
@@ -42,7 +43,7 @@ namespace Gamnet.Client
             Gamnet.Packet packet = new Gamnet.Packet();
             packet.Id = SystemPacket.MsgCliSvr_RecoverSessionLink_Req.MSG_ID;
             packet.Serialize(req);
-            Send(packet);
+            SendSystemPacket(packet);
         }
 
         private void Recv_RecoverSessionLink_Ans(MsgSvrCli_RecoverSessionLink_Ans ans)
@@ -56,6 +57,7 @@ namespace Gamnet.Client
             }
 
             link_establish = true;
+            Resend();
             OnResume();
         }
 
@@ -73,7 +75,7 @@ namespace Gamnet.Client
             Gamnet.Packet packet = new Gamnet.Packet();
             packet.Id = SystemPacket.MsgCliSvr_DestroySessionLink_Req.MSG_ID;
             packet.Serialize(req);
-            Send(packet);
+            SendSystemPacket(packet);
         }
 
         private void Recv_DestroySessionLink_Ans(MsgSvrCli_DestroySessionLink_Ans ans)

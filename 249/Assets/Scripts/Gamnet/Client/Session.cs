@@ -177,5 +177,17 @@ namespace Gamnet.Client
             evt.exception = e;
             EventLoop.EnqueuEvent(evt);
         }
+
+		public override void Send(Packet packet)
+		{
+            base.Send(packet);
+            if (true == link_establish)
+            {
+                if (null == socket || false == socket.Connected)
+                {
+                    connector.AsyncReconnect();
+                }
+            }
+        }
     }
 }

@@ -18,7 +18,6 @@ namespace Gamnet
         }
 
         public const int MAX_BUFFER_SIZE = 1024;
-
         public Socket socket;
         public uint session_key { get; protected set; }
         public State state = State.Close;
@@ -30,11 +29,8 @@ namespace Gamnet
         //private System.Timers.Timer timer;
         //private int timeoutInterval = 5000; // 비동기 connect 실패 시간. 5초
 
-        private byte[] receiveBytes = new byte[MAX_BUFFER_SIZE];
-        private Buffer receiveBuffer = new Buffer();
-
-        private List<Packet> send_queue = new List<Packet>();
-        private int send_queue_index;
+        protected List<Packet> send_queue = new List<Packet>();
+        protected int send_queue_index;
         private UInt32 send_seq = 0;
         private UInt32 recv_seq = 0;
 
@@ -50,7 +46,7 @@ namespace Gamnet
             receiver.BeginReceive();
         }
 
-        public void Send(Packet packet)
+        public virtual void Send(Packet packet)
         {
             Debug.Assert(Gamnet.Util.Debug.IsMainThread());
 
@@ -79,6 +75,57 @@ namespace Gamnet
             socket.BeginSend(bufferToBeSend.ToByteArray(), 0, packetToBeSent.Length, 0, new AsyncCallback((IAsyncResult result) => {
                 Session.EventLoop.EnqueuEvent(new EndSendEvent(this, result));
             }), null);
+        }
+
+        protected void Resend()
+        {
+            List<Packet> unsentQueue = new List<Packet>();
+            foreach (Packet unsentPacket in send_queue)
+            {
+                unsentQueue.Add(unsentPacket);
+            }
+
+            send_queue.Clear();
+            send_queue_index = 0;
+
+            foreach (Packet unsentPacket in unsentQueue)
+            {
+                Send(unsentPacket);
+            }
+        }
+
+        protected void SendSystemPacket(Packet packet)
+        {
+            if (null == socket)
+            {
+                Debug.LogError($"{GetType().Namespace}.{GetType().Name}(session_key:{this.session_key})");
+                return;
+            }
+
+            if (false == socket.Connected)
+            {
+                return;
+            }
+
+            Buffer bufferToBeSend = packet.buffer;
+            socket.BeginSend(bufferToBeSend.ToByteArray(), 0, packet.Length, 0, new AsyncCallback((IAsyncResult result) => {}), null);
+        }
+
+        protected void ReSend()
+        {
+            List<Packet> resendQueue = new List<Packet>();
+            foreach (Packet packet in send_queue)
+            {
+                resendQueue.Add(packet);
+            }
+
+            send_queue_index = 0;
+            send_queue.Clear();
+
+            foreach (Packet packet in resendQueue)
+            {
+                Send(packet);
+            }
         }
 
         class EndSendEvent : Gamnet.Session.SessionEvent
