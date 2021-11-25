@@ -20,6 +20,7 @@ namespace Gamnet
         public const int MAX_BUFFER_SIZE = 1024;
 
         public Socket socket;
+        public uint session_key { get; protected set; }
         public State state = State.Close;
         public Receiver receiver;
         public IEnumerator current_coroutine;
@@ -59,7 +60,7 @@ namespace Gamnet
 
             if (null == socket)
             {
-                Debug.LogError($"{GetType().Namespace}.{GetType().Name}");
+                Debug.LogError($"{GetType().Namespace}.{GetType().Name}(session_key:{this.session_key})");
                 return;
             }
 

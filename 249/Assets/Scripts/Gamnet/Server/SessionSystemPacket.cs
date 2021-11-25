@@ -46,6 +46,11 @@ namespace Gamnet.Server
                 session.Send(ansPacket);
                 yield break;
             }
+
+            public override bool IsSystemPacket
+            {
+                get { return true; }
+            }
         }
 
         public class PacketHandler_RecoverSessionLink<SESSION_T> : PacketHandler<SESSION_T> where SESSION_T : Server.Session
@@ -97,6 +102,10 @@ namespace Gamnet.Server
                 session.Send(ansPacket);
                 yield break;
             }
+            public override bool IsSystemPacket
+            {
+                get { return true; }
+            }
         }
 
         public class PacketHandler_DestroySessionLink<SESSION_T> : PacketHandler<SESSION_T> where SESSION_T : Server.Session
@@ -133,6 +142,11 @@ namespace Gamnet.Server
                 session.Send(ansPacket);
                 yield break;
             }
+
+            public override bool IsSystemPacket
+            {
+                get { return true; }
+            }
         }
 
         public class PacketHandler_HeartBeat<SESSION_T> : PacketHandler<SESSION_T> where SESSION_T : Server.Session
@@ -156,6 +170,10 @@ namespace Gamnet.Server
                 }
                 yield break;
             }
+            public override bool IsSystemPacket
+            {
+                get { return true; }
+            }
         }
 
         public class PacketHandler_ReliableAck<SESSION_T> : PacketHandler<SESSION_T> where SESSION_T : Server.Session
@@ -176,6 +194,10 @@ namespace Gamnet.Server
                     Debug.LogError(e.ToString());
                 }
                 yield break;
+            }
+            public override bool IsSystemPacket
+            {
+                get { return true; }
             }
         }
     }

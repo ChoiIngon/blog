@@ -19,6 +19,10 @@ namespace Gamnet.Server
     {
         public abstract uint Id();
         public abstract IEnumerator OnReceive(T session, Packet packet);
+        public virtual bool IsSystemPacket
+        {
+            get { return false; }
+        }
     }
 
     public interface IDispatcher
@@ -72,6 +76,12 @@ namespace Gamnet.Server
             PacketHandler<SESSION_T> packetHandler;
             if (true == handlers.TryGetValue(packet.Id, out packetHandler))
             {
+                if (false == session.link_establish && false == packetHandler.IsSystemPacket)
+                {
+                    Debug.Assert(false, "invalid link");
+                    session.Close();
+                    return;
+                }
                 session.current_coroutine = packetHandler.OnReceive(session, packet);
                 session.current_coroutine.MoveNext();
             }

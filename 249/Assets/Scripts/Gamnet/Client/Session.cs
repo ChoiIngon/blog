@@ -9,7 +9,6 @@ namespace Gamnet.Client
 {
     public partial class Session : Gamnet.Session
     {
-        public uint session_key { get; private set; }
         public string session_token { get; private set; }
 
         private abstract class IPacketHandler

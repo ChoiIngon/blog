@@ -8,8 +8,7 @@ namespace Gamnet.Server
     public partial class Session : Gamnet.Session
     {
         public static int SESSION_KEY = 0;
-        public readonly uint session_key;
-
+        
         public IDispatcher dispatcher;
         public string session_token;
 
@@ -28,60 +27,11 @@ namespace Gamnet.Server
 
         public override void Close()
         {
-            Debug.Log($"{Util.Debug.__FUNC__()}");
-            BeginDisconnect();
-        }
-
-        private void BeginDisconnect()
-        {
-            if (null == socket)
-            {
-                return;
-            }
-
-            if (false == socket.Connected)
-            {
-                return;
-            }
-            Debug.Log($"{Util.Debug.__FUNC__()}");
-            try
-            {
-                socket.BeginDisconnect(false, new AsyncCallback((IAsyncResult result) => {
-                    Session.EventLoop.EnqueuEvent(new EndDisconnectEvent(this, result));
-                }), socket);
-            }
-            catch (SocketException e)
-            {
-                Debug.LogError("[Session.BeginDisconnect] exception:" + e.ToString());
-            }
-            catch (ObjectDisposedException e)
-            {
-                Debug.LogError("[Session.BeginDisconnect] exception:" + e.ToString());
-            }
-        }
-
-        public class EndDisconnectEvent : SessionEvent
-        {
-            private IAsyncResult result;
-            public EndDisconnectEvent(Session session, IAsyncResult result) : base(session)
-            {
-                this.result = result;
-            }
-            public override void OnEvent()
-            {
-                Session serverSession = session as Session;
-                serverSession.OnEndDisconnect(result);
-            }
-        }
-
-        private void OnEndDisconnect(IAsyncResult result)
-        {
             Debug.Assert(Gamnet.Util.Debug.IsMainThread());
             Debug.Log($"{Util.Debug.__FUNC__()}");
             try
             {
-                Socket socketWouldBeClosed = (Socket)result.AsyncState;
-                socketWouldBeClosed.EndDisconnect(result);
+                socket.Close();
                 if (true == link_establish)
                 {
                     OnPause();
@@ -105,5 +55,7 @@ namespace Gamnet.Server
                 Debug.Log($"[{Gamnet.Util.Debug.__FUNC__()}] session_state:" + state.ToString() + ", exception:" + e.ToString());
             }
         }
+
+        
     }
 }

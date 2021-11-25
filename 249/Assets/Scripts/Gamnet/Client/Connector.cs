@@ -47,7 +47,6 @@ namespace Gamnet.Client
             public void AsyncReconnect()
             {
                 timer.Start();
-                session.state = Session.State.OnConnecting;
                 session.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 session.socket.BeginConnect(endpoint, new AsyncCallback((IAsyncResult result) => { 
                     Gamnet.Session.EventLoop.EnqueuEvent(new EndConnectEvent(session, result)); 
