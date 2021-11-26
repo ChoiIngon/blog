@@ -114,7 +114,7 @@ namespace Gamnet.Client
 
             Gamnet.Packet packet = new Gamnet.Packet();
             packet.Id = SystemPacket.MsgCliSvr_HeartBeat_Ans.MSG_ID;
-            packet.Serialize(req);
+            packet.Serialize(ans);
             Send(packet);
         }
 

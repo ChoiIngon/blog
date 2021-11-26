@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -177,10 +178,12 @@ namespace Gamnet.Server
 
             public override IEnumerator OnReceive(SESSION_T session, Gamnet.Packet packet)
             {
-                Gamnet.SystemPacket.MsgCliSvr_HeartBeat_Ans ans = packet.Deserialize<Gamnet.SystemPacket.MsgCliSvr_HeartBeat_Ans>();
                 try
                 {
+                    Gamnet.SystemPacket.MsgCliSvr_HeartBeat_Ans ans = packet.Deserialize<Gamnet.SystemPacket.MsgCliSvr_HeartBeat_Ans>();
                     session.RemoveSentPacket(ans.recv_seq);
+                    TimeSpan span = DateTime.Now - ans.date_time;
+                    session.ping.Update(span.TotalMilliseconds);
                 }
                 catch (System.Exception e)
                 {

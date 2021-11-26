@@ -41,7 +41,7 @@ namespace UnityServer.Packet
             {   // verrrry long term task
                 var asyncTask = new Gamnet.Async.AsyncTask(session, () =>
                 {
-                    Thread.Sleep(20);
+                    Thread.Sleep(5000);
                 });
                 yield return asyncTask; // suspend. but resume again when the task finish.
                 if (null != asyncTask.Exception) // check result of task. if null. success.

@@ -12,12 +12,42 @@ namespace Gamnet.Server
         public IDispatcher dispatcher;
         public string session_token;
         private System.Timers.Timer heartbeat_timer;
+        private Ping ping;
+
         public Session()
         {
             int sessionKey = Interlocked.Increment(ref SESSION_KEY);
             session_key = unchecked((uint)sessionKey);
             session_token = "";
             heartbeat_timer = new System.Timers.Timer();
+            heartbeat_timer.Interval = 1000;
+            heartbeat_timer.AutoReset = false;
+            heartbeat_timer.Elapsed += delegate
+            {
+                if (null == socket)
+                {
+                    return;
+                }
+
+                if (false == socket.Connected)
+                {
+                    return;
+                }
+
+                Session.EventLoop.EnqueuEvent(new ActionEvent(this, () =>
+                {
+                    SystemPacket.MsgSvrCli_HeartBeat_Req req = new SystemPacket.MsgSvrCli_HeartBeat_Req();
+                    req.recv_seq = recv_seq;
+                    req.date_time = System.DateTime.Now;
+
+                    Gamnet.Packet packet = new Gamnet.Packet();
+                    packet.Id = SystemPacket.MsgSvrCli_HeartBeat_Req.MSG_ID;
+                    packet.Serialize(req);
+                    this.Send(packet);
+                }));
+                this.heartbeat_timer.Start();
+            };
+            ping = new Ping();
         }
 
         protected override void OnReceive(Packet packet)
@@ -31,7 +61,6 @@ namespace Gamnet.Server
             try
             {
                 socket.Close();
-                StopHeartBeatTimer();
 
                 if (true == link_establish)
                 {
@@ -59,29 +88,30 @@ namespace Gamnet.Server
 
         void StartHeartBeatTimer()
         {
-            heartbeat_timer.Enabled = true;
-            heartbeat_timer.Interval = 1000;
-            heartbeat_timer.AutoReset = true;
-            heartbeat_timer.Elapsed += delegate
-            {
-                Session.EventLoop.EnqueuEvent(new ActionEvent(this, () =>
-                {
-                    SystemPacket.MsgSvrCli_HeartBeat_Req req = new SystemPacket.MsgSvrCli_HeartBeat_Req();
-                    req.recv_seq = recv_seq;
-                    req.date_time = System.DateTime.Now;
 
-                    Gamnet.Packet packet = new Gamnet.Packet();
-                    packet.Id = SystemPacket.MsgSvrCli_HeartBeat_Req.MSG_ID;
-                    packet.Serialize(req);
-                    this.Send(packet);
-                }));
-            };
             heartbeat_timer.Start();
         }
 
-        void StopHeartBeatTimer()
+        private class Ping
         {
-            heartbeat_timer.Stop();
+            public double max { get; private set; }
+            public double min { get; private set; }
+            public double total { get; private set; }
+            public int count { get; private set; }
+            public Ping()
+            {
+                max = 0;
+                min = double.MaxValue;
+                total = 0;
+                count = 0;
+            }
+            public void Update(double t)
+            {
+                count++;
+                max = Math.Max(max, t);
+                min = Math.Min(min, t);
+                total += t;
+            }
         }
     }
 }
