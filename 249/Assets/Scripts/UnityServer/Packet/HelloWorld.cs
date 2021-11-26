@@ -41,7 +41,7 @@ namespace UnityServer.Packet
             {   // verrrry long term task
                 var asyncTask = new Gamnet.Async.AsyncTask(session, () =>
                 {
-                    Thread.Sleep(5000);
+                    Thread.Sleep(10);
                 });
                 yield return asyncTask; // suspend. but resume again when the task finish.
                 if (null != asyncTask.Exception) // check result of task. if null. success.
@@ -96,7 +96,7 @@ namespace UnityServer.Packet
             Gamnet.Packet packet = new Gamnet.Packet();
             packet.Id = MsgCliSvr_Greeting_Req.MSG_ID;
             packet.Serialize(req);
-            
+            packet.IsReliable = true;
             Debug.Log($"HelloWorld.MsgCliSvr_Greeting_Req");
             client.session.Send(packet);
         }

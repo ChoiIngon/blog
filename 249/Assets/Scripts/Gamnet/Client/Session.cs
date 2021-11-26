@@ -56,8 +56,8 @@ namespace Gamnet.Client
             RegisterHandler<MsgSvrCli_EstablishSessionLink_Ans>(SystemPacket.MsgSvrCli_EstablishSessionLink_Ans.MSG_ID, Recv_EstabilshSessionLink_Ans);
             RegisterHandler<MsgSvrCli_DestroySessionLink_Ans>(SystemPacket.MsgSvrCli_DestroySessionLink_Ans.MSG_ID, Recv_DestroySessionLink_Ans);
             RegisterHandler<MsgSvrCli_RecoverSessionLink_Ans>(SystemPacket.MsgSvrCli_RecoverSessionLink_Ans.MSG_ID, Recv_RecoverSessionLink_Ans);
-            RegisterHandler<MsgSvrCli_ReliableAck_Ntf>(SystemPacket.MsgSvrCli_ReliableAck_Ntf.MSG_ID, Recv_ReliableAck_Ntf);
             RegisterHandler<MsgSvrCli_HeartBeat_Req>(SystemPacket.MsgSvrCli_HeartBeat_Req.MSG_ID, Recv_HeartBeat_Req);
+            RegisterHandler<Msg_ReliableAck_Ntf>(SystemPacket.Msg_ReliableAck_Ntf.MSG_ID, Recv_ReliableAck_Ntf);
         }
 
         public void AsyncConnect(string host, int port, int timeout_sec = 5)

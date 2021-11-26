@@ -118,8 +118,16 @@ namespace Gamnet.Client
             Send(packet);
         }
 
-        void Recv_ReliableAck_Ntf(MsgSvrCli_ReliableAck_Ntf ntf)
+        void Recv_ReliableAck_Ntf(Msg_ReliableAck_Ntf ntf)
         {
+            try
+            {
+                RemoveSentPacket(ntf.recv_seq);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError(e.ToString());
+            }
         }
     }
 }

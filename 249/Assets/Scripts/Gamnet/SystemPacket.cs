@@ -73,16 +73,9 @@ namespace Gamnet.SystemPacket
     }
 
     [System.Serializable]
-    class MsgCliSvr_ReliableAck_Ntf
+    class Msg_ReliableAck_Ntf
     {
         public const uint MSG_ID = uint.MaxValue - 4; // 4294967291
-        public uint ack_seq;
-    }
-
-    [System.Serializable]
-    class MsgSvrCli_ReliableAck_Ntf
-    {
-        public const uint MSG_ID = uint.MaxValue - 4; // 4294967291
-        public uint ack_seq;
+        public uint recv_seq;
     }
 }

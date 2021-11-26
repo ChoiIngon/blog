@@ -102,6 +102,11 @@ namespace Gamnet
                     {
                         session.recv_seq = packet.Seq;
                         session.OnReceive(packet);
+
+                        if (true == packet.IsReliable)
+                        {
+                            session.SendReliableAckNtf();
+                        }
                     }
                 }
 

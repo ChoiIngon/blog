@@ -159,5 +159,16 @@ namespace Gamnet
                 send_queue.RemoveAt(0);
             }
         }
+
+        private void SendReliableAckNtf()
+        {
+            SystemPacket.Msg_ReliableAck_Ntf ntf = new SystemPacket.Msg_ReliableAck_Ntf();
+            ntf.recv_seq = recv_seq;
+
+            Packet packet = new Packet();
+            packet.Id = SystemPacket.Msg_ReliableAck_Ntf.MSG_ID;
+            packet.Serialize(ntf);
+            Send(packet);
+        }
     }
 }

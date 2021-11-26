@@ -201,14 +201,15 @@ namespace Gamnet.Server
         {
             public override uint Id()
             {
-                return Gamnet.SystemPacket.MsgSvrCli_ReliableAck_Ntf.MSG_ID;
+                return Gamnet.SystemPacket.Msg_ReliableAck_Ntf.MSG_ID;
             }
 
             public override IEnumerator OnReceive(SESSION_T session, Gamnet.Packet packet)
             {
-                Gamnet.SystemPacket.MsgCliSvr_ReliableAck_Ntf req = packet.Deserialize<Gamnet.SystemPacket.MsgCliSvr_ReliableAck_Ntf>();
+                Gamnet.SystemPacket.Msg_ReliableAck_Ntf ntf = packet.Deserialize<Gamnet.SystemPacket.Msg_ReliableAck_Ntf>();
                 try
                 {
+                    session.RemoveSentPacket(ntf.recv_seq);
                 }
                 catch (System.Exception e)
                 {
