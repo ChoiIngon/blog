@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using UnityEngine;
 
 namespace Gamnet
 {
@@ -74,6 +71,7 @@ namespace Gamnet
 
         public bool Remove(int size)
         {
+            Debug.Assert(write_index >= read_index + size);
             if (write_index < read_index + size)
             {
                 return false;

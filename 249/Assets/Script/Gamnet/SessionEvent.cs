@@ -71,7 +71,9 @@ namespace Gamnet
             public System.Exception exception;
             public override void OnEvent()
             {
+#if UNITY_EDITOR || USE_DEBUGGING
                 Log.Write(Log.LogLevel.ERR, CallStack);
+#endif
                 session.OnError(exception);
                 session.Close();
             }

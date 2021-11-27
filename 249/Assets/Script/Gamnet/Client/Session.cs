@@ -143,6 +143,11 @@ namespace Gamnet.Client
 
         public void Resume()
         {
+            if (null == socket)
+            {
+                return;
+            }
+
             if (true == socket.Connected)
             {
                 return;

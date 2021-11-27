@@ -52,11 +52,7 @@ namespace UnityServer.Packet
 
             MsgSvrCli_Greeting_Ans ans = new MsgSvrCli_Greeting_Ans();
             ans.text = "ACK";
-
-            Gamnet.Packet ansPacket = new Gamnet.Packet();
-            ansPacket.Id = MsgSvrCli_Greeting_Ans.MSG_ID;
-            ansPacket.Serialize(ans);
-            session.Send(ansPacket);
+            session.Send< MsgSvrCli_Greeting_Ans>(ans);
 
             // wait other message async
             const int waitTimeoutSec = 60;
