@@ -10,6 +10,7 @@ namespace Gamnet
     {
         public Socket socket;
         public uint session_key { get; protected set; }
+        public string session_token { get; protected set; }
         public Receiver receiver;
         public IEnumerator current_coroutine;
         public Dictionary<uint, Async.AsyncReceive> async_receives;
@@ -18,16 +19,26 @@ namespace Gamnet
         //private System.Timers.Timer timer;
         //private int timeoutInterval = 5000; // 비동기 connect 실패 시간. 5초
 
-        protected List<Packet> send_queue = new List<Packet>();
+        protected List<Packet> send_queue;
         protected int send_queue_index;
-        private UInt32 send_seq = 0;
-        protected UInt32 recv_seq = 0;
+        protected UInt32 send_seq;
+        protected UInt32 recv_seq;
 
         public Session()
         {
-            this.link_establish = false;
-            this.async_receives = new Dictionary<uint, Async.AsyncReceive>();
-            this.receiver = new Receiver(this);
+        }
+
+        public virtual void Clear()
+        {
+            session_key = 0;
+            session_token = "";
+            link_establish = false;
+            async_receives = new Dictionary<uint, Async.AsyncReceive>();
+            receiver = new Receiver(this);
+            send_queue = new List<Packet>();
+            send_queue_index = 0;
+            send_seq = 0;
+            recv_seq = 0;
         }
 
         public void BeginReceive()

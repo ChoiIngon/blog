@@ -11,12 +11,12 @@ namespace UnityServer.Packet
 
         public override uint Id()
         {
-            return Packet.MsgCliSvr_CreateCube_Req.MSG_ID;
+            return Packet.MsgCliSvr_CreateSphereReq.MSG_ID;
         }
 
         public override IEnumerator OnReceive(Server.Session session, Gamnet.Packet packet)
         {
-            Packet.MsgCliSvr_CreateCube_Req req = packet.Deserialize<Packet.MsgCliSvr_CreateCube_Req>();
+            Packet.MsgCliSvr_CreateSphereReq req = packet.Deserialize<Packet.MsgCliSvr_CreateSphereReq>();
             GameObject sphere = UnityServer.Server.Instance.CreateSphere();
             sphere.transform.SetParent(session.Agent.transform, false);
             session.Agent.sphere = sphere;

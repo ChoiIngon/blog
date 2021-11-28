@@ -5,9 +5,9 @@ namespace UnityServer.Packet
     public class Packet
     {
         [Serializable]
-        public class MsgCliSvr_CreateCube_Req
+        public class MsgCliSvr_CreateSphereReq
         {
-            public const uint MSG_ID = Code.MsgCliSvr_CreateCube_Req;
+            public const uint MSG_ID = Code.MsgCliSvr_CreateSphere_Req;
         }
 
         [Serializable]

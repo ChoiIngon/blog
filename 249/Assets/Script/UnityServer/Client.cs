@@ -7,8 +7,8 @@ namespace UnityServer
     public class Client : MonoBehaviour
     {
         public Gamnet.Client.Session session;
-        public Button connect;
-        public Button create;
+        public Button btnConnect;
+        public Button btnClose;
         public GameObject sphere;
         public void Send<MSG_T>(MSG_T msg)
         {
@@ -23,55 +23,57 @@ namespace UnityServer
 
         private void Start()
         {
-            connect.onClick.AddListener(() =>
+            btnConnect.onClick.AddListener(() =>
             {
-                if (null != session)
-                {
-                    session.Close();
-                }
-
                 session = new Gamnet.Client.Session();
-                session.OnConnectEvent += OnConnect;
-                session.OnCloseEvent += OnClose;
-                session.OnPauseEvent += OnPause;
-                session.OnResumeEvent += OnResume;
+                session.RegisterHandler<Packet.Packet.MsgSvrCli_CreateCube_Ans>(Packet.Packet.MsgSvrCli_CreateCube_Ans.MSG_ID, (Packet.Packet.MsgSvrCli_CreateCube_Ans ans) =>
+                {
+                    session.UnregisterHandler(Packet.Packet.MsgSvrCli_CreateCube_Ans.MSG_ID);
+                });
 
                 session.RegisterHandler<Packet.Packet.MsgSvrCli_SyncPosition_Ntf>(Packet.Packet.MsgSvrCli_SyncPosition_Ntf.MSG_ID, (Packet.Packet.MsgSvrCli_SyncPosition_Ntf ntf) =>
                 {
                     sphere.transform.position = new Vector3(sphere.transform.position.x, ntf.y, sphere.transform.position.z);
                 });
 
+                session.OnConnectEvent += () =>
+                {
+                    Debug.Log($"{Gamnet.Util.Debug.__FUNC__()}");
+                    CreateSphereReq();
+                };
+
+                session.OnErrorEvent += (System.Exception e) =>
+                {
+                    Debug.Log(e.Message + "\n" + e.StackTrace.ToString());
+                };
+
+                session.OnCloseEvent += () =>
+                {
+                    session.UnregisterHandler(Packet.Packet.MsgSvrCli_CreateCube_Ans.MSG_ID);
+                    session.UnregisterHandler(Packet.Packet.MsgSvrCli_SyncPosition_Ntf.MSG_ID);
+                    session.OnConnectEvent = null;
+                    session.OnErrorEvent = null;
+                    session.OnCloseEvent = null;
+                };
                 session.AsyncConnect("127.0.0.1", 4000);
             });
-        }
 
-        public void SendCreateReq()
-        {
-            Packet.Packet.MsgCliSvr_CreateCube_Req req = new Packet.Packet.MsgCliSvr_CreateCube_Req();
-            Send<Packet.Packet.MsgCliSvr_CreateCube_Req>(req);
-
-            session.RegisterHandler<Packet.Packet.MsgSvrCli_CreateCube_Ans>(Packet.Packet.MsgSvrCli_CreateCube_Ans.MSG_ID, (Packet.Packet.MsgSvrCli_CreateCube_Ans ans) =>
+            btnClose.onClick.AddListener(() =>
             {
-                session.UnregisterHandler(Packet.Packet.MsgSvrCli_CreateCube_Ans.MSG_ID);
+                session.Close();
             });
         }
 
-        private void OnConnect()
+        private void OnDestroy()
         {
-            Debug.Log($"{Gamnet.Util.Debug.__FUNC__()}");
-            SendCreateReq();
+            btnConnect.onClick.RemoveAllListeners();
+            btnClose.onClick.RemoveAllListeners();
         }
-        private void OnClose()
+
+        public void CreateSphereReq()
         {
-            Debug.Log($"{Gamnet.Util.Debug.__FUNC__()}");
-        }
-        private void OnPause()
-        {
-            Debug.Log($"{Gamnet.Util.Debug.__FUNC__()}");
-        }
-        private void OnResume()
-        {
-            Debug.Log($"{Gamnet.Util.Debug.__FUNC__()}");
+            Packet.Packet.MsgCliSvr_CreateSphereReq req = new Packet.Packet.MsgCliSvr_CreateSphereReq();
+            Send<Packet.Packet.MsgCliSvr_CreateSphereReq>(req);
         }
 
         private void OnApplicationPause(bool pause)

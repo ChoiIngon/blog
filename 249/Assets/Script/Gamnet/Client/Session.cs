@@ -9,8 +9,6 @@ namespace Gamnet.Client
 {
     public partial class Session : Gamnet.Session
     {
-        public string session_token { get; private set; }
-
         private abstract class IPacketHandler
         {
             public abstract void OnReceive(Packet packet);
@@ -50,7 +48,7 @@ namespace Gamnet.Client
 
         public Session()
         {
-            session_key = 0;
+            Clear();
             this.connector = new Connector(this);
 
             RegisterHandler<MsgSvrCli_EstablishSessionLink_Ans>(SystemPacket.MsgSvrCli_EstablishSessionLink_Ans.MSG_ID, Recv_EstabilshSessionLink_Ans);
@@ -102,7 +100,8 @@ namespace Gamnet.Client
             {
                 if (false == handlers.ContainsKey(packet.Id))
                 {
-                    throw new System.Exception("can't find registered msg(id:" + packet.Id + ")");
+                    Debug.Log("can't find registered msg(id:" + packet.Id + ")");
+                    return;
                 }
 
                 IPacketHandler handler = handlers[packet.Id];
@@ -174,6 +173,7 @@ namespace Gamnet.Client
             }
             socket.Close();
             OnClose();
+            Clear();
         }
 
         public void Error(System.Exception e)

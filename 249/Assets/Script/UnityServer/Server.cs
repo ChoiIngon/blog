@@ -59,16 +59,19 @@ namespace UnityServer
         public int Port;
         public int MaxSessionCount;
         public GameObject SpherePrefab;
-
+        public bool ActivateServer = true;
         void Start()
         {
             Gamnet.Util.Debug.Init();
             Gamnet.Log.Init("log", "UnityServer", 1);
-            acceptor.Init(Port, MaxSessionCount);
-            Gamnet.Simulation.Simulator simulator = GetComponent<Gamnet.Simulation.Simulator>();
-            if (null != simulator && true == simulator.enabled)
+            if (true == ActivateServer)
             {
-                simulator.Init<SimulationClient>();
+                acceptor.Init(Port, MaxSessionCount);
+                Gamnet.Simulation.Simulator simulator = GetComponent<Gamnet.Simulation.Simulator>();
+                if (null != simulator && true == simulator.enabled)
+                {
+                    simulator.Init<SimulationClient>();
+                }
             }
         }
 

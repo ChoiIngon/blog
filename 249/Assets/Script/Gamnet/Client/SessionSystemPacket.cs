@@ -101,6 +101,7 @@ namespace Gamnet.Client
 
             socket.Close();
             OnClose();
+            Clear();
         }
 
         void Recv_HeartBeat_Req(MsgSvrCli_HeartBeat_Req req)

@@ -10,15 +10,14 @@ namespace Gamnet.Server
         public static int SESSION_KEY = 0;
 
         public IDispatcher dispatcher;
-        public string session_token;
         private System.Timers.Timer heartbeat_timer;
         private Ping ping;
 
         public Session()
         {
+            Clear();
             int sessionKey = Interlocked.Increment(ref SESSION_KEY);
             session_key = unchecked((uint)sessionKey);
-            session_token = "";
             heartbeat_timer = new System.Timers.Timer();
             heartbeat_timer.Interval = 1000;
             heartbeat_timer.AutoReset = false;
@@ -77,6 +76,7 @@ namespace Gamnet.Server
                     async_receives.Clear();
                     current_coroutine = null;
                     OnClose();
+                    Clear();
                     SessionManager.Remove(this);
                 }
             }

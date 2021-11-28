@@ -36,6 +36,7 @@ namespace Gamnet
                 }
                 catch (SocketException e)
                 {
+                    Debug.Log(e.Message);
                     session.Close();
                 }
             }
@@ -70,11 +71,13 @@ namespace Gamnet
                 }
                 catch (ObjectDisposedException e)
                 {
+                    Debug.Log(e.Message);
                     session.Close();
                     return;
                 }
                 catch (SocketException e)
                 {
+                    Debug.Log(e.Message);
                     session.Close();
                     return;
                 }
