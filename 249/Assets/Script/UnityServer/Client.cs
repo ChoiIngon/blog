@@ -10,6 +10,7 @@ namespace UnityServer
         public Button btnConnect;
         public Button btnClose;
         public GameObject sphere;
+        private int syncPacketCount;
         public void Send<MSG_T>(MSG_T msg)
         {
             FieldInfo fieldInfo = msg.GetType().GetField("MSG_ID");
@@ -25,7 +26,13 @@ namespace UnityServer
         {
             btnConnect.onClick.AddListener(() =>
             {
+                if (null != session)
+                {
+                    session.Close();
+                }
                 session = new Gamnet.Client.Session();
+                syncPacketCount = 0;
+                InvokeRepeating("OnTimerExpire", 0, 5);
                 session.RegisterHandler<Packet.Packet.MsgSvrCli_CreateCube_Ans>(Packet.Packet.MsgSvrCli_CreateCube_Ans.MSG_ID, (Packet.Packet.MsgSvrCli_CreateCube_Ans ans) =>
                 {
                     session.UnregisterHandler(Packet.Packet.MsgSvrCli_CreateCube_Ans.MSG_ID);
@@ -34,6 +41,7 @@ namespace UnityServer
                 session.RegisterHandler<Packet.Packet.MsgSvrCli_SyncPosition_Ntf>(Packet.Packet.MsgSvrCli_SyncPosition_Ntf.MSG_ID, (Packet.Packet.MsgSvrCli_SyncPosition_Ntf ntf) =>
                 {
                     sphere.transform.position = new Vector3(sphere.transform.position.x, ntf.y, sphere.transform.position.z);
+                    syncPacketCount++;
                 });
 
                 session.OnConnectEvent += () =>
@@ -64,6 +72,11 @@ namespace UnityServer
             });
         }
 
+        public void OnTimerExpire()
+        {
+            Debug.Log($"recv:{syncPacketCount/5}");
+            syncPacketCount = 0;
+        }
         private void OnDestroy()
         {
             btnConnect.onClick.RemoveAllListeners();
