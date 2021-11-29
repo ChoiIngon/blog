@@ -256,7 +256,7 @@ MonoBehaviour:
   MaxSessionCount: 8000
   SpherePrefab: {fileID: 7341877862801032643, guid: 7ecd4c06f7ba5d341a8a2299eb6d6acf,
     type: 3}
-  ActivateServer: 0
+  ActivateServer: 1
 --- !u!4 &99786744
 Transform:
   m_ObjectHideFlags: 0
