@@ -33,6 +33,13 @@ namespace Gamnet.Server
                     return;
                 }
 
+                TimeSpan span = DateTime.Now - receiver.last_recv_time;
+                if (span.TotalSeconds > SessionManager.keepalive_time)
+                {
+                    Session.EventLoop.EnqueuEvent(new Receiver.CloseEvent(this));
+                    return;
+                }
+
                 Session.EventLoop.EnqueuEvent(new ActionEvent(this, () =>
                 {
                     SystemPacket.MsgSvrCli_HeartBeat_Req req = new SystemPacket.MsgSvrCli_HeartBeat_Req();

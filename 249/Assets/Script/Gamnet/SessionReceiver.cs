@@ -15,6 +15,7 @@ namespace Gamnet
             public Session session;
             private byte[] receiveBytes = new byte[MAX_BUFFER_SIZE];
             private Buffer receiveBuffer = new Buffer();
+            public DateTime last_recv_time { get; private set; }
 
             public Receiver(Session session)
             {
@@ -60,6 +61,7 @@ namespace Gamnet
                     session.Close();
                 }
             }
+
             public class ReceiveEvent : SessionEvent
             {
                 private Packet packet;
@@ -85,6 +87,7 @@ namespace Gamnet
 
             private void OnEndReceive(IAsyncResult result)
             {
+                last_recv_time = DateTime.Now;
                 try
                 {
                     Socket socket = (Socket)result.AsyncState;
@@ -109,7 +112,6 @@ namespace Gamnet
                     return;
                 }
 
-                int loop = 0;
                 while (Packet.HEADER_SIZE <= receiveBuffer.Size())
                 {
                     Packet packet = new Packet(receiveBuffer);
