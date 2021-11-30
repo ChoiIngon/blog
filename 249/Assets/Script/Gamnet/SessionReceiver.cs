@@ -29,10 +29,7 @@ namespace Gamnet
                 }
                 try
                 {
-                    session.socket.BeginReceive(receiveBytes, 0, MAX_BUFFER_SIZE, 0, new AsyncCallback((IAsyncResult result) =>
-                    {
-                        Session.EventLoop.EnqueuEvent(new EndReceiveEvent(session, result));
-                    }), session.socket);
+                    session.socket.BeginReceive(receiveBytes, 0, MAX_BUFFER_SIZE, 0, new AsyncCallback(OnEndReceive), session.socket);
                 }
                 catch (SocketException e)
                 {
@@ -55,16 +52,46 @@ namespace Gamnet
                 }
             }
 
+            public class CloseEvent : SessionEvent
+            {
+                public CloseEvent(Session session) : base(session) { }
+                public override void OnEvent()
+                {
+                    session.Close();
+                }
+            }
+            public class ReceiveEvent : SessionEvent
+            {
+                private Packet packet;
+                public ReceiveEvent(Session session, Packet packet) : base(session)
+                {
+                    this.packet = packet;
+                }
+                public override void OnEvent()
+                {
+                    if (session.recv_seq < packet.Seq)
+                    {
+                        session.recv_seq = packet.Seq;
+                        session.OnReceive(packet);
+
+                        if (true == packet.IsReliable)
+                        {
+                            session.SendReliableAckNtf();
+                        }
+                    }
+                }
+            }
+
+
             private void OnEndReceive(IAsyncResult result)
             {
-                Debug.Assert(Gamnet.Util.Debug.IsMainThread());
                 try
                 {
                     Socket socket = (Socket)result.AsyncState;
                     Int32 recvBytesSize = socket.EndReceive(result);
                     if (0 == recvBytesSize)
                     {
-                        session.Close();
+                        EventLoop.EnqueuEvent(new CloseEvent(session));
                         return;
                     }
                     receiveBuffer.Append(this.receiveBytes, 0, recvBytesSize);
@@ -72,22 +99,23 @@ namespace Gamnet
                 catch (ObjectDisposedException e)
                 {
                     Debug.Log(e.Message);
-                    session.Close();
+                    //EventLoop.EnqueuEvent(new CloseEvent(session));
                     return;
                 }
                 catch (SocketException e)
                 {
                     Debug.Log(e.Message);
-                    session.Close();
+                    EventLoop.EnqueuEvent(new CloseEvent(session));
                     return;
                 }
 
+                int loop = 0;
                 while (Packet.HEADER_SIZE <= receiveBuffer.Size())
                 {
                     Packet packet = new Packet(receiveBuffer);
                     if (packet.Length > Gamnet.Buffer.MAX_BUFFER_SIZE)
                     {
-                        session.Close();
+                        EventLoop.EnqueuEvent(new CloseEvent(session));
                         return;
                     }
 
@@ -101,16 +129,7 @@ namespace Gamnet
                     receiveBuffer.Remove(packet.Length);
                     receiveBuffer = new Buffer(receiveBuffer);
 
-                    if (session.recv_seq < packet.Seq)
-                    {
-                        session.recv_seq = packet.Seq;
-                        session.OnReceive(packet);
-
-                        if (true == packet.IsReliable)
-                        {
-                            session.SendReliableAckNtf();
-                        }
-                    }
+                    EventLoop.EnqueuEvent(new ReceiveEvent(session, packet));
                 }
 
                 BeginReceive();

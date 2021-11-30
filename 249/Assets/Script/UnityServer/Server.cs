@@ -62,7 +62,6 @@ namespace UnityServer
         public bool ActivateServer = true;
         void Start()
         {
-            List<Gamnet.Util.SharedDisposable<Gamnet.Packet>> sharedPacketList = new List<Gamnet.Util.SharedDisposable<Gamnet.Packet>>();
             Gamnet.Util.Debug.Init();
             Gamnet.Log.Init("log", "UnityServer", 1);
             if (true == ActivateServer)
@@ -73,15 +72,6 @@ namespace UnityServer
                 {
                     simulator.Init<SimulationClient>();
                 }
-
-                using (Gamnet.Util.SharedDisposable<Gamnet.Packet> sharedPacket = new Gamnet.Util.SharedDisposable<Gamnet.Packet>(new Gamnet.Packet()))
-                {
-                    sharedPacketList.Add(sharedPacket.Share());
-                };
-
-                Gamnet.Packet packet = sharedPacketList[0];
-                Debug.Log(packet.Id);
-                sharedPacketList.Clear();
             }
         }
 

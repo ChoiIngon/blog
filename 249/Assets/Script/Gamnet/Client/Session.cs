@@ -32,7 +32,6 @@ namespace Gamnet.Client
                 BinaryFormatter bf = new BinaryFormatter();
                 packet.buffer.ms.Position = Packet.HEADER_SIZE;
                 T msg = (T)bf.Deserialize(packet.buffer.ms);
-                System.Type type = msg.GetType();
                 onReceive(msg);
             }
         }
