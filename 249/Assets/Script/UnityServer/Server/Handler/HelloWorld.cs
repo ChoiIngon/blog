@@ -1,34 +1,12 @@
-﻿using System;
-using System.Collections;
-using System.Runtime.Serialization.Formatters.Binary;
+﻿using System.Collections;
 using System.Threading;
 using UnityEngine;
+using UnityServer.Common.Packet;
 
-namespace UnityServer.Packet
+namespace UnityServer.Handler
 {
     class HelloWorld : Gamnet.Server.PacketHandler<Server.Session>
     {
-        [Serializable]
-        public class MsgCliSvr_Greeting_Req
-        {
-            public const uint MSG_ID = Code.MsgCliSvr_Greeting_Req;
-            public string text;
-        }
-
-        [Serializable]
-        public class MsgSvrCli_Greeting_Ans
-        {
-            public const uint MSG_ID = Code.MsgSvrCli_Greeting_Ans;
-            public string text;
-        }
-
-        [Serializable]
-        public class MsgCliSvr_Greeting_Ntf
-        {
-            public const uint MSG_ID = Code.MsgCliSvr_Greeting_Ntf;
-            public string text;
-        }
-
         public override uint Id()
         {
             return MsgCliSvr_Greeting_Req.MSG_ID;

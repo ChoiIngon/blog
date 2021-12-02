@@ -1,6 +1,8 @@
-﻿using System.Reflection;
+﻿using Gamnet;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityServer.Common.Packet;
 
 namespace UnityServer
 {
@@ -9,7 +11,7 @@ namespace UnityServer
         public Gamnet.Client.Session session;
         public Button btnConnect;
         public Button btnClose;
-        public GameObject sphere;
+        public GameObject spherePrefab;
         private int syncPacketCount;
         public void Send<MSG_T>(MSG_T msg)
         {
@@ -33,21 +35,11 @@ namespace UnityServer
                 session = new Gamnet.Client.Session();
                 syncPacketCount = 0;
                 InvokeRepeating("OnTimerExpire", 0, 5);
-                session.RegisterHandler<Packet.Packet.MsgSvrCli_CreateCube_Ans>(Packet.Packet.MsgSvrCli_CreateCube_Ans.MSG_ID, (Packet.Packet.MsgSvrCli_CreateCube_Ans ans) =>
-                {
-                    session.UnregisterHandler(Packet.Packet.MsgSvrCli_CreateCube_Ans.MSG_ID);
-                });
-
-                session.RegisterHandler<Packet.Packet.MsgSvrCli_SyncPosition_Ntf>(Packet.Packet.MsgSvrCli_SyncPosition_Ntf.MSG_ID, (Packet.Packet.MsgSvrCli_SyncPosition_Ntf ntf) =>
-                {
-                    sphere.transform.position = new Vector3(sphere.transform.position.x, ntf.y, sphere.transform.position.z);
-                    syncPacketCount++;
-                });
 
                 session.OnConnectEvent += () =>
                 {
                     Debug.Log($"{Gamnet.Util.Debug.__FUNC__()}");
-                    CreateSphereReq();
+                    CreateRoomReq();
                 };
 
                 session.OnErrorEvent += (System.Exception e) =>
@@ -57,8 +49,8 @@ namespace UnityServer
 
                 session.OnCloseEvent += () =>
                 {
-                    session.UnregisterHandler(Packet.Packet.MsgSvrCli_CreateCube_Ans.MSG_ID);
-                    session.UnregisterHandler(Packet.Packet.MsgSvrCli_SyncPosition_Ntf.MSG_ID);
+                    session.UnregisterHandler(MsgSvrCli_CreateRoom_Ans.MSG_ID);
+                    session.UnregisterHandler(MsgSvrCli_SyncPosition_Ntf.MSG_ID);
                     session.OnConnectEvent = null;
                     session.OnErrorEvent = null;
                     session.OnCloseEvent = null;
@@ -83,10 +75,25 @@ namespace UnityServer
             btnClose.onClick.RemoveAllListeners();
         }
 
-        public void CreateSphereReq()
+        public void CreateRoomReq()
         {
-            Packet.Packet.MsgCliSvr_CreateSphereReq req = new Packet.Packet.MsgCliSvr_CreateSphereReq();
-            Send<Packet.Packet.MsgCliSvr_CreateSphereReq>(req);
+            MsgCliSvr_CreateRoom_Req req = new MsgCliSvr_CreateRoom_Req();
+            Send<MsgCliSvr_CreateRoom_Req>(req);
+
+            session.RegisterHandler<MsgSvrCli_CreateRoom_Ans>(MsgSvrCli_CreateRoom_Ans.MSG_ID, (MsgSvrCli_CreateRoom_Ans ans) =>
+            {
+                session.UnregisterHandler(MsgSvrCli_CreateRoom_Ans.MSG_ID);
+            });
+
+            session.RegisterHandler<MsgSvrCli_CreateSphere_Ntf>(MsgSvrCli_CreateSphere_Ntf.MSG_ID, (MsgSvrCli_CreateSphere_Ntf ntf) =>
+            {
+
+            });
+
+            session.RegisterHandler<MsgSvrCli_SyncPosition_Ntf>(MsgSvrCli_SyncPosition_Ntf.MSG_ID, (MsgSvrCli_SyncPosition_Ntf ntf) =>
+            {
+                syncPacketCount++;
+            });
         }
 
         private void OnApplicationPause(bool pause)

@@ -12,23 +12,21 @@ namespace UnityServer
     {
         public class Session : Gamnet.Server.Session
         {
-            public UnityServer.Agent Agent;
+            public Room room;
             protected override void OnConnect()
             {
-                GameObject go = new GameObject();
-                Agent = go.AddComponent<UnityServer.Agent>();
-                Agent.name = $"Agent_{session_key}";
-                Agent.session = this;
-                Agent.transform.SetParent(Server.Instance.transform, false);
-                Agent.transform.localPosition = new Vector3(1, 0, 0);
-
                 Debug.Log($"{Gamnet.Util.Debug.__FUNC__()}");
             }
 
             protected override void OnClose()
             {
-                Agent.transform.SetParent(null);
-                GameObject.Destroy(Agent.gameObject);
+                if (null != room)
+                {
+                    room.transform.SetParent(null);
+                    GameObject.Destroy(room.gameObject);
+                    room = null;
+                }
+
                 Debug.Log($"{Gamnet.Util.Debug.__FUNC__()}");
             }
 
@@ -58,6 +56,7 @@ namespace UnityServer
 
         public int Port;
         public int MaxSessionCount;
+        public GameObject RoomPrefab;
         public GameObject SpherePrefab;
         public bool ActivateServer = true;
         void Start()
@@ -80,9 +79,18 @@ namespace UnityServer
             Gamnet.Session.EventLoop.Update();
         }
 
-        public GameObject CreateSphere()
+        public Room CreateRoom()
         {
-            return Instantiate<GameObject>(SpherePrefab);
+            GameObject go = Instantiate<GameObject>(RoomPrefab);
+            Room room = go.AddComponent<Room>();
+            return room;
+        }
+
+        public Sphere CreateSphere()
+        {
+            GameObject go = Instantiate<GameObject>(SpherePrefab);
+            Sphere sphere = go.AddComponent<Sphere>();
+            return sphere;
         }
     }
 }
