@@ -114,6 +114,7 @@ namespace UnityServer.Client
                 }
 
                 sphere.transform.localPosition = new Vector3(ntf.positionX, ntf.positionY, ntf.positionZ);
+                sphere.transform.rotation = new Quaternion(ntf.rotationX, ntf.rotationY, ntf.rotationZ, ntf.rotationW);
                 sphere.rigidBody.velocity = new Vector3(ntf.velocityX, ntf.velocityY, ntf.velocityZ);
             });
         }

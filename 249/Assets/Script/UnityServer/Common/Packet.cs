@@ -56,6 +56,10 @@ namespace UnityServer.Common.Packet
         public float positionX;
         public float positionY;
         public float positionZ;
+        public float rotationX;
+        public float rotationY;
+        public float rotationW;
+        public float rotationZ;
         public float velocityX;
         public float velocityY;
         public float velocityZ;

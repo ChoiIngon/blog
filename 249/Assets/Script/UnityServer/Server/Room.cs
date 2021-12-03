@@ -50,7 +50,7 @@ namespace UnityServer.Server
         }
         private void Update()
         {
-            const float interval = 1.0f;
+            const float interval = 0.05f;
             deltaTime += Time.deltaTime;
             if (interval <= deltaTime)
             {
@@ -64,6 +64,10 @@ namespace UnityServer.Server
                     ntf.positionX = sphere.transform.localPosition.x;
                     ntf.positionY = sphere.transform.localPosition.y;
                     ntf.positionZ = sphere.transform.localPosition.z;
+                    ntf.rotationX = sphere.transform.rotation.x;
+                    ntf.rotationY = sphere.transform.rotation.y;
+                    ntf.rotationZ = sphere.transform.rotation.z;
+                    ntf.rotationW = sphere.transform.rotation.w;
                     ntf.velocityX = sphere.rigidBody.velocity.x;
                     ntf.velocityY = sphere.rigidBody.velocity.x;
                     ntf.velocityZ = sphere.rigidBody.velocity.x;
