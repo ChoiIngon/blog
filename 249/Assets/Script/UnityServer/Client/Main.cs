@@ -1,4 +1,5 @@
 ﻿using Gamnet;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
@@ -13,8 +14,9 @@ namespace UnityServer.Client
         public Button btnConnect;
         public Button btnClose;
         public GameObject spherePrefab;
-        private int syncPacketCount;
-        public Dictionary<uint, Sphere> spheres = new Dictionary<uint, Sphere>();
+
+        public Dictionary<uint, Common.Sphere> spheres = new Dictionary<uint, Common.Sphere>();
+
         public void Send<MSG_T>(MSG_T msg)
         {
             FieldInfo fieldInfo = msg.GetType().GetField("MSG_ID");
@@ -35,8 +37,6 @@ namespace UnityServer.Client
                     session.Close();
                 }
                 session = new Gamnet.Client.Session();
-                syncPacketCount = 0;
-                InvokeRepeating("OnTimerExpire", 0, 5);
 
                 session.OnConnectEvent += () =>
                 {
@@ -51,7 +51,16 @@ namespace UnityServer.Client
 
                 session.OnCloseEvent += () =>
                 {
+                    foreach (var itr in spheres)
+                    {
+                        Common.Sphere sphere = itr.Value;
+                        sphere.transform.SetParent(null);
+                        GameObject.Destroy(sphere.gameObject);
+                    }
+                    spheres.Clear();
+
                     session.UnregisterHandler(MsgSvrCli_CreateRoom_Ans.MSG_ID);
+                    session.UnregisterHandler(MsgSvrCli_CreateSphere_Ntf.MSG_ID);
                     session.UnregisterHandler(MsgSvrCli_SyncPosition_Ntf.MSG_ID);
                     session.OnConnectEvent = null;
                     session.OnErrorEvent = null;
@@ -66,11 +75,6 @@ namespace UnityServer.Client
             });
         }
 
-        public void OnTimerExpire()
-        {
-            Debug.Log($"recv:{syncPacketCount/5}");
-            syncPacketCount = 0;
-        }
         private void OnDestroy()
         {
             btnConnect.onClick.RemoveAllListeners();
@@ -90,10 +94,12 @@ namespace UnityServer.Client
             session.RegisterHandler<MsgSvrCli_CreateSphere_Ntf>(MsgSvrCli_CreateSphere_Ntf.MSG_ID, (MsgSvrCli_CreateSphere_Ntf ntf) =>
             {
                 GameObject go = Server.Main.Instance.CreateSphere();
-                Sphere sphere = go.AddComponent<Sphere>();
+                Common.Sphere sphere = go.AddComponent<Common.Sphere>();
                 sphere.id = ntf.id;
                 sphere.transform.localPosition = new Vector3(ntf.positionX, ntf.positionY, ntf.positionZ);
-                //sphere.rigidBody.velocity = new Vector3(ntf.velocityX, ntf.velocityY, ntf.velocityZ);
+                sphere.rigidBody = sphere.GetComponent<Rigidbody>();
+
+                sphere.rigidBody.velocity = new Vector3(ntf.velocityX, ntf.velocityY, ntf.velocityZ);
                 sphere.transform.SetParent(transform, false);
 
                 spheres.Add(sphere.id, sphere);
@@ -101,7 +107,7 @@ namespace UnityServer.Client
 
             session.RegisterHandler<MsgSvrCli_SyncPosition_Ntf>(MsgSvrCli_SyncPosition_Ntf.MSG_ID, (MsgSvrCli_SyncPosition_Ntf ntf) =>
             {
-                Sphere sphere = null;
+                Common.Sphere sphere = null;
                 if (false == spheres.TryGetValue(ntf.id, out sphere))
                 {
                     return;
@@ -109,7 +115,6 @@ namespace UnityServer.Client
 
                 sphere.transform.localPosition = new Vector3(ntf.positionX, ntf.positionY, ntf.positionZ);
                 sphere.rigidBody.velocity = new Vector3(ntf.velocityX, ntf.velocityY, ntf.velocityZ);
-                syncPacketCount++;
             });
         }
 
