@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityServer
+namespace UnityServer.Server
 {
     public class Room : MonoBehaviour
     {
@@ -25,7 +25,8 @@ namespace UnityServer
             };
             for (uint i = 0; i < 9; i++)
             {
-                Sphere sphere = UnityServer.Server.Instance.CreateSphere();
+                GameObject go = Server.Main.Instance.CreateSphere();
+                Sphere sphere = go.AddComponent<Sphere>();
                 sphere.session = session;
                 sphere.id = i+1;
                 sphere.gameObject.name = $"Sphere{sphere.id}";

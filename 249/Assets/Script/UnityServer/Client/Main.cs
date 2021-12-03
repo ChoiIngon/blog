@@ -1,18 +1,20 @@
 ﻿using Gamnet;
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityServer.Common.Packet;
 
-namespace UnityServer
+namespace UnityServer.Client
 {
-    public class Client : MonoBehaviour
+    public class Main : MonoBehaviour
     {
         public Gamnet.Client.Session session;
         public Button btnConnect;
         public Button btnClose;
         public GameObject spherePrefab;
         private int syncPacketCount;
+        public Dictionary<uint, Sphere> spheres = new Dictionary<uint, Sphere>();
         public void Send<MSG_T>(MSG_T msg)
         {
             FieldInfo fieldInfo = msg.GetType().GetField("MSG_ID");
@@ -87,11 +89,26 @@ namespace UnityServer
 
             session.RegisterHandler<MsgSvrCli_CreateSphere_Ntf>(MsgSvrCli_CreateSphere_Ntf.MSG_ID, (MsgSvrCli_CreateSphere_Ntf ntf) =>
             {
+                GameObject go = Server.Main.Instance.CreateSphere();
+                Sphere sphere = go.AddComponent<Sphere>();
+                sphere.id = ntf.id;
+                sphere.transform.localPosition = new Vector3(ntf.positionX, ntf.positionY, ntf.positionZ);
+                //sphere.rigidBody.velocity = new Vector3(ntf.velocityX, ntf.velocityY, ntf.velocityZ);
+                sphere.transform.SetParent(transform, false);
 
+                spheres.Add(sphere.id, sphere);
             });
 
             session.RegisterHandler<MsgSvrCli_SyncPosition_Ntf>(MsgSvrCli_SyncPosition_Ntf.MSG_ID, (MsgSvrCli_SyncPosition_Ntf ntf) =>
             {
+                Sphere sphere = null;
+                if (false == spheres.TryGetValue(ntf.id, out sphere))
+                {
+                    return;
+                }
+
+                sphere.transform.localPosition = new Vector3(ntf.positionX, ntf.positionY, ntf.positionZ);
+                sphere.rigidBody.velocity = new Vector3(ntf.velocityX, ntf.velocityY, ntf.velocityZ);
                 syncPacketCount++;
             });
         }

@@ -2,22 +2,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityServer.Common.Packet;
-using static UnityServer.Server;
 
-namespace UnityServer
+namespace UnityServer.Server
 {
     public class Sphere : MonoBehaviour
     {
         public Session session;
         public uint id;
-        private Rigidbody rigidBody;
-        // Start is called before the first frame update
+        public Rigidbody rigidBody;
         void Start()
         {
             Debug.Assert(null != session);
             rigidBody = GetComponent<Rigidbody>();
 
-            /*
             MsgSvrCli_CreateSphere_Ntf ntf = new MsgSvrCli_CreateSphere_Ntf();
             ntf.id = id;
             ntf.positionX = transform.localPosition.x;
@@ -27,13 +24,11 @@ namespace UnityServer
             ntf.velocityY = rigidBody.velocity.x;
             ntf.velocityZ = rigidBody.velocity.x;
             session.Send<MsgSvrCli_CreateSphere_Ntf>(ntf);
-            */
         }
 
         // Update is called once per frame
         void Update()
         {
-            /*
             MsgSvrCli_SyncPosition_Ntf ntf = new MsgSvrCli_SyncPosition_Ntf();
             ntf.id = id;
             ntf.positionX = transform.localPosition.x;
@@ -43,7 +38,6 @@ namespace UnityServer
             ntf.velocityY = rigidBody.velocity.x;
             ntf.velocityZ = rigidBody.velocity.x;
             session.Send<MsgSvrCli_SyncPosition_Ntf>(ntf);
-            */
         }
     }
 }
