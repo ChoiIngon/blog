@@ -13,6 +13,9 @@ namespace UnityServer.Server
         public const int sphereCount = 10;
         void Start()
         {
+            gameObject.layer = LayerMask.NameToLayer("Server");
+            gameObject.tag = "Server";
+
             spheres = transform.Find("Spheres");
             Vector3[] initPositions = new Vector3 [] {
                 new Vector3(-4, 4, -4),
@@ -31,6 +34,8 @@ namespace UnityServer.Server
                 GameObject go = Server.Main.Instance.CreateSphere();
                 Common.Sphere sphere = go.AddComponent<Common.Sphere>();
                 sphere.id = i+1;
+                sphere.gameObject.layer = LayerMask.NameToLayer("Server");
+                sphere.gameObject.tag = "Server";
                 sphere.gameObject.name = $"Sphere{sphere.id}";
                 sphere.rigidBody = sphere.GetComponent<Rigidbody>();
                 sphere.transform.localPosition = initPositions[i];
@@ -50,9 +55,8 @@ namespace UnityServer.Server
         }
         private void Update()
         {
-            const float interval = 0.05f;
             deltaTime += Time.deltaTime;
-            if (interval <= deltaTime)
+            if (Server.Main.Instance.syncInterval <= deltaTime && true == Server.Main.Instance.sync)
             {
                 Transform spheres = transform.Find("Spheres");
                 for (int i = 0; i < sphereCount; i++)
@@ -74,7 +78,7 @@ namespace UnityServer.Server
                     session.Send<MsgSvrCli_SyncPosition_Ntf>(ntf);
                 }
 
-                deltaTime -= interval;
+                deltaTime -= Server.Main.Instance.syncInterval;
             }
         }
     }

@@ -1,6 +1,4 @@
-﻿using Gamnet;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,25 +6,17 @@ using UnityServer.Common.Packet;
 
 namespace UnityServer.Client
 {
-    public class Main : MonoBehaviour
+    public class Main : Gamnet.Util.MonoSingleton<Main>
     {
         public Gamnet.Client.Session session;
+
         public Button btnConnect;
         public Button btnClose;
+
         public GameObject spherePrefab;
 
-        public Dictionary<uint, Common.Sphere> spheres = new Dictionary<uint, Common.Sphere>();
-
-        public void Send<MSG_T>(MSG_T msg)
-        {
-            FieldInfo fieldInfo = msg.GetType().GetField("MSG_ID");
-            uint packetId = (uint)fieldInfo.GetValue(msg);
-
-            Gamnet.Packet packet = new Gamnet.Packet();
-            packet.Id = packetId;
-            packet.Serialize(msg);
-            session.Send(packet);
-        }
+        private Transform room;
+        private Dictionary<uint, Common.Sphere> spheres = new Dictionary<uint, Common.Sphere>();
 
         private void Start()
         {
@@ -40,8 +30,12 @@ namespace UnityServer.Client
 
                 session.OnConnectEvent += () =>
                 {
-                    Debug.Log($"{Gamnet.Util.Debug.__FUNC__()}");
-                    CreateRoomReq();
+                    session.RegisterHandler<MsgSvrCli_CreateRoom_Ans>(MsgSvrCli_CreateRoom_Ans.MSG_ID, (MsgSvrCli_CreateRoom_Ans ans) => {});
+                    session.RegisterHandler<MsgSvrCli_CreateSphere_Ntf>(MsgSvrCli_CreateSphere_Ntf.MSG_ID, OnCreateSphereNtf);
+                    session.RegisterHandler<MsgSvrCli_SyncPosition_Ntf>(MsgSvrCli_SyncPosition_Ntf.MSG_ID, OnSyncPositionNtf);
+
+                    MsgCliSvr_CreateRoom_Req req = new MsgCliSvr_CreateRoom_Req();
+                    Send<MsgCliSvr_CreateRoom_Req>(req);
                 };
 
                 session.OnErrorEvent += (System.Exception e) =>
@@ -66,6 +60,7 @@ namespace UnityServer.Client
                     session.OnErrorEvent = null;
                     session.OnCloseEvent = null;
                 };
+
                 session.AsyncConnect("127.0.0.1", 4000);
             });
 
@@ -79,44 +74,6 @@ namespace UnityServer.Client
         {
             btnConnect.onClick.RemoveAllListeners();
             btnClose.onClick.RemoveAllListeners();
-        }
-
-        public void CreateRoomReq()
-        {
-            MsgCliSvr_CreateRoom_Req req = new MsgCliSvr_CreateRoom_Req();
-            Send<MsgCliSvr_CreateRoom_Req>(req);
-
-            session.RegisterHandler<MsgSvrCli_CreateRoom_Ans>(MsgSvrCli_CreateRoom_Ans.MSG_ID, (MsgSvrCli_CreateRoom_Ans ans) =>
-            {
-                session.UnregisterHandler(MsgSvrCli_CreateRoom_Ans.MSG_ID);
-            });
-
-            session.RegisterHandler<MsgSvrCli_CreateSphere_Ntf>(MsgSvrCli_CreateSphere_Ntf.MSG_ID, (MsgSvrCli_CreateSphere_Ntf ntf) =>
-            {
-                GameObject go = Server.Main.Instance.CreateSphere();
-                Common.Sphere sphere = go.AddComponent<Common.Sphere>();
-                sphere.id = ntf.id;
-                sphere.transform.localPosition = new Vector3(ntf.positionX, ntf.positionY, ntf.positionZ);
-                sphere.rigidBody = sphere.GetComponent<Rigidbody>();
-
-                sphere.rigidBody.velocity = new Vector3(ntf.velocityX, ntf.velocityY, ntf.velocityZ);
-                sphere.transform.SetParent(transform, false);
-
-                spheres.Add(sphere.id, sphere);
-            });
-
-            session.RegisterHandler<MsgSvrCli_SyncPosition_Ntf>(MsgSvrCli_SyncPosition_Ntf.MSG_ID, (MsgSvrCli_SyncPosition_Ntf ntf) =>
-            {
-                Common.Sphere sphere = null;
-                if (false == spheres.TryGetValue(ntf.id, out sphere))
-                {
-                    return;
-                }
-
-                sphere.transform.localPosition = new Vector3(ntf.positionX, ntf.positionY, ntf.positionZ);
-                sphere.transform.rotation = new Quaternion(ntf.rotationX, ntf.rotationY, ntf.rotationZ, ntf.rotationW);
-                sphere.rigidBody.velocity = new Vector3(ntf.velocityX, ntf.velocityY, ntf.velocityZ);
-            });
         }
 
         private void OnApplicationPause(bool pause)
@@ -133,6 +90,46 @@ namespace UnityServer.Client
             {
                 session.Resume();
             }
+        }
+
+        private void OnCreateSphereNtf(MsgSvrCli_CreateSphere_Ntf ntf)
+        {
+            GameObject go = Instantiate<GameObject>(spherePrefab);
+            Common.Sphere sphere = go.AddComponent<Common.Sphere>();
+            sphere.gameObject.tag = "Client";
+            sphere.gameObject.layer = LayerMask.NameToLayer("Client");
+            sphere.rigidBody = sphere.GetComponent<Rigidbody>();
+            sphere.id = ntf.id;
+            sphere.transform.localPosition = new Vector3(ntf.positionX, ntf.positionY, ntf.positionZ);
+            sphere.rigidBody.velocity = new Vector3(ntf.velocityX, ntf.velocityY, ntf.velocityZ);
+
+            Transform sphereTransform = transform.Find("Room/Spheres");
+            sphere.transform.SetParent(sphereTransform, false);
+
+            spheres.Add(sphere.id, sphere);
+        }
+
+        private void OnSyncPositionNtf(MsgSvrCli_SyncPosition_Ntf ntf)
+        {
+            Common.Sphere sphere = null;
+            if (false == spheres.TryGetValue(ntf.id, out sphere))
+            {
+                return;
+            }
+
+            sphere.transform.localPosition = new Vector3(ntf.positionX, ntf.positionY, ntf.positionZ);
+            sphere.transform.rotation = new Quaternion(ntf.rotationX, ntf.rotationY, ntf.rotationZ, ntf.rotationW);
+            sphere.rigidBody.velocity = new Vector3(ntf.velocityX, ntf.velocityY, ntf.velocityZ);
+        }
+
+        public void Send<MSG_T>(MSG_T msg)
+        {
+            FieldInfo fieldInfo = msg.GetType().GetField("MSG_ID");
+            uint packetId = (uint)fieldInfo.GetValue(msg);
+            Gamnet.Packet packet = new Gamnet.Packet();
+            packet.Id = packetId;
+            packet.Serialize(msg);
+            session.Send(packet);
         }
     }
 }

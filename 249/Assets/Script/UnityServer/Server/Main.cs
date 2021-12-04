@@ -17,6 +17,9 @@ namespace UnityServer.Server
         public GameObject RoomPrefab;
         public GameObject SpherePrefab;
         public bool ActivateServer = true;
+        [Range(0.1f, 1.0f)]
+        public float syncInterval = 0.1f;
+        public bool sync = true;
         void Start()
         {
             Gamnet.Util.Debug.Init();

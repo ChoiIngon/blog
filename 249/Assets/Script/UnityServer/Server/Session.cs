@@ -39,7 +39,6 @@ namespace UnityServer.Server
         {
             FieldInfo fieldInfo = msg.GetType().GetField("MSG_ID");
             uint packetId = (uint)fieldInfo.GetValue(msg);
-
             Gamnet.Packet packet = new Gamnet.Packet();
             packet.Id = packetId;
             packet.Serialize(msg);
