@@ -2,21 +2,32 @@
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityServer.Client.Packet;
 using UnityServer.Common.Packet;
 
 namespace UnityServer.Client
 {
     public class Main : Gamnet.Util.MonoSingleton<Main>
     {
-        public Gamnet.Client.Session session;
+        private Gamnet.Client.Session session;
+        public Dictionary<uint, Common.Sphere> spheres = new Dictionary<uint, Common.Sphere>();
+        public bool syncPosition;
+        public bool syncRotation;
+        public bool syncVelocity;
 
         public Button btnConnect;
         public Button btnClose;
+        public Slider sliderObjectCount;
+        public InputField inputObjectCount;
+        public Slider sliderSyncInterval;
+        public InputField inputSyncInterval;
+        public Toggle toggleSync;
+        public Toggle toggleSyncPosition;
+        public Toggle toggleSyncRotation;
+        public Toggle toggleSyncVelocity;
+        public Toggle toggleClientOnly;
 
         public GameObject spherePrefab;
-
-        private Transform room;
-        private Dictionary<uint, Common.Sphere> spheres = new Dictionary<uint, Common.Sphere>();
 
         private void Start()
         {
@@ -31,11 +42,11 @@ namespace UnityServer.Client
                 session.OnConnectEvent += () =>
                 {
                     session.RegisterHandler<MsgSvrCli_CreateRoom_Ans>(MsgSvrCli_CreateRoom_Ans.MSG_ID, (MsgSvrCli_CreateRoom_Ans ans) => {});
-                    session.RegisterHandler<MsgSvrCli_CreateSphere_Ntf>(MsgSvrCli_CreateSphere_Ntf.MSG_ID, OnCreateSphereNtf);
-                    session.RegisterHandler<MsgSvrCli_SyncPosition_Ntf>(MsgSvrCli_SyncPosition_Ntf.MSG_ID, OnSyncPositionNtf);
+                    session.RegisterHandler<MsgSvrCli_CreateSphere_Ntf>(MsgSvrCli_CreateSphere_Ntf.MSG_ID, CreateSphere.OnReceive);
+                    session.RegisterHandler<MsgSvrCli_SyncPosition_Ntf>(MsgSvrCli_SyncPosition_Ntf.MSG_ID, SuncPosition.OnReceive);
 
                     MsgCliSvr_CreateRoom_Req req = new MsgCliSvr_CreateRoom_Req();
-                    Send<MsgCliSvr_CreateRoom_Req>(req);
+                    Send(req);
                 };
 
                 session.OnErrorEvent += (System.Exception e) =>
@@ -69,7 +80,21 @@ namespace UnityServer.Client
                 session.Close();
             });
         }
+        private void Update()
+        {
+            inputObjectCount.text = Server.Main.Instance.objectCount.ToString();
+            Server.Main.Instance.objectCount = (int)sliderObjectCount.value;
 
+            inputSyncInterval.text = Server.Main.Instance.syncInterval.ToString();
+            Server.Main.Instance.syncInterval = sliderSyncInterval.value;
+
+            syncPosition = toggleSyncPosition.isOn;
+            syncRotation = toggleSyncRotation.isOn;
+            syncVelocity = toggleSyncVelocity.isOn;
+
+            Server.Main.Instance.sync = toggleSync.isOn;
+            Server.Main.Instance.clientOnly = toggleClientOnly.isOn;
+        }
         private void OnDestroy()
         {
             btnConnect.onClick.RemoveAllListeners();
@@ -90,36 +115,6 @@ namespace UnityServer.Client
             {
                 session.Resume();
             }
-        }
-
-        private void OnCreateSphereNtf(MsgSvrCli_CreateSphere_Ntf ntf)
-        {
-            GameObject go = Instantiate<GameObject>(spherePrefab);
-            Common.Sphere sphere = go.AddComponent<Common.Sphere>();
-            sphere.gameObject.tag = "Client";
-            sphere.gameObject.layer = LayerMask.NameToLayer("Client");
-            sphere.rigidBody = sphere.GetComponent<Rigidbody>();
-            sphere.id = ntf.id;
-            sphere.transform.localPosition = new Vector3(ntf.positionX, ntf.positionY, ntf.positionZ);
-            sphere.rigidBody.velocity = new Vector3(ntf.velocityX, ntf.velocityY, ntf.velocityZ);
-
-            Transform sphereTransform = transform.Find("Room/Spheres");
-            sphere.transform.SetParent(sphereTransform, false);
-
-            spheres.Add(sphere.id, sphere);
-        }
-
-        private void OnSyncPositionNtf(MsgSvrCli_SyncPosition_Ntf ntf)
-        {
-            Common.Sphere sphere = null;
-            if (false == spheres.TryGetValue(ntf.id, out sphere))
-            {
-                return;
-            }
-
-            sphere.transform.localPosition = new Vector3(ntf.positionX, ntf.positionY, ntf.positionZ);
-            sphere.transform.rotation = new Quaternion(ntf.rotationX, ntf.rotationY, ntf.rotationZ, ntf.rotationW);
-            sphere.rigidBody.velocity = new Vector3(ntf.velocityX, ntf.velocityY, ntf.velocityZ);
         }
 
         public void Send<MSG_T>(MSG_T msg)

@@ -3,16 +3,16 @@ using System.Threading;
 using UnityEngine;
 using UnityServer.Common.Packet;
 
-namespace UnityServer.Handler
+namespace UnityServer.Packet
 {
-    class HelloWorld : Gamnet.Server.PacketHandler<Server.Session>
+    class HelloWorld : Gamnet.Server.PacketHandler<Server.Main.Session>
     {
         public override uint Id()
         {
             return MsgCliSvr_Greeting_Req.MSG_ID;
         }
 
-        public override IEnumerator OnReceive(Server.Session session, Gamnet.Packet packet)
+        public override IEnumerator OnReceive(Server.Main.Session session, Gamnet.Packet packet)
         {
             Debug.Log($"UnityServer.Server.Packet.HelloWorld.OnReceive");
             MsgCliSvr_Greeting_Req req = packet.Deserialize<MsgCliSvr_Greeting_Req>();
