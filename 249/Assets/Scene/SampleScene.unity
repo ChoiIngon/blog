@@ -386,7 +386,7 @@ MonoBehaviour:
   onValueChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_IsOn: 1
+  m_IsOn: 0
 --- !u!1 &71477577
 GameObject:
   m_ObjectHideFlags: 0
@@ -580,9 +580,9 @@ MonoBehaviour:
     type: 3}
   Port: 4000
   MaxSessionCount: 8000
-  sphereCount: 30
-  clientOnly: 0
+  objectCount: 10
   sync: 1
+  clientOnly: 0
   syncInterval: 0.361
 --- !u!4 &99786744
 Transform:
@@ -660,6 +660,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ec42145e97d05640afa5f61b5c3ce04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  syncPosition: 0
+  syncRotation: 0
+  syncVelocity: 0
   btnConnect: {fileID: 442641126}
   btnClose: {fileID: 194507186}
   sliderObjectCount: {fileID: 848559362}
