@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityServer.Common.Packet;
+using UnityServer.Server;
 
 namespace UnityServer.Packet
 {
@@ -19,7 +20,6 @@ namespace UnityServer.Packet
 
             room.name = $"Room_{session.session_key}";
             room.layer = LayerMask.NameToLayer("Server");
-            room.tag = "Server";
             room.transform.SetParent(Server.Main.Instance.transform, false);
             session.room = room;
 
@@ -34,17 +34,16 @@ namespace UnityServer.Packet
                     }
                 }
             }
-            session.spheres = room.transform.Find("Spheres");
+            Transform spheresTransform = room.transform.Find("Spheres");
 
             for (uint i = 0; i < Server.Main.Instance.objectCount; i++)
             {
                 GameObject go = Object.Instantiate<GameObject>(Server.Main.Instance.spherePrefab);
                 go.name = $"Sphere_{i+1}";
                 go.layer = LayerMask.NameToLayer("Server");
-                go.tag = "Server";
-                go.transform.SetParent(session.spheres, false);
+                go.transform.SetParent(spheresTransform, false);
 
-                Common.Sphere sphere = go.AddComponent<Common.Sphere>();
+                Sphere sphere = go.AddComponent<Sphere>();
                 sphere.id = i + 1;
                 sphere.rigidBody = sphere.GetComponent<Rigidbody>();
 
@@ -52,14 +51,13 @@ namespace UnityServer.Packet
                 sphere.transform.localPosition = initPositions[index];
                 initPositions.RemoveAt(index);
 
+                session.spheres.Add(sphere.id, sphere);
+
                 MsgSvrCli_CreateSphere_Ntf ntf = new MsgSvrCli_CreateSphere_Ntf();
                 ntf.id = sphere.id;
-                ntf.positionX = sphere.transform.localPosition.x;
-                ntf.positionY = sphere.transform.localPosition.y;
-                ntf.positionZ = sphere.transform.localPosition.z;
-                ntf.velocityX = sphere.rigidBody.velocity.x;
-                ntf.velocityY = sphere.rigidBody.velocity.y;
-                ntf.velocityZ = sphere.rigidBody.velocity.z;
+                ntf.localPosition = sphere.transform.localPosition;
+                ntf.rotation = sphere.transform.rotation;
+                ntf.velocity = sphere.rigidBody.velocity;
                 session.Send<MsgSvrCli_CreateSphere_Ntf>(ntf);
             }
 

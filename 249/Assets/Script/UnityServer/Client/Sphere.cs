@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace UnityServer.Server
+namespace UnityServer.Client
 {
-    public class Sphere : UnityServer.Common.Sphere
+    public class Sphere : Common.Sphere
     {
-
     }
 }

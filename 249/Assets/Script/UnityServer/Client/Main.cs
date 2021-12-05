@@ -41,7 +41,7 @@ namespace UnityServer.Client
 
                 session.OnConnectEvent += () =>
                 {
-                    session.RegisterHandler<MsgSvrCli_CreateRoom_Ans>(MsgSvrCli_CreateRoom_Ans.MSG_ID, (MsgSvrCli_CreateRoom_Ans ans) => {});
+                    session.RegisterHandler<MsgSvrCli_CreateRoom_Ans>(MsgSvrCli_CreateRoom_Ans.MSG_ID, CreateRoom.OnReceive);
                     session.RegisterHandler<MsgSvrCli_CreateSphere_Ntf>(MsgSvrCli_CreateSphere_Ntf.MSG_ID, CreateSphere.OnReceive);
                     session.RegisterHandler<MsgSvrCli_SyncPosition_Ntf>(MsgSvrCli_SyncPosition_Ntf.MSG_ID, SuncPosition.OnReceive);
 
@@ -94,13 +94,32 @@ namespace UnityServer.Client
 
             Server.Main.Instance.sync = toggleSync.isOn;
             Server.Main.Instance.clientOnly = toggleClientOnly.isOn;
+
+            if (true == Input.GetMouseButtonDown(0))
+            {
+                RaycastHit hit;
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                if (true == Physics.Raycast(ray, out hit, 100.0f))
+                {
+                    if ("ClientSphere" == hit.transform.gameObject.tag)
+                    {
+                        Rigidbody rb = hit.transform.GetComponent<Rigidbody>();
+                        rb.velocity += ray.direction.normalized * 30.0f;
+
+                        Sphere sphere = hit.transform.GetComponent<Sphere>();
+                        MsgCliSvr_HitSphere_Ntf ntf = new MsgCliSvr_HitSphere_Ntf();
+                        ntf.id = sphere.id;
+                        ntf.hitDirection = ray.direction.normalized;
+                        Send(ntf);
+                    }
+                }
+            }
         }
         private void OnDestroy()
         {
             btnConnect.onClick.RemoveAllListeners();
             btnClose.onClick.RemoveAllListeners();
         }
-
         private void OnApplicationPause(bool pause)
         {
             if (null == session)
@@ -116,7 +135,6 @@ namespace UnityServer.Client
                 session.Resume();
             }
         }
-
         public void Send<MSG_T>(MSG_T msg)
         {
             FieldInfo fieldInfo = msg.GetType().GetField("MSG_ID");

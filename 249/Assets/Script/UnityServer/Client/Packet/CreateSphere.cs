@@ -9,13 +9,13 @@ namespace UnityServer.Client.Packet
         public static void OnReceive(MsgSvrCli_CreateSphere_Ntf ntf)
         {
             GameObject go = UnityEngine.Object.Instantiate<GameObject>(Main.Instance.spherePrefab);
-            Common.Sphere sphere = go.AddComponent<Common.Sphere>();
-            sphere.gameObject.tag = "Client";
+            Sphere sphere = go.AddComponent<Sphere>();
             sphere.gameObject.layer = LayerMask.NameToLayer("Client");
             sphere.rigidBody = sphere.GetComponent<Rigidbody>();
             sphere.id = ntf.id;
-            sphere.transform.localPosition = new Vector3(ntf.positionX, ntf.positionY, ntf.positionZ);
-            sphere.rigidBody.velocity = new Vector3(ntf.velocityX, ntf.velocityY, ntf.velocityZ);
+            sphere.transform.localPosition = ntf.localPosition;
+            sphere.transform.rotation = ntf.rotation;
+            sphere.rigidBody.velocity = ntf.velocity;
 
             Transform sphereTransform = Main.Instance.transform.Find("Room/Spheres");
             sphere.transform.SetParent(sphereTransform, false);

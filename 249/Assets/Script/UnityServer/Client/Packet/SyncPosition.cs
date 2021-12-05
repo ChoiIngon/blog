@@ -22,15 +22,15 @@ namespace UnityServer.Client.Packet
 
             if (true == client.syncPosition)
             {
-                sphere.transform.localPosition = new Vector3(ntf.positionX, ntf.positionY, ntf.positionZ);
+                sphere.transform.localPosition = ntf.localPosition;
             }
             if (true == client.syncRotation)
             {
-                sphere.transform.rotation = new Quaternion(ntf.rotationX, ntf.rotationY, ntf.rotationZ, ntf.rotationW);
+                sphere.transform.rotation = ntf.rotation;
             }
             if (true == client.syncVelocity)
             {
-                sphere.rigidBody.velocity = new Vector3(ntf.velocityX, ntf.velocityY, ntf.velocityZ);
+                sphere.rigidBody.velocity = ntf.velocity;
             }
         }
     }

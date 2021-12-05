@@ -11,7 +11,7 @@ namespace UnityServer.Server
         public class Session : Gamnet.Server.Session
         {
             public GameObject room;
-            public Transform spheres;
+            public Dictionary<uint, Sphere> spheres = new Dictionary<uint, Sphere>();
             private float deltaTime;
             protected override void OnConnect()
             {
@@ -21,6 +21,14 @@ namespace UnityServer.Server
 
             protected override void OnClose()
             {
+                foreach (var itr in spheres)
+                {
+                    var sphere = itr.Value;
+                    sphere.transform.SetParent(null);
+                    GameObject.Destroy(sphere.gameObject);
+                }
+                spheres.Clear();
+
                 if (null != room)
                 {
                     room.transform.SetParent(null);
@@ -49,22 +57,19 @@ namespace UnityServer.Server
                 deltaTime += Time.deltaTime;
                 if (Server.Main.Instance.syncInterval <= deltaTime && true == Server.Main.Instance.sync)
                 {
-                    for (int i = 0; i < spheres.childCount; i++)
+                    foreach(var itr in spheres)
                     {
-                        var spheresTransform = spheres.GetChild(i);
-                        var sphere = spheresTransform.GetComponent<Common.Sphere>();
+                        var sphere = itr.Value;
+                        if (false == sphere.gameObject.activeSelf)
+                        {
+                            continue;
+                        }
+
                         MsgSvrCli_SyncPosition_Ntf ntf = new MsgSvrCli_SyncPosition_Ntf();
                         ntf.id = sphere.id;
-                        ntf.positionX = sphere.transform.localPosition.x;
-                        ntf.positionY = sphere.transform.localPosition.y;
-                        ntf.positionZ = sphere.transform.localPosition.z;
-                        ntf.rotationX = sphere.transform.rotation.x;
-                        ntf.rotationY = sphere.transform.rotation.y;
-                        ntf.rotationZ = sphere.transform.rotation.z;
-                        ntf.rotationW = sphere.transform.rotation.w;
-                        ntf.velocityX = sphere.rigidBody.velocity.x;
-                        ntf.velocityY = sphere.rigidBody.velocity.y;
-                        ntf.velocityZ = sphere.rigidBody.velocity.z;
+                        ntf.localPosition = sphere.transform.localPosition;
+                        ntf.rotation = sphere.transform.rotation;
+                        ntf.velocity = sphere.rigidBody.velocity;
                         Send<MsgSvrCli_SyncPosition_Ntf>(ntf);
                     }
 
