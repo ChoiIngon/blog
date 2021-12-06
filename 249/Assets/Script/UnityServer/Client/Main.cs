@@ -99,7 +99,7 @@ namespace UnityServer.Client
             {
                 RaycastHit hit;
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                if (true == Physics.Raycast(ray, out hit, 100.0f))
+                if (true == Physics.Raycast(ray, out hit, Mathf.Infinity, LayerMask.NameToLayer("Client")))
                 {
                     if ("ClientSphere" == hit.transform.gameObject.tag)
                     {
