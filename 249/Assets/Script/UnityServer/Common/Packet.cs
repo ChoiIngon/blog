@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityServer.Common.Packet
@@ -94,6 +95,15 @@ namespace UnityServer.Common.Packet
     }
 
     [Serializable]
+    public class ObjectTransform
+    {
+        public uint id;
+        public SerializableVector3 localPosition;
+        public SerializableVector3 velocity;
+        public SerializableQuaternion rotation;
+    }
+
+    [Serializable]
     public class MsgSvrCli_CreateSphere_Ntf
     {
         public const uint MSG_ID = 00000004;
@@ -107,10 +117,7 @@ namespace UnityServer.Common.Packet
     public class MsgSvrCli_SyncPosition_Ntf
     {
         public const uint MSG_ID = 00000005;
-        public uint id;
-        public SerializableVector3 localPosition;
-        public SerializableVector3 velocity;
-        public SerializableQuaternion rotation;
+        public List<ObjectTransform> transforms;
     }
 
     [Serializable]

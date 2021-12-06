@@ -6,7 +6,8 @@ namespace Gamnet.Server
     {
         private static class SessionManager
         {
-            public static int keepalive_time = 5;
+            public static int keepalive_time = 300
+                ;
             private static Dictionary<uint, Session> sessions = new Dictionary<uint, Session>();
 
             public static void Add(Session session)

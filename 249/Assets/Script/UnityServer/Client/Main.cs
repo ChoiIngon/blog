@@ -14,7 +14,10 @@ namespace UnityServer.Client
         public bool syncPosition;
         public bool syncRotation;
         public bool syncVelocity;
-
+#if UNITY_EDITOR
+        public int sendQueueCount;
+        public int recvQueueCount;
+#endif
         public Button btnConnect;
         public Button btnClose;
         public Slider sliderObjectCount;
@@ -95,11 +98,14 @@ namespace UnityServer.Client
             Server.Main.Instance.sync = toggleSync.isOn;
             Server.Main.Instance.clientOnly = toggleClientOnly.isOn;
 
+
             if (true == Input.GetMouseButtonDown(0))
             {
-                RaycastHit hit;
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                if (true == Physics.Raycast(ray, out hit, Mathf.Infinity, LayerMask.NameToLayer("Client")))
+                Debug.DrawRay(ray.origin, ray.direction * 100.0f, Color.red);
+
+                RaycastHit[] hits = Physics.RaycastAll(ray, Mathf.Infinity);
+                foreach (RaycastHit hit in hits)
                 {
                     if ("ClientSphere" == hit.transform.gameObject.tag)
                     {
@@ -114,7 +120,14 @@ namespace UnityServer.Client
                     }
                 }
             }
+#if UNITY_EDITOR
+            if (null != session)
+            {
+                sendQueueCount = session.send_queue_count;
+            }
+#endif
         }
+
         private void OnDestroy()
         {
             btnConnect.onClick.RemoveAllListeners();

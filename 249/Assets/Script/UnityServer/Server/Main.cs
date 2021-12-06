@@ -57,7 +57,9 @@ namespace UnityServer.Server
                 deltaTime += Time.deltaTime;
                 if (Server.Main.Instance.syncInterval <= deltaTime && true == Server.Main.Instance.sync)
                 {
-                    foreach(var itr in spheres)
+                    MsgSvrCli_SyncPosition_Ntf ntf = new MsgSvrCli_SyncPosition_Ntf();
+                    ntf.transforms = new List<ObjectTransform>();
+                    foreach (var itr in spheres)
                     {
                         var sphere = itr.Value;
                         if (false == sphere.gameObject.activeSelf)
@@ -65,16 +67,20 @@ namespace UnityServer.Server
                             continue;
                         }
 
-                        MsgSvrCli_SyncPosition_Ntf ntf = new MsgSvrCli_SyncPosition_Ntf();
-                        ntf.id = sphere.id;
-                        ntf.localPosition = sphere.transform.localPosition;
-                        ntf.rotation = sphere.transform.rotation;
-                        ntf.velocity = sphere.rigidBody.velocity;
-                        Send<MsgSvrCli_SyncPosition_Ntf>(ntf);
+                        ObjectTransform objTrans = new ObjectTransform();
+                        objTrans.id = sphere.id;
+                        objTrans.localPosition = sphere.transform.localPosition;
+                        objTrans.rotation = sphere.transform.rotation;
+                        objTrans.velocity = sphere.rigidBody.velocity;
+                        ntf.transforms.Add(objTrans);
                     }
+                    Send<MsgSvrCli_SyncPosition_Ntf>(ntf);
 
                     deltaTime -= Server.Main.Instance.syncInterval;
                 }
+#if UNITY_EDITOR
+                Main.Instance.sendQueueCount = send_queue_count;
+#endif
             }
 
             public void Send<MSG_T>(MSG_T msg)
@@ -99,6 +105,10 @@ namespace UnityServer.Server
         public bool sync = true;
 
         public bool clientOnly = false;
+#if UNITY_EDITOR
+        public int sendQueueCount;
+        public int recvQueueCount;
+#endif
         [Range(0.1f, 1.0f)]
         public float syncInterval = 0.1f;
 

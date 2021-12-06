@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657844, g: 0.49641222, b: 0.57481694, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -583,6 +583,8 @@ MonoBehaviour:
   objectCount: 10
   sync: 1
   clientOnly: 0
+  sendQueueCount: 0
+  recvQueueCount: 0
   syncInterval: 0.1
 --- !u!4 &99786744
 Transform:
@@ -641,7 +643,7 @@ GameObject:
   m_Component:
   - component: {fileID: 154153046}
   - component: {fileID: 154153045}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: Client
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -663,6 +665,8 @@ MonoBehaviour:
   syncPosition: 0
   syncRotation: 0
   syncVelocity: 0
+  sendQueueCount: 0
+  recvQueueCount: 0
   btnConnect: {fileID: 442641126}
   btnClose: {fileID: 194507186}
   sliderObjectCount: {fileID: 848559362}
@@ -2015,6 +2019,7 @@ MonoBehaviour:
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
   m_ReadOnly: 0
+  m_ShouldActivateOnSelect: 1
 --- !u!114 &653105498
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2214,7 +2219,7 @@ PrefabInstance:
     - target: {fileID: 8140348622445659349, guid: 93e566055916f5345b15768f6dac5154,
         type: 3}
       propertyPath: m_Layer
-      value: 8
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8140348622445659349, guid: 93e566055916f5345b15768f6dac5154,
         type: 3}
@@ -2229,7 +2234,7 @@ PrefabInstance:
     - target: {fileID: 8965485273978052614, guid: 93e566055916f5345b15768f6dac5154,
         type: 3}
       propertyPath: m_Layer
-      value: 8
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9065786541032182640, guid: 93e566055916f5345b15768f6dac5154,
         type: 3}
@@ -2402,9 +2407,9 @@ MonoBehaviour:
   m_HandleRect: {fileID: 636507121}
   m_Direction: 0
   m_MinValue: 1
-  m_MaxValue: 50
+  m_MaxValue: 100
   m_WholeNumbers: 0
-  m_Value: 25
+  m_Value: 50
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -2596,6 +2601,7 @@ MonoBehaviour:
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
   m_ReadOnly: 0
+  m_ShouldActivateOnSelect: 1
 --- !u!114 &918069530
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2783,13 +2789,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -20}
+  m_LocalRotation: {x: 0.17364816, y: 0, z: 0, w: 0.9848078}
+  m_LocalPosition: {x: 0, y: 6, z: -20}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 20, y: 0, z: 0}
 --- !u!1 &1095504606
 GameObject:
   m_ObjectHideFlags: 0

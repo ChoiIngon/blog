@@ -39,20 +39,6 @@ namespace Gamnet
                 }
             }
 
-            class EndReceiveEvent : Gamnet.Session.SessionEvent
-            {
-                private IAsyncResult result;
-                public EndReceiveEvent(Session session, IAsyncResult result) : base(session)
-                {
-                    this.result = result;
-                }
-
-                public override void OnEvent()
-                {
-                    session.receiver.OnEndReceive(result);
-                }
-            }
-
             public class CloseEvent : SessionEvent
             {
                 public CloseEvent(Session session) : base(session) { }
@@ -83,7 +69,6 @@ namespace Gamnet
                     }
                 }
             }
-
 
             private void OnEndReceive(IAsyncResult result)
             {

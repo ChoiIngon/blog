@@ -19,6 +19,11 @@ namespace Gamnet
         //private System.Timers.Timer timer;
         //private int timeoutInterval = 5000; // 비동기 connect 실패 시간. 5초
 
+#if UNITY_EDITOR
+        public int send_queue_count;
+        public int recv_queue_count;
+#endif
+
         protected List<Packet> send_queue;
         protected int send_queue_index;
         protected UInt32 send_seq;
@@ -39,6 +44,10 @@ namespace Gamnet
             send_queue_index = 0;
             send_seq = 0;
             recv_seq = 0;
+#if UNITY_EDITOR
+            send_queue_count = 0;
+            recv_queue_count = 0;
+#endif
         }
 
         public void BeginReceive()
@@ -53,7 +62,9 @@ namespace Gamnet
             packet.Seq = ++send_seq;
 
             send_queue.Add(packet);
-
+#if UNITY_EDITOR
+            send_queue_count = send_queue.Count;
+#endif
             if (null == socket)
             {
                 Debug.LogWarning($"{GetType().Namespace}.{GetType().Name}(session_key:{this.session_key})");
@@ -128,7 +139,9 @@ namespace Gamnet
                 {
                     send_queue.RemoveAt(send_queue_index);
                 }
-
+#if UNITY_EDITOR
+                send_queue_count = send_queue.Count;
+#endif
                 if (send_queue_index < send_queue.Count)
                 {
                     Packet packetToBeSent = send_queue[send_queue_index];
