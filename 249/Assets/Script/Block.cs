@@ -5,7 +5,9 @@ using UnityEngine;
 public class Block : MonoBehaviour
 {
     // Start is called before the first frame update
+    public int id;
     public int durability;
+
     void Start()
     {
     }
@@ -16,7 +18,7 @@ public class Block : MonoBehaviour
         {
             return;
         }
-         
+
         Ball ball = collision.transform.GetComponent<Ball>();
         if (null == ball)
         {

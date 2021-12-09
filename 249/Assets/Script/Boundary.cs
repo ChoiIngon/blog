@@ -21,7 +21,7 @@ public class Boundary : MonoBehaviour
         {
             GameManager.Instance.Init();
         }
-
+        /*
         Ball ball = collision.transform.GetComponent<Ball>();
         if (null == ball)
         {
@@ -31,5 +31,6 @@ public class Boundary : MonoBehaviour
         Vector3 reflect = Vector3.Reflect(ball.velocity, transform.forward);
         ball.velocity = reflect.normalized * ball.moveSpeed;
         ball.rigidBody.velocity = ball.velocity;
+        */
     }
 }

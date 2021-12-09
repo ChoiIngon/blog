@@ -15,10 +15,6 @@ public class Bar : MonoBehaviour
 
     void Start()
     {
-        rigidBody = GetComponent<Rigidbody>();
-        barColliderLayerMask = 1 << LayerMask.NameToLayer("BarTouchCollider");
-        backPlane = new Plane(Vector3.forward, 0);
-
         Init();
     }
 
@@ -26,7 +22,14 @@ public class Bar : MonoBehaviour
     {
         isTouched = false;
         transform.localPosition = new Vector3(0, -10, 0);
+        rigidBody = GetComponent<Rigidbody>();
+        barColliderLayerMask = 1 << LayerMask.NameToLayer("BarTouchCollider");
+        backPlane = new Plane(Vector3.forward, 0);
 
+        if (null == rigidBody)
+        {
+            rigidBody = GetComponent<Rigidbody>();
+        }
         rigidBody.velocity = Vector3.zero;
         rigidBody.angularVelocity = Vector3.zero;
     }
@@ -45,53 +48,54 @@ public class Bar : MonoBehaviour
     void Update()
     {
         // https://gamedevbeginner.com/how-to-convert-the-mouse-position-to-world-space-in-unity-2d-3d/#screen_to_world_3d
-        if (true == isLocal)
+        if (false == isLocal)
         {
-            if (GameManager.GameState.Ready == GameManager.Instance.state)
+            return;
+        }
+        if (GameManager.GameState.Ready == GameManager.Instance.state)
+        {
+            if (true == Input.GetMouseButtonDown(MOUSE_BUTTON_LEFT))
             {
-                if (true == Input.GetMouseButtonDown(MOUSE_BUTTON_LEFT))
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                RaycastHit hit;
+                if (true == Physics.Raycast(ray, out hit, Mathf.Infinity))
                 {
-                    Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                    RaycastHit hit;
-                    if (true == Physics.Raycast(ray, out hit, Mathf.Infinity))
+                    Bar bar = hit.transform.GetComponent<Bar>();
+                    if (null != bar)
                     {
-                        Bar bar = hit.transform.GetComponent<Bar>();
-                        if (null != bar)
-                        {
-                            isTouched = true;
-                        }
-                    }
-                }
-                if (true == Input.GetMouseButtonUp(MOUSE_BUTTON_LEFT))
-                {
-                    if (true == isTouched)
-                    {
-                        GameManager.Instance.Play();
+                        isTouched = true;
                     }
                 }
             }
-            if (GameManager.GameState.Init != GameManager.Instance.state)
+            if (true == Input.GetMouseButtonUp(MOUSE_BUTTON_LEFT))
             {
-                if (true == Input.GetMouseButton(MOUSE_BUTTON_LEFT))
+                if (true == isTouched)
                 {
-                    float distance;
-                    Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                    if (true == backPlane.Raycast(ray, out distance))
+                    GameManager.Instance.Play();
+                }
+            }
+        }
+        if (GameManager.GameState.Init != GameManager.Instance.state)
+        {
+            if (true == Input.GetMouseButton(MOUSE_BUTTON_LEFT))
+            {
+                float distance;
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                if (true == backPlane.Raycast(ray, out distance))
+                {
+                    Vector3 worldPosition = ray.GetPoint(distance);
+                    if (transform.position.x < worldPosition.x)
                     {
-                        Vector3 worldPosition = ray.GetPoint(distance);
-                        if (transform.position.x < worldPosition.x)
-                        {
-                            transform.position = new Vector3(transform.position.x + moveSpeed * Time.deltaTime, transform.position.y, transform.position.z);
-                        }
+                        transform.position = new Vector3(transform.position.x + moveSpeed * Time.deltaTime, transform.position.y, transform.position.z);
+                    }
 
-                        if (transform.position.x > worldPosition.x)
-                        {
-                            transform.position = new Vector3(transform.position.x - moveSpeed * Time.deltaTime, transform.position.y, transform.position.z);
-                        }
+                    if (transform.position.x > worldPosition.x)
+                    {
+                        transform.position = new Vector3(transform.position.x - moveSpeed * Time.deltaTime, transform.position.y, transform.position.z);
                     }
                 }
-                rigidBody.velocity = Vector3.zero;
             }
+            rigidBody.velocity = Vector3.zero;
         }
     }
 
@@ -110,10 +114,17 @@ public class Bar : MonoBehaviour
             float start = transform.position.x - (width / 2);
             float point = Mathf.Abs(start - collision.contacts[0].point.x);
             float contactRate = 1.0f - (point / width);
+            if (contactRate < 0.2f)
+            {
+                contactRate = 0.2f;
+            }
+            if (contactRate > 0.8f)
+            {
+                contactRate = 0.8f;
+            }
             float theta = contactRate * Mathf.PI;
             float x = Mathf.Cos(theta);
             float y = Mathf.Sin(theta);
-            
             ball.SetDirection(new Vector3(x, y, 0));
         }
     }
