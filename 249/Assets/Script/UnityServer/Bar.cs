@@ -97,6 +97,24 @@ public class Bar : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
+        // https://answers.unity.com/questions/24012/find-size-of-gameobject.html
+        if (GameManager.GameState.Play == GameManager.Instance.state)
+        {
+            Ball ball = collision.transform.GetComponent<Ball>();
+            if (null == ball)
+            {
+                return;
+            }
 
+            float width = GetComponent<Collider>().bounds.size.x;
+            float start = transform.position.x - (width / 2);
+            float point = Mathf.Abs(start - collision.contacts[0].point.x);
+            float contactRate = 1.0f - (point / width);
+            float theta = contactRate * Mathf.PI;
+            float x = Mathf.Cos(theta);
+            float y = Mathf.Sin(theta);
+            
+            ball.SetDirection(new Vector3(x, y, 0));
+        }
     }
 }

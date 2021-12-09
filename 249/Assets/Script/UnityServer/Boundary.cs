@@ -7,7 +7,6 @@ public class Boundary : MonoBehaviour
     public bool gameOver;
     void Start()
     {
-        Debug.Log(transform.forward.ToString());
     }
 
     // Update is called once per frame
