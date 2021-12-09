@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class GameManager : Gamnet.Util.MonoSingleton<GameManager>
 {
@@ -14,7 +12,7 @@ public class GameManager : Gamnet.Util.MonoSingleton<GameManager>
     public GameState state;
     public Bar bar;
     public Ball ball;
-
+    public Transform blocks;
     void Start()
     {
         state = GameState.Init;
