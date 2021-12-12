@@ -11,6 +11,16 @@ public class Ball : MonoBehaviour
 
     private int frameCount;
 
+    class Contact
+    {
+        public Vector3 point;
+        public Vector3 velocity;
+        public Vector3 reflect;
+        public Vector3 normal;
+    };
+
+    List<Contact> contacts = new List<Contact>();
+
     public void Init()
     {
         transform.localPosition = new Vector3(0, -9, 0);
@@ -19,6 +29,7 @@ public class Ball : MonoBehaviour
         rigidBody.useGravity = true;
         SetDirection(Vector3.zero);
         frameCount = 0;
+        contacts.Clear();
     }
 
     public void SetDirection(Vector3 direction)
@@ -30,14 +41,13 @@ public class Ball : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-
         if (GameManager.GameState.Init == GameManager.Instance.state)
         {
             if (null != collision.transform.GetComponent<Bar>())
             {
                 rigidBody.useGravity = false;
                 SetDirection(Vector3.zero);
-                GameManager.Instance.Ready();
+                GameManager.Instance.start.gameObject.SetActive(true);
             }
         }
 
@@ -57,10 +67,21 @@ public class Ball : MonoBehaviour
 
             foreach (ContactPoint contact in collision.contacts)
             {
-                Vector3 reflect = Vector3.Reflect(velocity, contact.normal.normalized);
+                Vector3 incommingVector = velocity.normalized;
+                Vector3 reflect = Vector3.Reflect(incommingVector, contact.normal);
                 velocity = reflect.normalized * moveSpeed;
                 rigidBody.velocity = velocity;
             }
+        }
+    }
+
+    private void Update()
+    {
+        foreach (Contact contact in contacts)
+        {
+            Debug.DrawLine(contact.velocity, contact.point, Color.yellow);
+            Debug.DrawLine(contact.point, contact.reflect, Color.green);
+            Debug.DrawLine(contact.point, contact.normal, Color.blue);
         }
     }
 }
