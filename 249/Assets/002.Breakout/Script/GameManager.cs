@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 public class GameManager : Gamnet.Util.MonoSingleton<GameManager>
 {
-    private Gamnet.Server.Acceptor<Session> acceptor = new Gamnet.Server.Acceptor<Session>();
+    private Gamnet.Server.Acceptor<Breakout.Server.Session> acceptor = new Gamnet.Server.Acceptor<Breakout.Server.Session>();
     public enum GameState
     {
         Init,
@@ -33,20 +33,28 @@ public class GameManager : Gamnet.Util.MonoSingleton<GameManager>
         Init();
 
         session = new Gamnet.Client.Session();
+        session.AsyncConnect("127.0.0.1", 4000);
         session.OnConnectEvent += () => {
-            Packet.MsgCliSvr_Join_Req req;
-            req.roomId = 1;
-            Gamnet.Packet packet = new Gamnet.Packet();
-            packet.Id = Packet.MsgCliSvr_Join_Req.PACKET_ID;
-            packet.Serialize(req);
-            session.Send(packet);
+            start.gameObject.SetActive(true);
+        };
+
+        session.OnCloseEvent += () =>
+        {
+            Debug.Log("client session close");
         };
 
         start.gameObject.SetActive(false);
         start.onClick.AddListener(() =>
         {
             start.gameObject.SetActive(false);
-            session.AsyncConnect("127.0.0.1", 4000);
+            Packet.MsgCliSvr_Join_Req req = new Packet.MsgCliSvr_Join_Req();
+            req.roomId = 1;
+
+            Gamnet.Packet packet = new Gamnet.Packet();
+            packet.Id = Packet.MsgCliSvr_Join_Req.PACKET_ID;
+            packet.Serialize(req);
+            session.Send(packet);
+            session.RegisterHandler<Packet.MsgSvrCli_Join_Ans>(Packet.MsgSvrCli_Join_Ans.PACKET_ID, OnMsgSvrCli_Join_Ans);
         });
     }
 
@@ -112,5 +120,9 @@ public class GameManager : Gamnet.Util.MonoSingleton<GameManager>
     private void Update()
     {
         Gamnet.Session.EventLoop.Update();
+    }
+
+    private void OnMsgSvrCli_Join_Ans(Packet.MsgSvrCli_Join_Ans ans)
+    {
     }
 }

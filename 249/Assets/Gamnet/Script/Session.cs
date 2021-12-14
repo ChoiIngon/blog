@@ -35,7 +35,6 @@ namespace Gamnet
 
         public virtual void Clear()
         {
-            session_key = 0;
             session_token = "";
             link_establish = false;
             async_receives = new Dictionary<uint, Async.AsyncReceive>();

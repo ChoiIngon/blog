@@ -132,15 +132,13 @@ namespace Gamnet.Server
         {
             public override uint Id()
             {
-                return Gamnet.SystemPacket.MsgCliSvr_DestroySessionLink_Req.MSG_ID;
+                return Gamnet.SystemPacket.MsgCliSvr_DestroySessionLink_Ntf.MSG_ID;
             }
 
             public override IEnumerator OnReceive(SESSION_T session, Gamnet.Packet packet)
             {
 // Debug.Log($"Gamnet.Server.Session.PacketHandler_DestroySessionLink.OnReceive");
-                Gamnet.SystemPacket.MsgCliSvr_DestroySessionLink_Req req = packet.Deserialize<Gamnet.SystemPacket.MsgCliSvr_DestroySessionLink_Req>();
-                Gamnet.SystemPacket.MsgSvrCli_DestroySessionLink_Ans ans = new Gamnet.SystemPacket.MsgSvrCli_DestroySessionLink_Ans();
-                ans.error_code = 0;
+                Gamnet.SystemPacket.MsgCliSvr_DestroySessionLink_Ntf req = packet.Deserialize<Gamnet.SystemPacket.MsgCliSvr_DestroySessionLink_Ntf>();
                 try
                 {
                     if (false == session.link_establish)
@@ -152,14 +150,9 @@ namespace Gamnet.Server
                 }
                 catch (System.Exception e)
                 {
-                    ans.error_code = e.HResult;
                     Debug.LogError(e.ToString());
                 }
 
-                Gamnet.Packet ansPacket = new Gamnet.Packet();
-                ansPacket.Id = Gamnet.SystemPacket.MsgSvrCli_DestroySessionLink_Ans.MSG_ID;
-                ansPacket.Serialize(ans);
-                session.Send(ansPacket);
                 yield break;
             }
 

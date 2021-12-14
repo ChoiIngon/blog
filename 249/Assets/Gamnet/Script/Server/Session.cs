@@ -80,17 +80,24 @@ namespace Gamnet.Server
                         asyncReceive.Cancel();
                     }
 
+                    SessionManager.Remove(this);
+
                     async_receives.Clear();
                     current_coroutine = null;
                     OnClose();
                     Clear();
-                    SessionManager.Remove(this);
                 }
             }
             catch (SocketException e)
             {
                 Debug.Log($"[{Gamnet.Util.Debug.__FUNC__()}] exception:" + e.ToString());
             }
+        }
+
+        public void Kickout()
+        {
+            link_establish = false;
+            Close();
         }
 
         void StartHeartBeatTimer()

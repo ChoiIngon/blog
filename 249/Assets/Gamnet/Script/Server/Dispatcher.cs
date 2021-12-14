@@ -38,7 +38,7 @@ namespace Gamnet.Server
             handlers.Clear();
             handlers.Add(SystemPacket.MsgCliSvr_EstablishSessionLink_Req.MSG_ID, new Session.PacketHandler_EstablishSessionLink<SESSION_T>());
             handlers.Add(SystemPacket.MsgCliSvr_RecoverSessionLink_Req.MSG_ID, new Session.PacketHandler_RecoverSessionLink<SESSION_T>());
-            handlers.Add(SystemPacket.MsgCliSvr_DestroySessionLink_Req.MSG_ID, new Session.PacketHandler_DestroySessionLink<SESSION_T>());
+            handlers.Add(SystemPacket.MsgCliSvr_DestroySessionLink_Ntf.MSG_ID, new Session.PacketHandler_DestroySessionLink<SESSION_T>());
             handlers.Add(SystemPacket.MsgCliSvr_HeartBeat_Ans.MSG_ID, new Session.PacketHandler_HeartBeat<SESSION_T>());
             handlers.Add(SystemPacket.Msg_ReliableAck_Ntf.MSG_ID, new Session.PacketHandler_ReliableAck<SESSION_T>());
 
@@ -79,12 +79,14 @@ namespace Gamnet.Server
                 if (false == session.link_establish && false == packetHandler.IsSystemPacket)
                 {
                     Debug.Assert(false, $"packet_name:{packetHandler.GetType().Name}({packet.Id}), session_key:{session.session_key}");
-                    session.Close();
+                    session.Kickout();
                     return;
                 }
                 session.current_coroutine = packetHandler.OnReceive(session, packet);
                 session.current_coroutine.MoveNext();
+                return;
             }
+            session.Kickout();
         }
     }
 }

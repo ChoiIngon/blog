@@ -54,6 +54,7 @@ public class Bar : MonoBehaviour
         }
         if (GameManager.GameState.Ready == GameManager.Instance.state)
         {
+            /*
             if (true == Input.GetMouseButtonDown(MOUSE_BUTTON_LEFT))
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -67,12 +68,13 @@ public class Bar : MonoBehaviour
                     }
                 }
             }
+            */
             if (true == Input.GetMouseButtonUp(MOUSE_BUTTON_LEFT))
             {
-                if (true == isTouched)
-                {
+                //if (true == isTouched)
+                //{
                     GameManager.Instance.Play();
-                }
+                //}
             }
         }
         if (GameManager.GameState.Init != GameManager.Instance.state)

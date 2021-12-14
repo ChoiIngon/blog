@@ -51,7 +51,6 @@ namespace Gamnet.Client
             this.connector = new Connector(this);
 
             RegisterHandler<MsgSvrCli_EstablishSessionLink_Ans>(SystemPacket.MsgSvrCli_EstablishSessionLink_Ans.MSG_ID, Recv_EstabilshSessionLink_Ans);
-            RegisterHandler<MsgSvrCli_DestroySessionLink_Ans>(SystemPacket.MsgSvrCli_DestroySessionLink_Ans.MSG_ID, Recv_DestroySessionLink_Ans);
             RegisterHandler<MsgSvrCli_RecoverSessionLink_Ans>(SystemPacket.MsgSvrCli_RecoverSessionLink_Ans.MSG_ID, Recv_RecoverSessionLink_Ans);
             RegisterHandler<MsgSvrCli_HeartBeat_Req>(SystemPacket.MsgSvrCli_HeartBeat_Req.MSG_ID, Recv_HeartBeat_Req);
             RegisterHandler<Msg_ReliableAck_Ntf>(SystemPacket.Msg_ReliableAck_Ntf.MSG_ID, Recv_ReliableAck_Ntf);
@@ -167,8 +166,7 @@ namespace Gamnet.Client
 
             if (true == link_establish)
             {
-                Send_DestroySessionLink_Req();
-                return;
+                Send_DestroySessionLink_Ntf();
             }
             socket.Close();
             OnClose();

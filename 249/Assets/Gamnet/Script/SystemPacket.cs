@@ -27,16 +27,9 @@ namespace Gamnet.SystemPacket
     }
 
     [System.Serializable]
-    class MsgCliSvr_DestroySessionLink_Req
+    class MsgCliSvr_DestroySessionLink_Ntf
     {
         public const uint MSG_ID = uint.MaxValue - 1; // 4294967294
-    }
-
-    [System.Serializable]
-    class MsgSvrCli_DestroySessionLink_Ans
-    {
-        public const uint MSG_ID = uint.MaxValue - 1; // 4294967294
-        public int error_code = 0;
     }
 
     [System.Serializable]

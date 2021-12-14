@@ -3,22 +3,28 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Session : Gamnet.Server.Session
+namespace Breakout.Server
 {
-    protected override void OnConnect()
+    public class Session : Gamnet.Server.Session
     {
-    }
+        protected override void OnConnect()
+        {
+            Debug.Log("onConnect");
+        }
 
-    protected override void OnPause()
-    {
-    }
+        protected override void OnPause()
+        {
+        }
 
-    protected override void OnResume()
-    {
-    }
+        protected override void OnResume()
+        {
+        }
 
-    protected override void OnClose()
-    {
+        protected override void OnClose()
+        {
+            Debug.Log("server onclose");
+        }
 
+        public Room room;
     }
 }

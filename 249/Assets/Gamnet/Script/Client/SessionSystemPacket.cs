@@ -73,7 +73,7 @@ namespace Gamnet.Client
             OnResume();
         }
 
-        private void Send_DestroySessionLink_Req()
+        private void Send_DestroySessionLink_Ntf()
         {
             // Debug.Log($"{Util.Debug.__FUNC__()}");
             if (false == socket.Connected)
@@ -82,26 +82,12 @@ namespace Gamnet.Client
             }
 
             link_establish = false;
-            SystemPacket.MsgCliSvr_DestroySessionLink_Req req = new SystemPacket.MsgCliSvr_DestroySessionLink_Req();
+            SystemPacket.MsgCliSvr_DestroySessionLink_Ntf req = new SystemPacket.MsgCliSvr_DestroySessionLink_Ntf();
 
             Gamnet.Packet packet = new Gamnet.Packet();
-            packet.Id = SystemPacket.MsgCliSvr_DestroySessionLink_Req.MSG_ID;
+            packet.Id = SystemPacket.MsgCliSvr_DestroySessionLink_Ntf.MSG_ID;
             packet.Serialize(req);
             Send(packet);
-        }
-
-        private void Recv_DestroySessionLink_Ans(MsgSvrCli_DestroySessionLink_Ans ans)
-        {
-            // Debug.Log($"{Util.Debug.__FUNC__()}");
-            if (0 != ans.error_code)
-            {
-                Debug.LogError("MsgSvrCli_DestroySessionLink_Ans(error_code:" + ans.error_code + ")");
-                return;
-            }
-
-            socket.Close();
-            OnClose();
-            Clear();
         }
 
         void Recv_HeartBeat_Req(MsgSvrCli_HeartBeat_Req req)

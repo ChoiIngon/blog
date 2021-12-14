@@ -47,7 +47,7 @@ public class Ball : MonoBehaviour
             {
                 rigidBody.useGravity = false;
                 SetDirection(Vector3.zero);
-                GameManager.Instance.start.gameObject.SetActive(true);
+                GameManager.Instance.Ready();
             }
         }
 
