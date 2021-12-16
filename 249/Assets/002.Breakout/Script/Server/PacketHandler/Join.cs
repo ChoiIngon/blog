@@ -19,16 +19,13 @@ namespace Breakout.Server
         {
             Packet.MsgCliSvr_Join_Req req = packet.Deserialize<Packet.MsgCliSvr_Join_Req>();
 
-            Room room = null;
-            if (false == Main.Instance.rooms.TryGetValue(req.roomId, out room))
+            Room room = Manager.Room.Find(req.roomId);
+            room.AddUser(session);
+            if (2 == room.sessions.Count)
             {
-                GameObject obj = new GameObject();
-                room = obj.AddComponent<Room>();
-                room.Id = req.roomId;
-                Main.Instance.rooms.Add(room.Id, room);
+                Manager.Room.Remove(room.Id);
             }
 
-            session.room = room;
             yield break;
         }
     }

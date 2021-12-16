@@ -57,8 +57,10 @@ namespace Gamnet
         public virtual void Send(Packet packet)
         {
             Debug.Assert(Gamnet.Util.Debug.IsMainThread());
-
-            packet.Seq = ++send_seq;
+            if (true == packet.IsReliable)
+            {
+                packet.Seq = ++send_seq;
+            }
 
             send_queue.Add(packet);
 #if UNITY_EDITOR

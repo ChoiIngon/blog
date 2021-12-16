@@ -57,13 +57,16 @@ namespace Gamnet
                 }
                 public override void OnEvent()
                 {
-                    if (session.recv_seq < packet.Seq)
+                    if (false == packet.IsReliable)
                     {
-                        session.recv_seq = packet.Seq;
                         session.OnReceive(packet);
-
-                        if (true == packet.IsReliable)
+                    }
+                    else
+                    {
+                        if (session.recv_seq < packet.Seq)
                         {
+                            session.recv_seq = packet.Seq;
+                            session.OnReceive(packet);
                             session.SendReliableAckNtf();
                         }
                     }

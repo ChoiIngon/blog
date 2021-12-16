@@ -73,31 +73,22 @@ namespace Packet
     }
 
     [Serializable]
-    public struct MsgCliSvr_Join_Req
+    public class MsgCliSvr_Join_Req
     {
         public const uint PACKET_ID = 00000001;
         public uint roomId;
     }
 
     [Serializable]
-    public struct MsgSvrCli_Join_Ans
+    public class MsgSvrCli_Join_Ans
     {
         public const uint PACKET_ID = 00000001;
         public uint errorCode;
-        List<Block> blocks;
+        public List<Block> blocks = new List<Block>();
     }
 
     [Serializable]
-    public struct MsgCliSvr_BallTransform_Ntf
-    {
-        public const uint PACKET_ID = 00000002;
-        public SerializableVector3 localPosition;
-        public SerializableVector3 velocity;
-        public SerializableQuaternion rotation;
-    }
-
-    [Serializable]
-    public struct MsgSvrCli_BallTransform_Ntf
+    public class MsgSvrCli_BallTransform_Ntf
     {
         public const uint PACKET_ID = 00000002;
         public uint id;
@@ -107,10 +98,18 @@ namespace Packet
     }
 
     [Serializable]
-    public struct MsgSvrCli_BlockHit_Ntf
+    public class MsgSvrCli_BlockHit_Ntf
     {
         public const uint PACKET_ID = 00000003;
         public uint id;
         public uint durability;
+    }
+
+    [Serializable]
+    public class MsgCliSvr_BarPosition_Ntf
+    {
+        public const uint PACKET_ID = 00000004;
+        public SerializableVector3 localPosition;
+        public SerializableVector3 velocity;
     }
 }
