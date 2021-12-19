@@ -32,7 +32,7 @@ namespace UnityServer.Server
                 if (null != room)
                 {
                     room.transform.SetParent(null);
-                    GameObject.Destroy(room);
+                    GameObject.Destroy(room.gameObject);
                     room = null;
                 }
 

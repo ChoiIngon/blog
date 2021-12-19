@@ -1,36 +1,13 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
-public class Boundary : MonoBehaviour
+namespace Breakout
 {
-    public bool gameOver;
-    void Start()
+    public class Boundary : MonoBehaviour
     {
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (true == gameOver)
+        public Room room;
+        private void OnCollisionEnter(Collision collision)
         {
-            GameManager.Instance.Init();
+            room.SyncWorld();
         }
-        /*
-        Ball ball = collision.transform.GetComponent<Ball>();
-        if (null == ball)
-        {
-            return;
-        }
-
-        Vector3 reflect = Vector3.Reflect(ball.velocity, transform.forward);
-        ball.velocity = reflect.normalized * ball.moveSpeed;
-        ball.rigidBody.velocity = ball.velocity;
-        */
     }
 }

@@ -8,6 +8,12 @@ using UnityEngine;
 namespace Packet
 {
     [Serializable]
+    public enum ErrorCode
+    {
+        Success
+    }
+
+    [Serializable]
     public struct SerializableVector3
     {
         public float x;
@@ -73,6 +79,25 @@ namespace Packet
     }
 
     [Serializable]
+    public class Object
+    {
+        public uint id;
+        public SerializableVector3 localPosition;
+        public SerializableVector3 velocity;
+        public SerializableQuaternion rotation;
+    }
+
+    [Serializable]
+    public class Ball : Object
+    {
+    }
+
+    [Serializable]
+    public class Bar : Object
+    {
+    }
+
+    [Serializable]
     public class MsgCliSvr_Join_Req
     {
         public const uint PACKET_ID = 00000001;
@@ -83,18 +108,9 @@ namespace Packet
     public class MsgSvrCli_Join_Ans
     {
         public const uint PACKET_ID = 00000001;
-        public uint errorCode;
-        public List<Block> blocks = new List<Block>();
-    }
-
-    [Serializable]
-    public class MsgSvrCli_BallTransform_Ntf
-    {
-        public const uint PACKET_ID = 00000002;
-        public uint id;
-        public SerializableVector3 localPosition;
-        public SerializableVector3 velocity;
-        public SerializableQuaternion rotation;
+        public ErrorCode errorCode;
+        public Bar bar = new Bar();
+        public Ball ball = new Ball();
     }
 
     [Serializable]
@@ -106,10 +122,37 @@ namespace Packet
     }
 
     [Serializable]
-    public class MsgCliSvr_BarPosition_Ntf
+    public class MsgSvrCli_Ready_Ntf
     {
-        public const uint PACKET_ID = 00000004;
-        public SerializableVector3 localPosition;
-        public SerializableVector3 velocity;
+        public const uint PACKET_ID = 00000005;
+        public List<Block> blocks = new List<Block>();
     }
+
+    [Serializable]
+    public class MsgCliSvr_SyncBar_Ntf
+    {
+        public const uint PACKET_ID = 00000006;
+        public SerializableVector3 localPosition;
+    }
+
+    [Serializable]
+    public class MsgSvrCli_SyncWorld_Ntf
+    {
+        public const uint PACKET_ID = 00000007;
+        public List<Object> objects = new List<Object>();
+    }
+
+    [Serializable]
+    public class MsgCliSvr_Start_Ntf
+    {
+        public const uint PACKET_ID = 00000008;
+    }
+
+    [Serializable]
+    public class MsgSvrCli_DestroyObject_Ntf
+    {
+        public const uint PACKET_ID = 00000009;
+        public List<uint> objectIds = new List<uint>();
+    }
+
 }

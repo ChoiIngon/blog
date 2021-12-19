@@ -72,7 +72,7 @@ namespace Gamnet
             public override void OnEvent()
             {
 #if UNITY_EDITOR || USE_DEBUGGING
-                Log.Write(Log.LogLevel.ERR, CallStack);
+                Log.Write(Log.LogLevel.ERR, exception.StackTrace.ToString());
 #endif
                 session.OnError(exception);
                 session.Close();

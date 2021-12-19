@@ -98,7 +98,6 @@ namespace UnityServer.Client
             Server.Main.Instance.sync = toggleSync.isOn;
             Server.Main.Instance.clientOnly = toggleClientOnly.isOn;
 
-
             if (true == Input.GetMouseButtonDown(0))
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
