@@ -17,7 +17,7 @@ namespace Breakout.Client
         public class UI
         {
             public Button start;
-            public Button close;
+            public Button leave;
             public InputField roomId;
         }
 
@@ -28,7 +28,8 @@ namespace Breakout.Client
         public Dictionary<uint, GameObject> objects = new Dictionary<uint, GameObject>();
         public Room room;
 
-        public Plane backPlane = new Plane(Vector3.forward, 0);
+        private Plane backPlane = new Plane(Vector3.forward, 0);
+
         void Start()
         {
             Gamnet.Util.Debug.Init();
@@ -36,34 +37,37 @@ namespace Breakout.Client
             room = gameObject.AddComponent<Room>();
             room.Init();
 
-            Network.Connect();
             Network.OnConnectEvent += OnConnect;
             Network.RegisterHandler<Packet.MsgSvrCli_Join_Ans>(OnRecv_Join_Ans);
             Network.RegisterHandler<Packet.MsgSvrCli_Ready_Ntf>(OnRecv_Ready_Ntf);
             Network.RegisterHandler<Packet.MsgSvrCli_SyncWorld_Ntf>(OnRecv_SyncWorld_Ntf);
-            Network.RegisterHandler<Packet.MsgSvrCli_BlockHit_Ntf>(OnRecv_BlockHit_Ntf);
+            Network.RegisterHandler<Packet.MsgSvrCli_SyncBlock_Ntf>(OnRecv_SyncBlock_Ntf);
 
-            ui.start.gameObject.SetActive(false);
-            ui.roomId.gameObject.SetActive(false);
+            ui.start.gameObject.SetActive(true);
+            ui.roomId.gameObject.SetActive(true);
 
             ui.start.onClick.AddListener(() =>
             {
                 ui.start.gameObject.SetActive(false);
                 ui.roomId.gameObject.SetActive(false);
-
-                Packet.MsgCliSvr_Join_Req req = new Packet.MsgCliSvr_Join_Req();
-
-                Text roomId = ui.roomId.transform.Find("Text").GetComponent<Text>();
-                if ("" == roomId.text)
-                {
-                    roomId = ui.roomId.transform.Find("Placeholder").GetComponent<Text>();
-                }
-                req.roomId = UInt32.Parse(roomId.text);
-                Network.Send(req);
+                Network.Connect();
             });
 
-            ui.close.onClick.AddListener(() =>
+            ui.leave.onClick.AddListener(() =>
             {
+                ui.start.gameObject.SetActive(true);
+                ui.roomId.gameObject.SetActive(true);
+
+                foreach (var itr in blocks)
+                {
+                    Block block = itr.Value;
+                    GameObject.Destroy(block.gameObject);
+                }
+                foreach (var itr in objects)
+                {
+                    GameObject obj = itr.Value;
+                    GameObject.Destroy(obj);
+                }
                 Network.Close();
             });
         }
@@ -128,10 +132,18 @@ namespace Breakout.Client
                 //bar.rigidBody.velocity = Vector3.zero;
             }
         }
+
         public void OnConnect()
         {
-            ui.start.gameObject.SetActive(true);
-            ui.roomId.gameObject.SetActive(true);
+            Packet.MsgCliSvr_Join_Req req = new Packet.MsgCliSvr_Join_Req();
+
+            Text roomId = ui.roomId.transform.Find("Text").GetComponent<Text>();
+            if ("" == roomId.text)
+            {
+                roomId = ui.roomId.transform.Find("Placeholder").GetComponent<Text>();
+            }
+            req.roomId = UInt32.Parse(roomId.text);
+            Network.Send(req);
         }
 
         public void OnRecv_Join_Ans(Packet.MsgSvrCli_Join_Ans ans)
@@ -139,7 +151,7 @@ namespace Breakout.Client
             Bar bar = Instantiate<Bar>(barPrefab);
             bar.Init(room);
             bar.id = ans.bar.id;
-            //bar.rigidBody.velocity = ans.bar.velocity;
+            bar.position = ans.bar.localPosition;
             bar.transform.localPosition = ans.bar.localPosition;
             bar.transform.rotation = ans.bar.rotation;
             bar.transform.SetParent(transform);
@@ -195,7 +207,7 @@ namespace Breakout.Client
             }
         }
 
-        public void OnRecv_BlockHit_Ntf(Packet.MsgSvrCli_BlockHit_Ntf ntf)
+        public void OnRecv_SyncBlock_Ntf(Packet.MsgSvrCli_SyncBlock_Ntf ntf)
         {
             Block block = null;
             if (false == blocks.TryGetValue(ntf.id, out block))

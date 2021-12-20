@@ -119,12 +119,6 @@ namespace UnityServer.Client
                     }
                 }
             }
-#if UNITY_EDITOR
-            if (null != session)
-            {
-                sendQueueCount = session.send_queue_count;
-            }
-#endif
         }
 
         private void OnDestroy()

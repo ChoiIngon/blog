@@ -40,13 +40,6 @@ namespace Gamnet.Client
             req.session_key = session_key;
             req.session_token = session_token;
 
-            List<Packet> unsendPacketQueue = new List<Packet>();
-            foreach (Packet unsentPacket in send_queue)
-            {
-                unsendPacketQueue.Add(unsentPacket);
-            }
-
-            send_queue_index = 0;
             send_queue.Clear();
 
             Gamnet.Packet packet = new Gamnet.Packet();
@@ -54,9 +47,9 @@ namespace Gamnet.Client
             packet.Serialize(req);
             Send(packet);
 
-            foreach (Packet unsentPacket in unsendPacketQueue)
+            foreach (Packet reliablePacket in reliable_send_queue)
             {
-                Send(unsentPacket);
+                Send(reliablePacket);
             }
         }
 

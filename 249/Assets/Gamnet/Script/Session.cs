@@ -19,13 +19,8 @@ namespace Gamnet
         //private System.Timers.Timer timer;
         //private int timeoutInterval = 5000; // 비동기 connect 실패 시간. 5초
 
-#if UNITY_EDITOR
-        public int send_queue_count;
-        public int recv_queue_count;
-#endif
-
         protected List<Packet> send_queue;
-        protected int send_queue_index;
+        protected List<Packet> reliable_send_queue;
         protected UInt32 send_seq;
         protected UInt32 recv_seq;
 
@@ -40,13 +35,9 @@ namespace Gamnet
             async_receives = new Dictionary<uint, Async.AsyncReceive>();
             receiver = new Receiver(this);
             send_queue = new List<Packet>();
-            send_queue_index = 0;
+            reliable_send_queue = new List<Packet>();
             send_seq = 0;
             recv_seq = 0;
-#if UNITY_EDITOR
-            send_queue_count = 0;
-            recv_queue_count = 0;
-#endif
         }
 
         public void BeginReceive()
@@ -60,12 +51,11 @@ namespace Gamnet
             if (true == packet.IsReliable)
             {
                 packet.Seq = ++send_seq;
+                reliable_send_queue.Add(packet);
             }
 
             send_queue.Add(packet);
-#if UNITY_EDITOR
-            send_queue_count = send_queue.Count;
-#endif
+
             if (null == socket)
             {
                 Debug.LogWarning($"{GetType().Namespace}.{GetType().Name}(session_key:{this.session_key})");
@@ -78,12 +68,12 @@ namespace Gamnet
                 return;
             }
 
-            if (1 != send_queue.Count - send_queue_index)
+            if (1 != send_queue.Count)
             {
                 return;
             }
 
-            Packet packetToBeSent = send_queue[send_queue_index];
+            Packet packetToBeSent = send_queue[0];
             Buffer bufferToBeSend = packetToBeSent.buffer;
             socket.BeginSend(bufferToBeSend.ToByteArray(), 0, packetToBeSent.Length, 0, new AsyncCallback((IAsyncResult result) => {
                 Session.EventLoop.EnqueuEvent(new EndSendEvent(this, result));
@@ -117,10 +107,10 @@ namespace Gamnet
 
                 int writtenBytes = socket.EndSend(result);
 
-                Packet packet = send_queue[send_queue_index];
+                Packet packet = send_queue[0];
                 if (false == packet.buffer.Remove(writtenBytes))
                 {
-                    throw new System.OverflowException();
+                    throw new System.OverflowException($"packet size:{packet.Length}, written bytes:{writtenBytes}");
                 }
 
                 if (0 < packet.buffer.Size())
@@ -132,20 +122,11 @@ namespace Gamnet
                     return;
                 }
 
-                if (true == packet.IsReliable)
+                send_queue.RemoveAt(0);
+
+                if (0 < send_queue.Count)
                 {
-                    send_queue_index++;
-                }
-                else
-                {
-                    send_queue.RemoveAt(send_queue_index);
-                }
-#if UNITY_EDITOR
-                send_queue_count = send_queue.Count;
-#endif
-                if (send_queue_index < send_queue.Count)
-                {
-                    Packet packetToBeSent = send_queue[send_queue_index];
+                    Packet packetToBeSent = send_queue[0];
                     Buffer bufferToBeSend = packetToBeSent.buffer;
                     socket.BeginSend(bufferToBeSend.ToByteArray(), 0, bufferToBeSend.Size(), 0, new AsyncCallback((IAsyncResult r) =>
                     {
@@ -156,7 +137,6 @@ namespace Gamnet
             catch (ObjectDisposedException e)
             {
                 Debug.Log($"[{Gamnet.Util.Debug.__FUNC__()}] {this.GetType().Name}, Exception:{e.GetType().Name}, Message:{ e.Message}");
-                Debug.Log($"[{Gamnet.Util.Debug.__FUNC__()}] fail to send:{send_queue[send_queue_index].Id}");
             }
             catch (SocketException e)
             {
@@ -171,17 +151,13 @@ namespace Gamnet
 
         protected void RemoveSentPacket(uint msg_seq)
         {
-            while (0 < send_queue.Count)
+            while (0 < reliable_send_queue.Count)
             {
-                if (send_queue[0].Seq > msg_seq)
+                if (reliable_send_queue[0].Seq > msg_seq)
                 {
                     break;
                 }
-                if (true == send_queue[0].IsReliable)
-                {
-                    send_queue_index--;
-                }
-                send_queue.RemoveAt(0);
+                reliable_send_queue.RemoveAt(0);
             }
         }
 

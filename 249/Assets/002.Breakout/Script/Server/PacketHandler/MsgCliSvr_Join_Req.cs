@@ -34,6 +34,30 @@ namespace Breakout.Server
             ball.transform.SetParent(room.transform);
             ball.Init(room);
 
+            if (1 == room.sessions.Count)
+            {
+                Vector3 barPosition = bar.transform.localPosition;
+                barPosition.x = barPosition.x - 3;
+                bar.transform.localPosition = barPosition;
+                bar.position = barPosition;
+
+                Vector3 ballPosition = ball.transform.localPosition;
+                ballPosition.x = ballPosition.x - 3;
+                ball.transform.localPosition = ballPosition;
+            }
+
+            if (2 == room.sessions.Count)
+            {
+                Vector3 barPosition = bar.transform.localPosition;
+                barPosition.x = barPosition.x + 3;
+                bar.transform.localPosition = barPosition;
+                bar.position = barPosition;
+
+                Vector3 ballPosition = ball.transform.localPosition;
+                ballPosition.x = ballPosition.x + 3;
+                ball.transform.localPosition = ballPosition;
+            }
+
             session.room = room;
             session.bar = bar;
             session.ball = ball;
@@ -46,7 +70,6 @@ namespace Breakout.Server
             ans.bar.id = session.bar.id;
             ans.bar.localPosition = session.bar.transform.localPosition;
             ans.bar.rotation = session.bar.transform.rotation;
-            //ans.bar.velocity = session.bar.rigidBody.velocity;
 
             session.Send(ans);
 
@@ -55,17 +78,7 @@ namespace Breakout.Server
             if (1 == room.sessions.Count)
             {
                 Main.Room.Remove(room.Id);
-
-                Packet.MsgSvrCli_Ready_Ntf ntf = new Packet.MsgSvrCli_Ready_Ntf();
-                room.CreateBlocks();
-                foreach (var itr in room.blocks)
-                {
-                    Block block = itr.Value;
-                    ntf.blocks.Add(new Packet.Block { id=block.id, type = block.meta.type, localPosition = block.transform.localPosition });
-                }
-                room.state = Room.State.Ready;
-
-                session.Send(ntf);
+                room.Ready();
             }
 
             yield break;

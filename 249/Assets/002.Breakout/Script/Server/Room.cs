@@ -30,7 +30,7 @@ namespace Breakout.Server
             blocks.Clear();
         }
 
-        public void CreateBlocks()
+        public void Ready()
         {
             uint blockId = 1;
             for (float x = -8f; x <= 8f; x += 2f)
@@ -46,6 +46,20 @@ namespace Breakout.Server
                     block.transform.localPosition = new Vector3(x, y, 0);
                     blocks.Add(block.id, block);
                 }
+            }
+
+            Packet.MsgSvrCli_Ready_Ntf ntf = new Packet.MsgSvrCli_Ready_Ntf();
+            foreach (var itr in blocks)
+            {
+                Block block = itr.Value;
+                ntf.blocks.Add(new Packet.Block { id = block.id, type = block.meta.type, localPosition = block.transform.localPosition });
+            }
+
+            state = Room.State.Ready;
+
+            foreach (Session session in sessions)
+            {
+                session.Send(ntf);
             }
         }
 
@@ -115,7 +129,7 @@ namespace Breakout.Server
 
         public override void SyncBlock(Block block)
         {
-            Packet.MsgSvrCli_BlockHit_Ntf ntf = new Packet.MsgSvrCli_BlockHit_Ntf();
+            Packet.MsgSvrCli_SyncBlock_Ntf ntf = new Packet.MsgSvrCli_SyncBlock_Ntf();
             ntf.id = block.id;
             ntf.durability = block.durability;
 

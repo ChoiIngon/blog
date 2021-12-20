@@ -114,7 +114,7 @@ namespace Packet
     }
 
     [Serializable]
-    public class MsgSvrCli_BlockHit_Ntf
+    public class MsgSvrCli_SyncBlock_Ntf
     {
         public const uint PACKET_ID = 00000003;
         public uint id;

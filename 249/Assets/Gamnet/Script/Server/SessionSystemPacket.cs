@@ -93,21 +93,14 @@ namespace Gamnet.Server
                     session.receiver = null;
                     Session.SessionManager.Remove(session);
 
-                    List<Packet> unsendPacketQueue = new List<Packet>();
-                    foreach (Packet unsentPacket in prevSession.send_queue)
-                    {
-                        unsendPacketQueue.Add(unsentPacket);
-                    }
-
-                    prevSession.send_queue_index = 0;
                     prevSession.send_queue.Clear();
-
                     prevSession.OnResume();
                     ansPacket.Serialize(ans);
                     prevSession.Send(ansPacket);
-                    foreach (Packet unsentPacket in unsendPacketQueue)
+
+                    foreach (Packet reliablePacket in prevSession.reliable_send_queue)
                     {
-                        prevSession.Send(unsentPacket);
+                        prevSession.Send(reliablePacket);
                     }
 
                     session.StartHeartBeatTimer();

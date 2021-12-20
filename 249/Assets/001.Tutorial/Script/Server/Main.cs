@@ -78,9 +78,6 @@ namespace UnityServer.Server
 
                     deltaTime -= Server.Main.Instance.syncInterval;
                 }
-#if UNITY_EDITOR
-                Main.Instance.sendQueueCount = send_queue_count;
-#endif
             }
 
             public void Send<MSG_T>(MSG_T msg)
@@ -105,10 +102,7 @@ namespace UnityServer.Server
         public bool sync = true;
 
         public bool clientOnly = false;
-#if UNITY_EDITOR
-        public int sendQueueCount;
-        public int recvQueueCount;
-#endif
+
         [Range(0.1f, 1.0f)]
         public float syncInterval = 0.1f;
 

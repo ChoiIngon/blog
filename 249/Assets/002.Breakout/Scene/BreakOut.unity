@@ -184,7 +184,7 @@ MonoBehaviour:
     m_BestFit: 0
     m_MinSize: 10
     m_MaxSize: 40
-    m_Alignment: 0
+    m_Alignment: 1
     m_AlignByGeometry: 0
     m_RichText: 1
     m_HorizontalOverflow: 0
@@ -267,7 +267,7 @@ PrefabInstance:
     - target: {fileID: 895870106869200408, guid: 5283a83c3ee53e94883bad60ff1cb12f,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -6
+      value: -3
       objectReference: {fileID: 0}
     - target: {fileID: 895870106869200408, guid: 5283a83c3ee53e94883bad60ff1cb12f,
         type: 3}
@@ -518,7 +518,7 @@ MonoBehaviour:
     type: 3}
   ui:
     start: {fileID: 1898359347}
-    close: {fileID: 2074013268}
+    leave: {fileID: 2074013268}
     roomId: {fileID: 912381576}
   bar: {fileID: 0}
   ball: {fileID: 0}
@@ -727,7 +727,7 @@ MonoBehaviour:
     m_BestFit: 0
     m_MinSize: 10
     m_MaxSize: 40
-    m_Alignment: 0
+    m_Alignment: 1
     m_AlignByGeometry: 0
     m_RichText: 0
     m_HorizontalOverflow: 1
@@ -894,7 +894,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Close
+  m_Text: Leave
 --- !u!222 &1542493408
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1228,7 +1228,7 @@ GameObject:
   - component: {fileID: 2074013269}
   - component: {fileID: 2074013268}
   m_Layer: 5
-  m_Name: Close
+  m_Name: Leave
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1249,11 +1249,11 @@ RectTransform:
   m_Father: {fileID: 1885722109}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMin: {x: 1, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 30}
-  m_Pivot: {x: 0, y: 1}
+  m_SizeDelta: {x: 60, y: 30}
+  m_Pivot: {x: 1, y: 1}
 --- !u!114 &2074013268
 MonoBehaviour:
   m_ObjectHideFlags: 0
