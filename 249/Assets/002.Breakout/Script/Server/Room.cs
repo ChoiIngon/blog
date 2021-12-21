@@ -14,12 +14,12 @@ namespace Breakout.Server
 
         private void Start()
         {
-            InvokeRepeating("SyncWorld", 0, SYNC_INTERVAL);
+            //InvokeRepeating("SyncWorld", 0, SYNC_INTERVAL);
         }
 
         private void OnDestroy()
         {
-            CancelInvoke();
+            //CancelInvoke();
 
             foreach (var itr in blocks)
             {
@@ -49,18 +49,58 @@ namespace Breakout.Server
             }
 
             Packet.MsgSvrCli_Ready_Ntf ntf = new Packet.MsgSvrCli_Ready_Ntf();
+            for(int i=0; i<sessions.Count; i++)
+            {
+                Session session = sessions[i];
+
+                Bar bar = GameObject.Instantiate<Bar>(Main.Instance.prefabs.bar);
+                bar.Init(this);
+                bar.id = Room.objectId++;
+                bar.transform.SetParent(transform);
+                bar.destination = start_position[i];
+                bar.transform.localPosition = start_position[i];
+
+                Ball ball = GameObject.Instantiate<Ball>(Main.Instance.prefabs.ball);
+                ball.Init(this);
+                ball.id = Room.objectId++;
+                ball.transform.SetParent(transform);
+                ball.transform.localPosition = new Vector3(start_position[i].x, start_position[i].y + 1, start_position[i].z);
+
+                session.room = this;
+                session.bar = bar;
+                session.ball = ball;
+
+                Packet.Player player = new Packet.Player();
+                player.playerNum = i + 1;
+                player.bar.id = bar.id;
+                player.bar.rotation = bar.transform.rotation;
+                player.bar.localPosition = bar.transform.localPosition;
+                player.bar.velocity = Vector3.zero;
+
+                player.ball.id = ball.id;
+                player.ball.rotation = ball.transform.rotation;
+                player.ball.localPosition = ball.transform.localPosition;
+                player.ball.velocity = ball.velocity;
+
+                ball.transform.SetParent(bar.transform);
+                ntf.players.Add(player);
+            }
+
             foreach (var itr in blocks)
             {
                 Block block = itr.Value;
                 ntf.blocks.Add(new Packet.Block { id = block.id, type = block.meta.type, localPosition = block.transform.localPosition });
             }
 
-            state = Room.State.Ready;
-
-            foreach (Session session in sessions)
+            for(int i=0; i<sessions.Count; i++)
             {
+                ntf.playerNum = i + 1;
+
+                Session session = sessions[i];
                 session.Send(ntf);
             }
+
+            state = Room.State.Ready;
         }
 
         public void AddUser(Session session)
@@ -94,32 +134,16 @@ namespace Breakout.Server
             }
         }
 
-        public override void SyncWorld()
+        public override void SyncBall(Ball ball)
         {
-            Packet.MsgSvrCli_SyncWorld_Ntf ntf = new Packet.MsgSvrCli_SyncWorld_Ntf();
+            Packet.MsgSvrCli_SyncBall_Ntf ntf = new Packet.MsgSvrCli_SyncBall_Ntf();
 
-            foreach (Session session in sessions)
-            {
-                if (null != session.bar)
-                {
-                    Packet.Object obj = new Packet.Object();
-                    obj.id = session.bar.id;
-                    obj.localPosition = session.bar.transform.localPosition;
-                    obj.rotation = session.bar.transform.rotation;
-                    //obj.velocity = session.bar.rigidBody.velocity;
-                    ntf.objects.Add(obj);
-                }
-
-                if (null != session.ball)
-                {
-                    Packet.Object obj = new Packet.Object();
-                    obj.id = session.ball.id;
-                    obj.localPosition = session.ball.transform.localPosition;
-                    obj.rotation = session.ball.transform.rotation;
-                    obj.velocity = session.ball.rigidBody.velocity;
-                    ntf.objects.Add(obj);
-                }
-            }
+            Packet.Ball obj = new Packet.Ball();
+            obj.id = ball.id;
+            obj.localPosition = ball.transform.localPosition;
+            obj.rotation = ball.transform.rotation;
+            obj.velocity = ball.rigidBody.velocity;
+            ntf.ball = obj;
 
             foreach (Session session in sessions)
             {

@@ -109,8 +109,6 @@ namespace Packet
     {
         public const uint PACKET_ID = 00000001;
         public ErrorCode errorCode;
-        public Bar bar = new Bar();
-        public Ball ball = new Ball();
     }
 
     [Serializable]
@@ -122,30 +120,54 @@ namespace Packet
     }
 
     [Serializable]
+    public class Player
+    {
+        public int playerNum;
+        public Ball ball = new Ball();
+        public Bar bar = new Bar();
+    }
+    [Serializable]
     public class MsgSvrCli_Ready_Ntf
     {
         public const uint PACKET_ID = 00000005;
         public List<Block> blocks = new List<Block>();
+        public List<Player> players = new List<Player>();
+        public int playerNum;
     }
 
     [Serializable]
     public class MsgCliSvr_SyncBar_Ntf
     {
         public const uint PACKET_ID = 00000006;
-        public SerializableVector3 localPosition;
+        public SerializableVector3 destination;
     }
 
     [Serializable]
-    public class MsgSvrCli_SyncWorld_Ntf
+    public class MsgSvrCli_SyncBar_Ntf
+    {
+        public const uint PACKET_ID = 00000006;
+        public uint objectId;
+        public SerializableVector3 destination;
+    }
+
+    [Serializable]
+    public class MsgSvrCli_SyncBall_Ntf
     {
         public const uint PACKET_ID = 00000007;
-        public List<Object> objects = new List<Object>();
+        public Ball ball = new Ball();
     }
 
     [Serializable]
     public class MsgCliSvr_Start_Ntf
     {
         public const uint PACKET_ID = 00000008;
+    }
+
+    [Serializable]
+    public class MsgSvrCli_Start_Ntf
+    {
+        public const uint PACKET_ID = 00000008;
+        public uint objectId;
     }
 
     [Serializable]

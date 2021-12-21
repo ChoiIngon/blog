@@ -40,8 +40,11 @@ namespace Breakout.Client
             Network.OnConnectEvent += OnConnect;
             Network.RegisterHandler<Packet.MsgSvrCli_Join_Ans>(OnRecv_Join_Ans);
             Network.RegisterHandler<Packet.MsgSvrCli_Ready_Ntf>(OnRecv_Ready_Ntf);
-            Network.RegisterHandler<Packet.MsgSvrCli_SyncWorld_Ntf>(OnRecv_SyncWorld_Ntf);
+            Network.RegisterHandler<Packet.MsgSvrCli_SyncBall_Ntf>(OnRecv_SyncWorld_Ntf);
             Network.RegisterHandler<Packet.MsgSvrCli_SyncBlock_Ntf>(OnRecv_SyncBlock_Ntf);
+            Network.RegisterHandler<Packet.MsgSvrCli_SyncBar_Ntf>(OnRecv_SyncBar_Ntf);
+            Network.RegisterHandler<Packet.MsgSvrCli_DestroyObject_Ntf>(OnRecv_DestroyObject_Ntf);
+            Network.RegisterHandler<Packet.MsgSvrCli_Start_Ntf>(OnRecv_Start_Ntf);
 
             ui.start.gameObject.SetActive(true);
             ui.roomId.gameObject.SetActive(true);
@@ -81,7 +84,7 @@ namespace Breakout.Client
                 if (true == Input.GetMouseButtonUp(MOUSE_BUTTON_LEFT))
                 {
                     room.state = Room.State.Play;
-                    ball.transform.SetParent(transform);
+                    ball.transform.SetParent(room.transform);
                     ball.rigidBody.useGravity = false;
                     Packet.MsgCliSvr_Start_Ntf ntf = new Packet.MsgCliSvr_Start_Ntf();
                     Network.Send(ntf);
@@ -110,22 +113,11 @@ namespace Breakout.Client
                     if (true == backPlane.Raycast(ray, out distance))
                     {
                         Vector3 worldPosition = ray.GetPoint(distance);
-                        /*
-                        if (transform.position.x < worldPosition.x)
-                        {
-                            transform.position = new Vector3(transform.position.x + moveSpeed * Time.deltaTime, transform.position.y, transform.position.z);
-                        }
-
-                        if (transform.position.x > worldPosition.x)
-                        {
-                            transform.position = new Vector3(transform.position.x - moveSpeed * Time.deltaTime, transform.position.y, transform.position.z);
-                        }
-                        */
                         // 월드 좌표를 로컬 좌표로 이동
-                        bar.position = room.transform.InverseTransformPoint(worldPosition);
+                        bar.destination = room.transform.InverseTransformPoint(worldPosition);
 
                         Packet.MsgCliSvr_SyncBar_Ntf ntf = new Packet.MsgCliSvr_SyncBar_Ntf();
-                        ntf.localPosition = bar.position;
+                        ntf.destination = bar.destination;
                         Network.Send(ntf);
                     }
                 }
@@ -148,27 +140,6 @@ namespace Breakout.Client
 
         public void OnRecv_Join_Ans(Packet.MsgSvrCli_Join_Ans ans)
         {
-            Bar bar = Instantiate<Bar>(barPrefab);
-            bar.Init(room);
-            bar.id = ans.bar.id;
-            bar.position = ans.bar.localPosition;
-            bar.transform.localPosition = ans.bar.localPosition;
-            bar.transform.rotation = ans.bar.rotation;
-            bar.transform.SetParent(transform);
-            objects.Add(bar.id, bar.gameObject);
-            this.bar = bar;
-
-            Ball ball = Instantiate<Ball>(ballPrefab);
-            ball.Init(room);
-            ball.id = ans.ball.id;
-            ball.rigidBody.velocity = ans.ball.velocity;
-            ball.transform.localPosition = ans.ball.localPosition;
-            ball.transform.rotation = ans.ball.rotation;
-            ball.transform.SetParent(transform);
-            objects.Add(ball.id, ball.gameObject);
-            this.ball = ball;
-
-            bar.AttachBall(ball);
         }
 
         public void OnRecv_Ready_Ntf(Packet.MsgSvrCli_Ready_Ntf ntf)
@@ -185,26 +156,64 @@ namespace Breakout.Client
                 localBlock.transform.localPosition = block.localPosition;
                 blocks.Add(block.id, localBlock);
             }
-        }
 
-        public void OnRecv_SyncWorld_Ntf(Packet.MsgSvrCli_SyncWorld_Ntf ntf)
-        {
-            foreach (Packet.Object obj in ntf.objects)
+            foreach (Packet.Player player in ntf.players)
             {
-                GameObject go = null;
-                if (false == this.objects.TryGetValue(obj.id, out go))
-                {
-                    continue;
-                }
+                Bar bar = Instantiate<Bar>(barPrefab);
+                bar.Init(room);
+                bar.id = player.bar.id;
+                bar.transform.SetParent(transform);
+                bar.destination = player.bar.localPosition;
+                bar.transform.rotation = player.bar.rotation;
+                bar.transform.localPosition = player.bar.localPosition;
+                objects.Add(bar.id, bar.gameObject);
 
-                go.transform.localPosition = obj.localPosition;
-                go.transform.rotation = obj.rotation;
-                Rigidbody rb = go.GetComponent<Rigidbody>();
-                if (null != rb)
+                Ball ball = Instantiate<Ball>(ballPrefab);
+                ball.Init(room);
+                ball.id = player.ball.id;
+                ball.transform.SetParent(transform);
+                ball.rigidBody.velocity = player.ball.velocity;
+                ball.transform.rotation = player.ball.rotation;
+                ball.transform.localPosition = player.ball.localPosition;
+                objects.Add(ball.id, ball.gameObject);
+                ball.transform.SetParent(bar.transform);
+
+                if (player.playerNum == ntf.playerNum)
                 {
-                    rb.velocity = obj.velocity;
+                    this.bar = bar;
+                    this.ball = ball;
+                }
+                else
+                {
+                    {
+                        Renderer renderer = bar.GetComponent<Renderer>();
+                        renderer.material.SetColor("_Color", Color.red);
+                    }
+                    {
+                        Renderer renderer = ball.GetComponent<Renderer>();
+                        renderer.material.SetColor("_Color", Color.red);
+                    }
                 }
             }
+        }
+
+        public void OnRecv_SyncWorld_Ntf(Packet.MsgSvrCli_SyncBall_Ntf ntf)
+        {
+            GameObject go = null;
+            if (false == this.objects.TryGetValue(ntf.ball.id, out go))
+            {
+                return;
+            }
+
+            Ball ball = go.GetComponent<Ball>();
+            if (null == ball)
+            {
+                return;
+            }
+
+            ball.transform.localPosition = ntf.ball.localPosition;
+            ball.transform.rotation = ntf.ball.rotation;
+            ball.rigidBody.velocity = ntf.ball.velocity;
         }
 
         public void OnRecv_SyncBlock_Ntf(Packet.MsgSvrCli_SyncBlock_Ntf ntf)
@@ -218,6 +227,47 @@ namespace Breakout.Client
             block.transform.SetParent(null);
             GameObject.Destroy(block.gameObject);
             blocks.Remove(ntf.id);
+        }
+        public void OnRecv_SyncBar_Ntf(Packet.MsgSvrCli_SyncBar_Ntf ntf)
+        {
+            GameObject go;
+            if (false == objects.TryGetValue(ntf.objectId, out go))
+            {
+                return;
+            }
+
+            Bar bar = go.GetComponent<Bar>();
+            bar.destination = ntf.destination;
+        }
+
+        public void OnRecv_Start_Ntf(Packet.MsgSvrCli_Start_Ntf ntf)
+        {
+            GameObject go;
+            if (false == objects.TryGetValue(ntf.objectId, out go))
+            {
+                return;
+            }
+
+            Ball ball = go.GetComponent<Ball>();
+            if (null == ball)
+            {
+                return;
+            }
+
+            ball.transform.SetParent(room.transform);
+            ball.rigidBody.useGravity = false;
+        }
+        public void OnRecv_DestroyObject_Ntf(Packet.MsgSvrCli_DestroyObject_Ntf ntf)
+        {
+            foreach (uint id in ntf.objectIds)
+            {
+                GameObject go = null;
+                if(true == objects.TryGetValue(id, out go))
+                {
+                    GameObject.Destroy(go);
+                    objects.Remove(id);
+                }
+            }
         }
     }
 }

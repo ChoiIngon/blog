@@ -7,6 +7,11 @@ namespace Breakout
     public class Room : MonoBehaviour
     {
         public const int WIDTH = 20;
+        public static Vector3[] start_position = new Vector3[]
+        {
+            new Vector3(-3, -10, 0),
+            new Vector3( 3, -10, 0)
+        };
 
         public static uint objectId = 0;
 
@@ -30,7 +35,7 @@ namespace Breakout
             }
         }
 
-        public virtual void SyncWorld()
+        public virtual void SyncBall(Ball ball)
         {
         }
 

@@ -16,12 +16,13 @@ namespace Breakout
 
             private void OnCollisionEnter(Collision collision)
             {
-                Breakout.Ball ball = collision.transform.GetComponent<Ball>();
+                Breakout.Ball ball = collision.gameObject.GetComponent<Ball>();
                 if (null == ball)
                 {
                     return;
                 }
 
+                self.room.SyncBall(ball);
                 self.durability -= 1;
 
                 self.room.SyncBlock(self);

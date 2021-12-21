@@ -7,7 +7,12 @@ namespace Breakout
         public Room room;
         private void OnCollisionEnter(Collision collision)
         {
-            room.SyncWorld();
+            Ball ball = collision.gameObject.GetComponent<Ball>();
+            if (null == ball)
+            {
+                return;
+            }
+            room.SyncBall(ball);
         }
     }
 }

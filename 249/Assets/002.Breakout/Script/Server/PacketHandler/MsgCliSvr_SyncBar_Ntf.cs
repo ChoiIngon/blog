@@ -11,10 +11,28 @@ namespace Breakout.Server
 
         public override IEnumerator OnReceive(Session session, Gamnet.Packet packet)
         {
-            Packet.MsgCliSvr_SyncBar_Ntf ntf = packet.Deserialize<Packet.MsgCliSvr_SyncBar_Ntf>();
-
             Bar bar = session.bar;
-            bar.position = ntf.localPosition;
+            Room room = session.room;
+            {
+                Packet.MsgCliSvr_SyncBar_Ntf ntf = packet.Deserialize<Packet.MsgCliSvr_SyncBar_Ntf>();
+                bar.destination = ntf.destination;
+            }
+
+            {
+                Packet.MsgSvrCli_SyncBar_Ntf ntf = new Packet.MsgSvrCli_SyncBar_Ntf();
+                ntf.objectId = bar.id;
+                ntf.destination = bar.destination;
+
+                foreach (Session s in room.sessions)
+                {
+                    if (session == s)
+                    {
+                        continue;
+                    }
+
+                    s.Send(ntf);
+                }
+            }
             yield break;
         }
     }

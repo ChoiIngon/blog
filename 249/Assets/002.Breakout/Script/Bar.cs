@@ -8,31 +8,21 @@ namespace Breakout
 
         public uint id;
         public float moveSpeed;
-        public Vector3 position;
-
-        public Plane backPlane;
+        public Vector3 destination;
 
         public void Init(Room room)
         {
             this.room = room;
-            transform.localPosition = new Vector3(0, -10, 0);
-            backPlane = new Plane(Vector3.forward, 0);
         }
 
-        public void AttachBall(Ball ball)
-        {
-            ball.transform.SetParent(transform);
-        }
-
-        // Update is called once per frame
         void Update()
         {
-            if (transform.localPosition.x < position.x)
+            if (transform.localPosition.x < destination.x)
             {
                 transform.localPosition = new Vector3(transform.localPosition.x + moveSpeed * Time.deltaTime, transform.localPosition.y, transform.localPosition.z);
             }
 
-            if (transform.localPosition.x > position.x)
+            if (transform.localPosition.x > destination.x)
             {
                 transform.localPosition = new Vector3(transform.localPosition.x - moveSpeed * Time.deltaTime, transform.localPosition.y, transform.localPosition.z);
             }
@@ -42,7 +32,7 @@ namespace Breakout
         {
             if (Room.State.Play == room.state)
             {
-                Ball ball = collision.transform.GetComponent<Ball>();
+                Ball ball = collision.gameObject.GetComponent<Ball>();
                 if (null == ball)
                 {
                     return;
@@ -71,6 +61,7 @@ namespace Breakout
                 float x = Mathf.Cos(theta);
                 float y = Mathf.Sin(theta);
                 ball.SetDirection(new Vector3(x, y, 0));
+                room.SyncBall(ball);
             }
         }
     }

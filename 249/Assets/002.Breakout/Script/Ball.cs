@@ -20,7 +20,6 @@ namespace Breakout
             this.rigidBody = GetComponent<Rigidbody>();
             this.rigidBody.useGravity = true;
 
-            transform.localPosition = new Vector3(0, -9, 0);
             transform.rotation = Quaternion.identity;
 
             SetDirection(Vector3.zero);

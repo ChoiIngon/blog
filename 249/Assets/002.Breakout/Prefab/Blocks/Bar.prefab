@@ -28,7 +28,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3782172570809141640}
   m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: -10, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.5, y: 1.5, z: 0.5}
   m_Children: []
   m_Father: {fileID: 0}
@@ -46,12 +46,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43c665d93ccf1b1408225b4b89b75f1d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  room: {fileID: 0}
   id: 0
-  rigidBody: {fileID: 0}
-  isLocal: 1
   moveSpeed: 18
   position: {x: 0, y: 0, z: 0}
-  room: {fileID: 0}
 --- !u!33 &3782172570809141685
 MeshFilter:
   m_ObjectHideFlags: 0
