@@ -48,6 +48,18 @@ namespace Gamnet
         public virtual void Send(Packet packet)
         {
             Debug.Assert(Gamnet.Util.Debug.IsMainThread());
+            if (null == socket && false == link_establish)
+            {
+                Debug.LogWarning($"{GetType().Namespace}.{GetType().Name}(session_key:{this.session_key})");
+                return;
+            }
+
+            if (false == socket.Connected && false == link_establish)
+            {
+                Debug.LogWarning($"{GetType().Namespace}.{GetType().Name} disconnected (session_key:{this.session_key})");
+                return;
+            }
+
             if (true == packet.IsReliable)
             {
                 packet.Seq = ++send_seq;
@@ -55,18 +67,6 @@ namespace Gamnet
             }
 
             send_queue.Add(packet);
-
-            if (null == socket)
-            {
-                Debug.LogWarning($"{GetType().Namespace}.{GetType().Name}(session_key:{this.session_key})");
-                return;
-            }
-
-            if (false == socket.Connected)
-            {
-                Debug.LogWarning($"{GetType().Namespace}.{GetType().Name} disconnected (session_key:{this.session_key})");
-                return;
-            }
 
             if (1 != send_queue.Count)
             {

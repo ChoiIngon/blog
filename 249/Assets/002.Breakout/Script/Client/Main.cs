@@ -38,6 +38,7 @@ namespace Breakout.Client
             room.Init();
 
             Network.OnConnectEvent += OnConnect;
+
             Network.RegisterHandler<Packet.MsgSvrCli_Join_Ans>(OnRecv_Join_Ans);
             Network.RegisterHandler<Packet.MsgSvrCli_Ready_Ntf>(OnRecv_Ready_Ntf);
             Network.RegisterHandler<Packet.MsgSvrCli_SyncBall_Ntf>(OnRecv_SyncWorld_Ntf);
@@ -66,11 +67,16 @@ namespace Breakout.Client
                     Block block = itr.Value;
                     GameObject.Destroy(block.gameObject);
                 }
+                blocks.Clear();
+
                 foreach (var itr in objects)
                 {
                     GameObject obj = itr.Value;
                     GameObject.Destroy(obj);
                 }
+                objects.Clear();
+
+                room.state = Room.State.Init;
                 Network.Close();
             });
         }
@@ -228,6 +234,7 @@ namespace Breakout.Client
             GameObject.Destroy(block.gameObject);
             blocks.Remove(ntf.id);
         }
+
         public void OnRecv_SyncBar_Ntf(Packet.MsgSvrCli_SyncBar_Ntf ntf)
         {
             GameObject go;
@@ -257,6 +264,7 @@ namespace Breakout.Client
             ball.transform.SetParent(room.transform);
             ball.rigidBody.useGravity = false;
         }
+
         public void OnRecv_DestroyObject_Ntf(Packet.MsgSvrCli_DestroyObject_Ntf ntf)
         {
             foreach (uint id in ntf.objectIds)

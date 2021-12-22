@@ -38,12 +38,6 @@ namespace Breakout
                     return;
                 }
 
-                Vector3 normalVector = Vector3.zero;
-                foreach (var contact in collision.contacts)
-                {
-                    normalVector = contact.normal;
-                }
-
                 // https://answers.unity.com/questions/24012/find-size-of-gameobject.html
                 float width = GetComponent<Collider>().bounds.size.x;
                 float start = transform.position.x - (width / 2);
@@ -61,6 +55,16 @@ namespace Breakout
                 float x = Mathf.Cos(theta);
                 float y = Mathf.Sin(theta);
                 ball.SetDirection(new Vector3(x, y, 0));
+
+                Vector3 normalVector = collision.contacts[0].normal;
+                if (0f < normalVector.y)
+                {
+                    float height = GetComponent<Collider>().bounds.size.y;
+                    Vector3 barPosition = transform.position;
+                    barPosition.y += height;
+                    ball.transform.position = new Vector3(ball.transform.position.x, barPosition.y, ball.transform.position.z);
+                }
+
                 room.SyncBall(ball);
             }
         }
