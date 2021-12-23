@@ -10,7 +10,6 @@ namespace Breakout
 
         public uint id;
         public Rigidbody rigidBody;
-        public Vector3 velocity;
         public float moveSpeed;
 
         public void Init(Room room)
@@ -27,8 +26,7 @@ namespace Breakout
 
         public void SetDirection(Vector3 direction)
         {
-            velocity = direction.normalized * moveSpeed;
-            rigidBody.velocity = velocity;
+            rigidBody.velocity = direction.normalized * moveSpeed;
         }
 
         private void OnCollisionEnter(Collision collision)

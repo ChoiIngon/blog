@@ -40,7 +40,7 @@ namespace Breakout.Server
                     Block block = Instantiate<Block>(Main.Instance.prefabs.block);
                     block.Init(this, Block.metaData[Random.Range(0, Block.metaData.Length)].type);
                     block.id = blockId++;
-                    block.name = $"serverblock_{block.id}";
+                    block.name = $"block_{block.id}";
                     block.gameObject.AddComponent<Block.Collider>();
                     block.transform.SetParent(transform);
                     block.transform.localPosition = new Vector3(x, y, 0);
@@ -80,7 +80,7 @@ namespace Breakout.Server
                 player.ball.id = ball.id;
                 player.ball.rotation = ball.transform.rotation;
                 player.ball.localPosition = ball.transform.localPosition;
-                player.ball.velocity = ball.velocity;
+                player.ball.velocity = ball.rigidBody.velocity;
 
                 ball.transform.SetParent(bar.transform);
                 ntf.players.Add(player);
