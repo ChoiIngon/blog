@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace Breakout.Client
@@ -9,6 +10,9 @@ namespace Breakout.Client
     public class Main : Gamnet.Util.MonoSingleton<Main>
     {
         private const int MOUSE_BUTTON_LEFT = 0;
+
+        private PhysicsScene physicsScene;
+        private float deltaTime;
 
         public Bar barPrefab;
         public Ball ballPrefab;
@@ -29,12 +33,18 @@ namespace Breakout.Client
         public Dictionary<uint, GameObject> objects = new Dictionary<uint, GameObject>();
         public Room room;
 
-        [Range(0, 1)]
+        [Range(0, 0.05f)]
         public float packetDelay = 0.15f;
         private Plane backPlane = new Plane(Vector3.forward, 0);
 
         void Start()
         {
+            // https://forum.unity.com/threads/separating-physics-scenes.597697/
+            CreateSceneParameters csp = new CreateSceneParameters(LocalPhysicsMode.Physics3D);
+            Scene scene = SceneManager.CreateScene("LocalPhysicsScene", csp);
+            physicsScene = scene.GetPhysicsScene();
+            SceneManager.MoveGameObjectToScene(gameObject, scene);
+
             Gamnet.Util.Debug.Init();
 
             room = gameObject.AddComponent<Room>();
@@ -87,6 +97,13 @@ namespace Breakout.Client
         private void Update()
         {
             Gamnet.Session.EventLoop.Update();
+
+            deltaTime += Time.deltaTime;
+            while (deltaTime >= Time.fixedDeltaTime)
+            {
+                deltaTime -= Time.fixedDeltaTime;
+                physicsScene.Simulate(Time.fixedDeltaTime);
+            }
 
             if (Room.State.Ready == room.state)
             {
@@ -235,14 +252,13 @@ namespace Breakout.Client
                 ball.transform.rotation = ntf.ball.rotation;
                 ball.rigidBody.velocity = ntf.ball.velocity;
 
-                Physics.autoSimulation = false;
-                float delayTime = packetDelay;
-                while (delayTime >= Time.fixedDeltaTime)
+                deltaTime += packetDelay;
+                while (deltaTime >= Time.fixedDeltaTime)
                 {
-                    delayTime -= Time.fixedDeltaTime;
-                    Physics.Simulate(Time.fixedDeltaTime);
+                    deltaTime -= Time.fixedDeltaTime;
+                    physicsScene.Simulate(Time.fixedDeltaTime);
                 }
-                Physics.autoSimulation = true;
+
                 // https://stackoverflow.com/questions/45484868/predict-the-position-of-a-rigidbody-object-in-x-second
             }));
         }

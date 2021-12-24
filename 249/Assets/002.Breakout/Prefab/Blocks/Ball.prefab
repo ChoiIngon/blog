@@ -50,8 +50,7 @@ MonoBehaviour:
   room: {fileID: 0}
   id: 0
   rigidBody: {fileID: 0}
-  velocity: {x: 0, y: 0, z: 0}
-  moveSpeed: 20
+  moveSpeed: 10
 --- !u!33 &3574137845315592997
 MeshFilter:
   m_ObjectHideFlags: 0

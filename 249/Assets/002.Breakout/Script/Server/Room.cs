@@ -14,12 +14,12 @@ namespace Breakout.Server
 
         private void Start()
         {
-            //InvokeRepeating("SyncWorld", 0, SYNC_INTERVAL);
+            InvokeRepeating("SyncWorld", 0, SYNC_INTERVAL);
         }
 
         private void OnDestroy()
         {
-            //CancelInvoke();
+            CancelInvoke();
 
             foreach (var itr in blocks)
             {
@@ -131,6 +131,14 @@ namespace Breakout.Server
             if (0 == sessions.Count)
             {
                 GameObject.Destroy(gameObject);
+            }
+        }
+
+        public void SyncWorld()
+        {
+            foreach (Session session in sessions)
+            {
+                SyncBall(session.ball);
             }
         }
 

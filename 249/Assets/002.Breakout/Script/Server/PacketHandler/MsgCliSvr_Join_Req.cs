@@ -25,7 +25,7 @@ namespace Breakout.Server
             room.AddUser(session);
             session.Send(ans);
 
-            if (2 == room.sessions.Count)
+            if (1 == room.sessions.Count)
             {
                 Main.Room.Remove(room.Id);
                 room.Ready();

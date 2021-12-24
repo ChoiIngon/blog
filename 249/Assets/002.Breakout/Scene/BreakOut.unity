@@ -523,7 +523,7 @@ MonoBehaviour:
   bar: {fileID: 0}
   ball: {fileID: 0}
   room: {fileID: 0}
-  packetDelay: 0.31
+  packetDelay: 0.05
 --- !u!1 &912381574
 GameObject:
   m_ObjectHideFlags: 0
