@@ -49,7 +49,7 @@ namespace Breakout.Server
         {
             Gamnet.Util.Debug.Init();
             Gamnet.Log.Init("log", "BreakOut", 1);
-            acceptor.Init(GameMeta.Instance.port, 500);
+            acceptor.Init(GameManager.Instance.port, 500);
             Debug.Log("Server Start");
         }
 

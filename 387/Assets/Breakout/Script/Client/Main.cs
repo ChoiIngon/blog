@@ -27,14 +27,13 @@ namespace Breakout.Client
         }
 
         public UI ui = new UI();
-        public Bar bar;
-        public Ball ball;
-        public Dictionary<uint, Block> blocks = new Dictionary<uint, Block>();
-        public Dictionary<uint, GameObject> objects = new Dictionary<uint, GameObject>();
-        public Room room;
 
-        [Range(0, 0.05f)]
-        public float packetDelay = 0.15f;
+        private Dictionary<uint, Block> blocks = new Dictionary<uint, Block>();
+        private Dictionary<uint, GameObject> objects = new Dictionary<uint, GameObject>();
+        private Bar bar;
+        private Ball ball;
+        private Room room;
+
         private Plane backPlane = new Plane(Vector3.forward, 0);
 
         void Start()
@@ -252,7 +251,7 @@ namespace Breakout.Client
                 ball.transform.rotation = ntf.ball.rotation;
                 ball.rigidBody.velocity = ntf.ball.velocity;
 
-                if (true == GameMeta.Instance.useDeadReckoning)
+                if (true == GameManager.Instance.useDeadReckoning)
                 {
                     deltaTime += (float)Network.NetworkDelay / 1000;
                     while (deltaTime >= Time.fixedDeltaTime)

@@ -4,13 +4,14 @@ using UnityEngine;
 
 namespace Breakout
 {
-    public class GameMeta : Gamnet.Util.MonoSingleton<GameMeta>
+    public class GameManager : Gamnet.Util.MonoSingleton<GameManager>
     {
         public float barSpeed;
         public float ballSpeed;
         public string host;
         public int port;
 
+        public bool multiPlay;
         public bool useDeadReckoning;
         [Range(0, 1000)]
         public int packetDelay; //ms

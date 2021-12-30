@@ -25,7 +25,12 @@ namespace Breakout.Server
             room.AddUser(session);
             session.Send(ans);
 
-            if (1 == room.sessions.Count)
+            int needPlayerCount = 2;
+            if (false == GameManager.Instance.multiPlay)
+            {
+                needPlayerCount = 1;
+            }
+            if (needPlayerCount == room.sessions.Count)
             {
                 Main.Room.Remove(room.Id);
                 room.Ready();

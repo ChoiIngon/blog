@@ -68,9 +68,10 @@ namespace Gamnet.Client
                 }
             }
 
-            public int max { get { return pings.Max(); } }
-            public int min { get { return pings.Min(); } }
-            public int time { get { return 0 == pings.Count ? 0 : (int)pings.Average(); } }
+            // 나누기 2를 하는 것은 왕복 시간이 때문
+            public int max { get { return pings.Max() / 2; } }
+            public int min { get { return pings.Min() / 2; } }
+            public int time { get { return 0 == pings.Count ? 0 : (int)pings.Average() / 2; } }
         }
 
         public NetworkDelay network_delay;

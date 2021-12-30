@@ -38,7 +38,7 @@ namespace Breakout.Client
 
         public static void Connect()
         {
-            session.AsyncConnect("127.0.0.1", 4000);
+            session.AsyncConnect(GameManager.Instance.host, GameManager.Instance.port);
         }
 
         public static void Close()
@@ -75,7 +75,7 @@ namespace Breakout.Client
             get
             {
 #if UNITY_EDITOR
-                return GameMeta.Instance.packetDelay;
+                return GameManager.Instance.packetDelay;
 #else
                 return session.network_delay.time;
 #endif

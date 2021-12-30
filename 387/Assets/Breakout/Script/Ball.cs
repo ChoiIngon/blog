@@ -25,12 +25,12 @@ namespace Breakout
 
         public void SetDirection(Vector3 direction)
         {
-            rigidBody.velocity = direction.normalized * GameMeta.Instance.ballSpeed;
+            rigidBody.velocity = direction.normalized * GameManager.Instance.ballSpeed;
         }
 
         private void OnCollisionEnter(Collision collision)
         {
-            rigidBody.velocity = rigidBody.velocity.normalized * GameMeta.Instance.ballSpeed;
+            rigidBody.velocity = rigidBody.velocity.normalized * GameManager.Instance.ballSpeed;
         }
     }
 }

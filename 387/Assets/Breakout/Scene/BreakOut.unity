@@ -411,7 +411,7 @@ GameObject:
   - component: {fileID: 759619184}
   - component: {fileID: 759619183}
   m_Layer: 0
-  m_Name: GameMeta
+  m_Name: GameManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -426,15 +426,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 759619182}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ad13ab539db1e0d4d8ffda979681ea4c, type: 3}
+  m_Script: {fileID: 11500000, guid: 489d189954d2c864a9e78d0e50dd739f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  barSpeed: 15
-  ballSpeed: 20
+  barSpeed: 10
+  ballSpeed: 15
   host: 127.0.0.1
   port: 4000
+  multiPlay: 0
   useDeadReckoning: 0
-  packetDelay: 100
+  packetDelay: 500
 --- !u!4 &759619184
 Transform:
   m_ObjectHideFlags: 0
@@ -569,10 +570,6 @@ MonoBehaviour:
     start: {fileID: 1898359347}
     leave: {fileID: 2074013268}
     roomId: {fileID: 912381576}
-  bar: {fileID: 0}
-  ball: {fileID: 0}
-  room: {fileID: 0}
-  packetDelay: 0.015
 --- !u!1 &912381574
 GameObject:
   m_ObjectHideFlags: 0
