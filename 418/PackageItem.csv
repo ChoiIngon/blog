@@ -1,0 +1,3 @@
+﻿Name,ID,Index,Type,Grade,MaxStack,Price.Type,Price.Value,IconSprite,Packages[0].ID,Packages[0].Count,Packages[1].ID,Packages[1].Count,Packages[2].ID,Packages[2].Count,Packages[3].ID,Packages[3].Count
+Text,Text,Int,ItemType,Int,Int,CounterType,Int,Text,Text,Int,Text,Int,Text,Int,,
+PackageItem,Test_EquipItemPackage,100003,Package,3,99,Gold,100,Assets/Sprites/Item/weapon/bardiche2.png,ITEM_EQUIP_CLOAK_0001,1,ITEM_EQUIP_BODY_0001,1,ITEM_EQUIP_BOOTS_0001,1,ITEM_EQUIP_HEAD_0001,1

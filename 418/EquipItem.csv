@@ -1,0 +1,9 @@
+﻿Name,ID,Index,Type,Grade,MaxStack,Price.Type,Price.Value,IconSprite,Equip.Part,Equip.Attack,Equip.Defense,Equip.Speed,Equip.Sprite
+Text,Text,Int,ItemType,Int,Int,CounterType,Int,Text,Item.Equip.PartType,Int,Int,Int,Text
+cloak leather,ITEM_EQUIP_CLOAK_0001,101001,Equip,1,1,Gold,100,,Cloak,,,,Assets/Sprites/Suit/Cloak/black.png
+armor blue gold,ITEM_EQUIP_BODY_0001,104001,Equip,1,1,Gold,100,,Body,,,,Assets/Sprites/Suit/Body/chainmail.png
+boots,ITEM_EQUIP_BOOTS_0001,105001,Equip,1,1,Gold,100,,Boots,,,,Assets/Sprites/Suit/Boots/blue_gold.png
+head,ITEM_EQUIP_HEAD_0001,107001,Equip,1,1,Gold,100,,Head,,,,Assets/Sprites/Suit/Head/art_dragonhelm.png
+gloves,ITEM_EQUIP_GLOVES_0001,108001,Equip,1,1,Gold,100,,Gloves,,,,Assets/Sprites/Suit/Gloves/gauntlet_blue.png
+lefthand,ITEM_EQUIP_LEFAHAND_0001,109001,Equip,1,1,Gold,100,,LeftHand,,10,,Assets/Sprites/Suit/Hand2/shield_middle_round.png
+righthand,ITEM_EQUIP_RIGHTHAND_0001,110001,Equip,1,1,Gold,100,,RightHand,100,,,Assets/Sprites/Suit/Hand1/axe.png
