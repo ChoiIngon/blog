@@ -85,8 +85,12 @@ bool CSVReader::ReadStream(const std::string& str)
 		{
 			stream.seekg(3);
 		}
+        else
+        {
+            stream.seekg(0);
+        }
 	}
-	
+
 	// read data
 	{
 		std::vector<std::string> row;
@@ -141,7 +145,7 @@ bool CSVReader::ReadStream(const std::string& str)
 			cell += prev = str[i];
 		}
 	}
-	
+
 	return true;
 }
 

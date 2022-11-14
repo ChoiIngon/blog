@@ -141,10 +141,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CSVReader.cpp" />
+    <ClCompile Include="MetaData.cpp" />
     <ClCompile Include="Program.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CSVReader.h" />
+    <ClInclude Include="MetaData.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

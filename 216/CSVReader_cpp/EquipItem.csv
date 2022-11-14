@@ -1,0 +1,9 @@
+﻿Name,ID,Index,Type,Grade,Price.Type,Price.Value,Expire.Trigger_Type,Expire.Expire_Type,Expire.Time,Expire.Date,Icon_Sprite,Equip.Part,Equip.Attack,Equip.Defense,Equip.Speed,Equip.Item_Sprite
+Text,Text,Int,ItemType,Int,CounterType,Int,TriggerType,ExpireType,seconds,DateTime,Text,Item.Equip.PartType,Int,Int,Int,Text
+cloak leather,ITEM_EQUIP_CLOAK_0001,1010001,Equip,1,Gold,100,,,,,Assets/Sprites/Item/armour/cloak1.png,Cloak,,,,Assets/Sprites/Suit/Cloak/black.png
+armor blue gold,ITEM_EQUIP_BODY_0001,1040001,Equip,1,Gold,100,,,,,Assets/Sprites/Item/armour/chain_mail1.png,Body,,,,Assets/Sprites/Suit/Body/chainmail.png
+boots,ITEM_EQUIP_BOOTS_0001,1050001,Equip,1,Gold,100,,,,,Assets/Sprites/Item/armour/boots1.png,Boots,,,,Assets/Sprites/Suit/Boots/blue_gold.png
+head,ITEM_EQUIP_HEAD_0001,1070001,Equip,1,Gold,100,,,,,Assets/Sprites/Item/armour/headgear/elven_leather_helm.png,Head,,,,Assets/Sprites/Suit/Head/art_dragonhelm.png
+gloves,ITEM_EQUIP_GLOVES_0001,1080001,Equip,1,Gold,100,,,,,Assets/Sprites/Item/armour/glove1.png,Gloves,,,,Assets/Sprites/Suit/Gloves/gauntlet_blue.png
+lefthand,ITEM_EQUIP_LEFAHAND_0001,1090001,Equip,1,Gold,100,,,,,Assets/Sprites/Item/armour/shields/buckler1.png,LeftHand,,10,,Assets/Sprites/Suit/Hand2/shield_middle_round.png
+righthand,ITEM_EQUIP_RIGHTHAND_0001,1100001,Equip,1,Gold,100,,,,,Assets/Sprites/Item/weapon/battle_axe1.png,RightHand,100,,,Assets/Sprites/Suit/Hand1/axe.png
