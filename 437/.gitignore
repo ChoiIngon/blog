@@ -1,0 +1,20 @@
+# =============== #
+# Unity generated #
+# =============== #
+Library/
+Logs/
+Obj/
+UserSettings/
+ 
+# ===================================== #
+# Visual Studio / MonoDevelop generated #
+# ===================================== #
+.vs/
+.vsconfig
+*.svd
+*.userprefs
+*.csproj
+*.pidb
+*.suo
+*.sln
+*.user
