@@ -34,37 +34,6 @@ public class Map : MonoBehaviour
         return tiles[y * width + x];
     }
 
-    void Update()
-    {
-        if (null == GameManager.Instance)
-        {
-            return;
-        }
-
-        if (true == Input.GetMouseButtonDown(0))
-        {
-            Vector3 mousePosition = Input.mousePosition;
-            Vector3 worldPosition = Camera.main.ScreenToWorldPoint(mousePosition);
-
-            RaycastHit2D hit = Physics2D.Raycast(worldPosition, transform.forward, 30.0f);
-            Debug.DrawRay(worldPosition, transform.forward * 10f, Color.red, 1f);
-            if (true == hit && hit.transform.gameObject.tag == "Tile")
-            {
-                Tile tile = hit.transform.GetComponent<Tile>();
-                if (null != tile.block)
-                {
-                    GameObject block = tile.block;
-                    block.transform.SetParent(null);
-                    GameObject.Destroy(block);
-                }
-                else
-                {
-					tile.CreateBlock();
-				}
-			}
-        }
-    }
-
     public struct ScanDirection
     {
         public int horizontalX; // x 축이 가로로 사용 될 때. 1, 2, 5, 6 분면에서 사용.
@@ -89,11 +58,11 @@ public class Map : MonoBehaviour
     {
 		foreach (ScanDirection scanDirection in scanDirections)
 		{
-			InitSigntOctant(x, y, radius, scanDirection);
+			InitSightOctant(x, y, radius, scanDirection);
 		}
 	}
 
-	private void InitSigntOctant(int x, int y, int radius, ScanDirection scanDirection)
+	private void InitSightOctant(int x, int y, int radius, ScanDirection scanDirection)
 	{
 		int radiusSquare = radius * radius;
 
@@ -139,7 +108,7 @@ public class Map : MonoBehaviour
 
         for(int dy=row; dy<=radius; dy++)
         {
-            bool blockedSection = false;
+            bool blocked = false;
             // 기울기 = 가로 / 세로
             for (int dx = (int)(nextStartSlope * (float)dy); dx >= 0; dx--)
             {
@@ -169,58 +138,30 @@ public class Map : MonoBehaviour
                     tile.SetVisible(true);
                 }
 
-                if (true == blockedSection)
+                if (true == blocked)
                 {
                     if (null != tile.block)
                     {
-                		//GameManager.Instance.CreateSlopeLine(Color.green, new Vector3(sourceX, sourceY, 0), new Vector3(dx + 0.5f * + 0, tileY - 0.5f, 0));
 						nextStartSlope = rightSlope;
                         continue;
                     }
                     else
                     {
-                        blockedSection = false;
+                        blocked = false;
                         startSlope = nextStartSlope;
                     }
                 }
                 else if (null != tile.block)
                 {
-					//GameManager.Instance.CreateSlopeLine(Color.green, new Vector3(sourceX, sourceY, 0), new Vector3(tileX - 0.5f, tileY - 0.5f, 0));
-					blockedSection = true;
+					blocked = true;
                     nextStartSlope = rightSlope;
 					CastLightOctant(x, y, dy + 1, radius, startSlope, leftSlope, scanDirection);
                 }
             }
 
-            if (true == blockedSection)
+            if (true == blocked)
             {
-                break;
-            }
-        }
-    }
-    public void CrearOctantFov(int sourceX, int sourceY, int radius, ScanDirection scanDirection)
-    {
-        int radiusSquare = radius * radius;
-
-        for (int dy = 1; dy <= radius; dy++)
-        {
-            for (int dx = (int)(-1 * (float)dy); dx <= 0; dx++)
-            {
-                if (dx * dx + dy * dy > radiusSquare)
-                {
-                    continue;
-                }
-
-                int tileX = sourceX + (dx * scanDirection.horizontalX + dy * scanDirection.horizontalY);
-                int tileY = sourceY + (dx * scanDirection.verticalX + dy * scanDirection.verticalY);
-
-                Tile tile = GetTile(tileX, tileY);
-                if (null == tile)
-                {
-                    continue;
-                }
-
-                tile.CreateBlock();
+                return;
             }
         }
     }
