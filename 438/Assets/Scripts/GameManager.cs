@@ -4,10 +4,11 @@ public class GameManager : MonoBehaviour
 {
     private static GameManager instance;
 
-    public int mapWidth;
-    public int mapHeight;
-
-    public int sightRange;
+    private const int mapWidth = 41;
+    private const int mapHeight = 41;
+    private const int playerSight = 30;
+    private const int playerX = 20;
+    private const int playerY = 20;
 
     public GameObject blockPrefab;
     public GameObject tilePrefab;
@@ -25,10 +26,32 @@ public class GameManager : MonoBehaviour
 
         map.Init(mapWidth, mapHeight);
 
-        Tile tile = map.GetTile(mapWidth / 2, mapHeight / 2);
+        // 사전 설정 블록
+        Vector2[] blockPositions = {
+            new Vector2(11, 35), new Vector2(12, 35), new Vector2(13, 35),
+            new Vector2(11, 34), new Vector2(12, 34), new Vector2(13, 34),
+            new Vector2(11, 33), new Vector2(12, 33), new Vector2(13, 33), new Vector2(16, 33), new Vector2(19, 33), new Vector2(20, 33),
+            new Vector2(11, 32), new Vector2(12, 32)
+        };
 
-        player.radius = sightRange;
-        player.SetPosition(tile.x, tile.y);
+        foreach (Vector2 blockPosition in blockPositions)
+        {
+            Tile tile = map.GetTile((int)blockPosition.x, (int)blockPosition.y);
+            if (null == tile)
+            {
+                continue;
+            }
+
+            GameObject block = CreateBlock();
+            block.transform.position = tile.transform.position;
+            block.transform.SetParent(tile.transform);
+            tile.block = block;
+        }
+
+        player.radius = playerSight;
+        player.SetPosition(playerX, playerY);
+
+        CreateSlopeLine(Color.green, new Vector3(20.0f, 20.0f, 0.0f), new Vector3(20.0f - 10.5f, 20.0f + 12.5f, 0.0f));
     }
 
     public static GameManager Instance
@@ -44,7 +67,6 @@ public class GameManager : MonoBehaviour
         return Instantiate(GameManager.Instance.blockPrefab, transform.position, Quaternion.identity);
     }
 
-    /*
     public void CreateSlopeLine(Color color, Vector3 start, Vector3 end)
     {
         LineRenderer line = new GameObject("line").AddComponent<LineRenderer>();
@@ -58,7 +80,6 @@ public class GameManager : MonoBehaviour
         line.SetPosition(0, start);
         line.SetPosition(1, end);
 	}
-    */
 
     private void Update()
     {

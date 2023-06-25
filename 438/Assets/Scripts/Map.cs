@@ -45,18 +45,26 @@ public class Map : MonoBehaviour
     public readonly static ScanDirection[] scanDirections =
     {
         new ScanDirection { horizontalX = 1, verticalY = 1, horizontalY = 0, verticalX = 0 },
-        new ScanDirection { horizontalX =-1, verticalY = 1, horizontalY = 0, verticalX = 0 },
-        new ScanDirection { horizontalX = 0, verticalY = 0, horizontalY = 1, verticalX = 1 },
-        new ScanDirection { horizontalX = 0, verticalY = 0, horizontalY =-1, verticalX = 1 },
-        new ScanDirection { horizontalX =-1, verticalY =-1, horizontalY = 0, verticalX = 0 },
-        new ScanDirection { horizontalX = 1, verticalY =-1, horizontalY = 0, verticalX = 0 },
-        new ScanDirection { horizontalX = 0, verticalY = 0, horizontalY = 1, verticalX =-1 },
-        new ScanDirection { horizontalX = 0, verticalY = 0, horizontalY =-1, verticalX =-1 },
+        //new ScanDirection { horizontalX =-1, verticalY = 1, horizontalY = 0, verticalX = 0 },
+        //new ScanDirection { horizontalX = 0, verticalY = 0, horizontalY = 1, verticalX = 1 },
+        //new ScanDirection { horizontalX = 0, verticalY = 0, horizontalY =-1, verticalX = 1 },
+        //new ScanDirection { horizontalX =-1, verticalY =-1, horizontalY = 0, verticalX = 0 },
+        //new ScanDirection { horizontalX = 1, verticalY =-1, horizontalY = 0, verticalX = 0 },
+        //new ScanDirection { horizontalX = 0, verticalY = 0, horizontalY = 1, verticalX =-1 },
+        //new ScanDirection { horizontalX = 0, verticalY = 0, horizontalY =-1, verticalX =-1 },
     };
 
     public void InitSight(int x, int y, int radius)
     {
-		foreach (ScanDirection scanDirection in scanDirections)
+        if (0 >= radius)
+        {
+            return;
+        }
+
+        Tile tile = GetTile(x, y);
+        tile.SetVisible(false);
+
+        foreach (ScanDirection scanDirection in scanDirections)
 		{
 			InitSightOctant(x, y, radius, scanDirection);
 		}
@@ -106,7 +114,7 @@ public class Map : MonoBehaviour
 
     private void CastLightOctant(int x, int y, int row, int radius, float startSlope, float endSlope, ScanDirection scanDirection)
     {
-        if (startSlope <= endSlope)  // Å½»ö ³¡
+        if (startSlope < endSlope)  // Å½»ö ³¡
         {
             return;
         }
@@ -123,6 +131,7 @@ public class Map : MonoBehaviour
                 float leftSlope = (float)(dx + 0.5f) / (float)(dy - 0.5f);
                 float rightSlope = (float)(dx - 0.5f) / (float)(dy + 0.5f);
 
+                Debug.Log($"dx:{dx}, dy:{dy}, startSlope:{startSlope}, endSlope:{endSlope}, leftSlope:{leftSlope}, rightSlope:{rightSlope}");
                 if (startSlope < rightSlope)
                 {
                     continue;
@@ -150,7 +159,7 @@ public class Map : MonoBehaviour
                 {
                     if (null != tile.block)
                     {
-						nextStartSlope = rightSlope;
+                        nextStartSlope = rightSlope;
                         continue;
                     }
                     else
@@ -161,9 +170,9 @@ public class Map : MonoBehaviour
                 }
                 else if (null != tile.block)
                 {
-					blocked = true;
+                    blocked = true;
                     nextStartSlope = rightSlope;
-					CastLightOctant(x, y, dy + 1, radius, startSlope, leftSlope, scanDirection);
+                    CastLightOctant(x, y, dy + 1, radius, startSlope, leftSlope, scanDirection);
                 }
             }
 
