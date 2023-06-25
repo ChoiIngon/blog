@@ -170,7 +170,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   x: 0
   y: 0
-  radius: 6
+  radius: 0
 --- !u!212 &423550018
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -336,8 +336,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba658d160d981cf45a3f75e9032be792, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 16
-  height: 16
 --- !u!4 &661055329
 Transform:
   m_ObjectHideFlags: 0
@@ -382,6 +380,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 927f76fad043b1f40b8a4a7755d38d49, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mapWidth: 17
+  mapHeight: 17
+  sightRange: 6
   blockPrefab: {fileID: 3260020590312078761, guid: 80db04c66af88c04eb18d17f04ffd418, type: 3}
   tilePrefab: {fileID: 2976614707035625543, guid: 975d769ce73d6804abb60b7b0fdd1b87, type: 3}
   map: {fileID: 661055328}

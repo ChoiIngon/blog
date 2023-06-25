@@ -2,13 +2,15 @@ using UnityEngine;
 
 public class Map : MonoBehaviour
 {
-    public int width;
-    public int height;
-
+    private int width;
+    private int height;
     private Tile[] tiles;
 
-    public void Init()
+    public void Init(int width, int height)
     {
+        this.width = width;
+        this.height = height;
+
         tiles = new Tile[width * height];
         for (int y = 0; y < height; y++)
         {
@@ -88,6 +90,14 @@ public class Map : MonoBehaviour
 
 	public void CastLight(int x, int y, int radius)
     {
+        if (0 >= radius)
+        {
+            return;
+        }
+
+        Tile tile = GetTile(x, y);
+        tile.SetVisible(true);
+
         foreach (ScanDirection scanDirection in scanDirections)
         {
             CastLightOctant(x, y, 1, radius, 1.0f, 0.0f, scanDirection);

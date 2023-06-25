@@ -4,6 +4,11 @@ public class GameManager : MonoBehaviour
 {
     private static GameManager instance;
 
+    public int mapWidth;
+    public int mapHeight;
+
+    public int sightRange;
+
     public GameObject blockPrefab;
     public GameObject tilePrefab;
 
@@ -18,10 +23,11 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(this.gameObject);
         }
 
-        map.Init();
+        map.Init(mapWidth, mapHeight);
 
-        Tile tile = map.GetTile(map.width / 2, map.height / 2);
+        Tile tile = map.GetTile(mapWidth / 2, mapHeight / 2);
 
+        player.radius = sightRange;
         player.SetPosition(tile.x, tile.y);
     }
 
@@ -67,11 +73,11 @@ public class GameManager : MonoBehaviour
             Vector3 worldPosition = Camera.main.ScreenToWorldPoint(mousePosition);
 
             RaycastHit2D hit = Physics2D.Raycast(worldPosition, transform.forward, 30.0f);
-            
+
             if (true == hit && hit.transform.gameObject.tag == "Tile")
             {
                 Tile tile = hit.transform.GetComponent<Tile>();
-                
+
                 map.InitSight(player.x, player.y, player.radius + 1);
 
                 if (null != tile.block)
