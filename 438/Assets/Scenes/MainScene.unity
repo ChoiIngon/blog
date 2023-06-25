@@ -259,7 +259,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -386,7 +386,6 @@ MonoBehaviour:
   tilePrefab: {fileID: 2976614707035625543, guid: 975d769ce73d6804abb60b7b0fdd1b87, type: 3}
   map: {fileID: 661055328}
   player: {fileID: 423550017}
-  slopeLines: []
 --- !u!4 &1805221308
 Transform:
   m_ObjectHideFlags: 0
