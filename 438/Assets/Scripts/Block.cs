@@ -1,15 +1,11 @@
 using UnityEngine;
-using UnityEngine.Assertions;
 
 public class Block : MonoBehaviour
 {
-    public void Init(Tile tile)
+    public SpriteRenderer spriteRenderer;
+    public void Init()
     {
-        Assert.IsNotNull(tile, $"no parent tile at x:{tile.x}, y:{tile.y}");
-
-        tile.block = this.gameObject;
-
-        this.transform.SetParent(tile.transform);
-        this.gameObject.name = $"block_{tile.x}_{tile.y}";
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        spriteRenderer.color = new Color(1.0f, 1.0f, 1.0f, 0.5f);
     }
 }

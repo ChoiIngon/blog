@@ -16,8 +16,7 @@ public class Map : MonoBehaviour
         {
             for (int x = 0; x < width; x++)
             {
-                GameObject obj = Instantiate(GameManager.Instance.tilePrefab, new Vector3(x, y, 0), Quaternion.identity);
-                Tile tile = obj.GetComponent<Tile>();
+                Tile tile = Instantiate(GameManager.Instance.tilePrefab, new Vector3(x, y, 0), Quaternion.identity);
                 tile.Init(this.transform, x, y);
                 tiles[y * width + x] = tile;
             }
@@ -45,13 +44,13 @@ public class Map : MonoBehaviour
     public readonly static ScanDirection[] scanDirections =
     {
         new ScanDirection { horizontalX = 1, verticalY = 1, horizontalY = 0, verticalX = 0 },
-        //new ScanDirection { horizontalX =-1, verticalY = 1, horizontalY = 0, verticalX = 0 },
-        //new ScanDirection { horizontalX = 0, verticalY = 0, horizontalY = 1, verticalX = 1 },
-        //new ScanDirection { horizontalX = 0, verticalY = 0, horizontalY =-1, verticalX = 1 },
-        //new ScanDirection { horizontalX =-1, verticalY =-1, horizontalY = 0, verticalX = 0 },
-        //new ScanDirection { horizontalX = 1, verticalY =-1, horizontalY = 0, verticalX = 0 },
-        //new ScanDirection { horizontalX = 0, verticalY = 0, horizontalY = 1, verticalX =-1 },
-        //new ScanDirection { horizontalX = 0, verticalY = 0, horizontalY =-1, verticalX =-1 },
+        new ScanDirection { horizontalX =-1, verticalY = 1, horizontalY = 0, verticalX = 0 },
+        new ScanDirection { horizontalX = 0, verticalY = 0, horizontalY = 1, verticalX = 1 },
+        new ScanDirection { horizontalX = 0, verticalY = 0, horizontalY =-1, verticalX = 1 },
+        new ScanDirection { horizontalX =-1, verticalY =-1, horizontalY = 0, verticalX = 0 },
+        new ScanDirection { horizontalX = 1, verticalY =-1, horizontalY = 0, verticalX = 0 },
+        new ScanDirection { horizontalX = 0, verticalY = 0, horizontalY = 1, verticalX =-1 },
+        new ScanDirection { horizontalX = 0, verticalY = 0, horizontalY =-1, verticalX =-1 },
     };
 
     public void InitSight(int x, int y, int radius)
@@ -126,12 +125,11 @@ public class Map : MonoBehaviour
         {
             bool blocked = false;
             // 기울기 = 가로 / 세로
-            for (int dx = (int)(nextStartSlope * (float)dy); dx >= 0; dx--)
+            for (int dx = Mathf.CeilToInt(nextStartSlope * (float)dy); dx >= 0; dx--)
             {
                 float leftSlope = (float)(dx + 0.5f) / (float)(dy - 0.5f);
                 float rightSlope = (float)(dx - 0.5f) / (float)(dy + 0.5f);
 
-                Debug.Log($"dx:{dx}, dy:{dy}, startSlope:{startSlope}, endSlope:{endSlope}, leftSlope:{leftSlope}, rightSlope:{rightSlope}");
                 if (startSlope < rightSlope)
                 {
                     continue;

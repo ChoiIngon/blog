@@ -24,11 +24,6 @@ public class Player : MonoBehaviour
 
         GameManager.Instance.map.InitSight(this.x, this.y, radius + 1);
 
-        Tile fromTile = GameManager.Instance.map.GetTile(this.x, this.y);
-
-        fromTile.block = null;
-        toTile.block = this.gameObject;
-
         SetPosition(toX, toY);
     }
 

@@ -10,8 +10,8 @@ public class GameManager : MonoBehaviour
     private const int playerX = 20;
     private const int playerY = 20;
 
-    public GameObject blockPrefab;
-    public GameObject tilePrefab;
+    public Block blockPrefab;
+    public Tile tilePrefab;
 
     public Map map;
     public Player player;
@@ -42,16 +42,12 @@ public class GameManager : MonoBehaviour
                 continue;
             }
 
-            GameObject block = CreateBlock();
-            block.transform.position = tile.transform.position;
-            block.transform.SetParent(tile.transform);
-            tile.block = block;
+            Block block = CreateBlock();
+            tile.SetBlock(block);
         }
 
         player.radius = playerSight;
         player.SetPosition(playerX, playerY);
-
-        CreateSlopeLine(Color.green, new Vector3(20.0f, 20.0f, 0.0f), new Vector3(20.0f - 10.5f, 20.0f + 12.5f, 0.0f));
     }
 
     public static GameManager Instance
@@ -62,9 +58,11 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public GameObject CreateBlock()
+    public Block CreateBlock()
     {
-        return Instantiate(GameManager.Instance.blockPrefab, transform.position, Quaternion.identity);
+        Block block = Instantiate<Block>(GameManager.Instance.blockPrefab, transform.position, Quaternion.identity);
+        block.Init();
+        return block;
     }
 
     public void CreateSlopeLine(Color color, Vector3 start, Vector3 end)
@@ -103,14 +101,14 @@ public class GameManager : MonoBehaviour
 
                 if (null != tile.block)
                 {
-                    GameObject block = tile.block;
+                    Block block = tile.block;
                     block.transform.SetParent(null);
-                    GameObject.Destroy(block);
+                    GameObject.Destroy(block.gameObject);
                     tile.block = null;
                 }
                 else
                 {
-                    GameObject block = CreateBlock();
+                    Block block = CreateBlock();
                     block.transform.position = tile.transform.position;
                     tile.block = block;
                     block.transform.SetParent(tile.transform);

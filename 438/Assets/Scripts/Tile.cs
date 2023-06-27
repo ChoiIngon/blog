@@ -7,7 +7,7 @@ public class Tile : MonoBehaviour
     public int x;
     public int y;
 
-    public GameObject block;
+    public Block block;
 
     private SpriteRenderer spriteRenderer;
 
@@ -29,11 +29,26 @@ public class Tile : MonoBehaviour
     {
         if (false == flag)
         {
-            spriteRenderer.color = new Color(spriteRenderer.color.r, spriteRenderer.color.g, spriteRenderer.color.b, 0.5f);
+            spriteRenderer.color = new Color(1.0f, 1.0f, 1.0f, 0.5f);
+            if (null != block)
+            {
+                block.spriteRenderer.color = new Color(1.0f, 1.0f, 1.0f, 0.5f);
+            }
         }
         else
         {
-            spriteRenderer.color = new Color(spriteRenderer.color.r, spriteRenderer.color.g, spriteRenderer.color.b, 1.0f);
+            spriteRenderer.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+            if (null != block)
+            {
+                block.spriteRenderer.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+            }
         }
+    }
+
+    public void SetBlock(Block block)
+    {
+        block.transform.position = transform.position;
+        block.transform.SetParent(transform);
+        this.block = block;
     }
 }
