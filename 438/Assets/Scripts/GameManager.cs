@@ -1,12 +1,13 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
     private static GameManager instance;
 
-    private const int mapWidth = 41;
-    private const int mapHeight = 41;
-    private const int playerSight = 30;
+    private const int mapWidth = 37;
+    private const int mapHeight = 37;
+    private const int playerSight = 25;
     private const int playerX = 20;
     private const int playerY = 20;
 
@@ -16,7 +17,9 @@ public class GameManager : MonoBehaviour
     public Map map;
     public Player player;
 
-    private void Awake()
+    private List<LineRenderer> lineRenderers = new List<LineRenderer>();
+
+	private void Awake()
     {
         if (null == instance)
         {
@@ -67,7 +70,9 @@ public class GameManager : MonoBehaviour
 
     public void CreateSlopeLine(Color color, Vector3 start, Vector3 end)
     {
-        LineRenderer line = new GameObject("line").AddComponent<LineRenderer>();
+        Vector3 name = end - start;
+        
+        LineRenderer line = new GameObject((name.x/ name.y).ToString()).AddComponent<LineRenderer>();
         line.material = new Material(Shader.Find("UI/Default"));
         line.positionCount = 2;
         line.startWidth = 0.05f;
@@ -77,6 +82,9 @@ public class GameManager : MonoBehaviour
         line.useWorldSpace = true;
         line.SetPosition(0, start);
         line.SetPosition(1, end);
+        line.sortingOrder = 1;
+
+        lineRenderers.Add(line);
 	}
 
     private void Update()
@@ -88,6 +96,12 @@ public class GameManager : MonoBehaviour
 
         if (true == Input.GetMouseButtonDown(0))
         {
+            foreach(LineRenderer lineRenderer in lineRenderers) 
+            {
+                GameObject.Destroy(lineRenderer.gameObject);
+            }
+            lineRenderers.Clear();
+            
             Vector3 mousePosition = Input.mousePosition;
             Vector3 worldPosition = Camera.main.ScreenToWorldPoint(mousePosition);
 
@@ -120,21 +134,45 @@ public class GameManager : MonoBehaviour
 
         if (true == Input.GetKeyDown(KeyCode.UpArrow))
         {
-            player.Move(player.x, player.y + 1);
+			foreach (LineRenderer lineRenderer in lineRenderers)
+			{
+				GameObject.Destroy(lineRenderer.gameObject);
+			}
+			lineRenderers.Clear();
+
+			player.Move(player.x, player.y + 1);
         }
 
         if (true == Input.GetKeyDown(KeyCode.DownArrow))
         {
+			foreach (LineRenderer lineRenderer in lineRenderers)
+			{
+				GameObject.Destroy(lineRenderer.gameObject);
+			}
+			lineRenderers.Clear();
+			
             player.Move(player.x, player.y - 1);
         }
 
         if (true == Input.GetKeyDown(KeyCode.LeftArrow))
         {
-            player.Move(player.x - 1, player.y);
+			foreach (LineRenderer lineRenderer in lineRenderers)
+			{
+				GameObject.Destroy(lineRenderer.gameObject);
+			}
+			lineRenderers.Clear();
+
+			player.Move(player.x - 1, player.y);
         }
 
         if (true == Input.GetKeyDown(KeyCode.RightArrow))
         {
+			foreach (LineRenderer lineRenderer in lineRenderers)
+			{
+				GameObject.Destroy(lineRenderer.gameObject);
+			}
+			lineRenderers.Clear();
+			
             player.Move(player.x + 1, player.y);
         }
     }

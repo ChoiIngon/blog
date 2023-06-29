@@ -117,7 +117,26 @@ public class Map : MonoBehaviour
         {
             return;
         }
+/*
+#if UNITY_EDITOR
+        {
+            Vector3 start = new Vector3(x, y, 0.0f);
+            {
+                Vector3 vEndSlope = new Vector3(-scanDirection.horizontalX * startSlope * y, scanDirection.verticalY * y, 0.0f);
+                vEndSlope.Normalize();
+                Vector3 end = start + vEndSlope * radius;
+                GameManager.Instance.CreateSlopeLine(new Color(1.0f, startSlope, endSlope), start, end);
+            }
 
+            {
+                Vector3 vEndSlope = new Vector3(-scanDirection.horizontalX * endSlope * y, scanDirection.verticalY * y, 0.0f);
+                vEndSlope.Normalize();
+                Vector3 end = start + vEndSlope * radius;
+                GameManager.Instance.CreateSlopeLine(new Color(1.0f, startSlope, endSlope), start, end);
+            }
+        }
+#endif
+*/
         int radiusSquare = radius * radius;
         float nextStartSlope = startSlope;
 
@@ -127,14 +146,14 @@ public class Map : MonoBehaviour
             // 기울기 = 가로 / 세로
             for (int dx = Mathf.CeilToInt(nextStartSlope * (float)dy); dx >= 0; dx--)
             {
-                float leftSlope = (float)(dx + 0.5f) / (float)(dy - 0.5f);
-                float rightSlope = (float)(dx - 0.5f) / (float)(dy + 0.5f);
+                float leftSlope = (dx + 0.5f) / (dy - 0.5f);
+                float rightSlope = (dx - 0.5f) / (dy + 0.5f);
 
-                if (startSlope < rightSlope)
+                if (rightSlope > startSlope) // 오른쪽 접점 기울기가 시작 기울기 보다 크다? => 아직 스캔 구역에 들어가지 않았다
                 {
                     continue;
                 }
-                else if (endSlope > leftSlope)
+                else if (endSlope > leftSlope) // 종료 기울기가 왼쪽 접점 기울기 보다 작다? => 이미 스캔 구역을 지났다.
                 {
                     break;
                 }
@@ -150,7 +169,12 @@ public class Map : MonoBehaviour
 
                 if (dx * dx + dy * dy < radiusSquare)
                 {
-                    tile.SetVisible(true);
+					float centerSlope = (float)dx / (float)dy;
+
+					if (null != tile.block || (startSlope >= centerSlope && centerSlope >= endSlope))
+                    {
+                        tile.SetVisible(true);
+                    }
                 }
 
                 if (true == blocked)
