@@ -15,28 +15,22 @@ struct remove_modifier
 };
 
 template <class T>
-struct is_basic_string
-{
-	static constexpr bool value = false;
-};
+struct is_basic_string : std::false_type {};
 
 template <class T>
-struct is_basic_string<std::basic_string<T>>
-{
-	static constexpr bool value = true;
-};
+struct is_basic_string<std::basic_string<T>> : std::true_type {};
 
 template <class T>
 concept StringType = requires(const T & t)
 {
-	typename T::value_type;
+	requires is_basic_string<T>::value;
 	requires std::is_convertible_v<T, std::basic_string_view<typename T::value_type>>;
 };
 
 template <class T>
 concept StringLike = requires(const T & t)
 {
-	requires std::negation_v<std::bool_constant<bool(is_basic_string<T>::value)>>;
+	requires !is_basic_string<T>::value;
 	requires std::is_convertible_v<T, std::basic_string_view<typename remove_modifier<T>::type>>;
 };
 
@@ -51,6 +45,10 @@ size_t UTF8Length(const T& str)
 		// 0xF0 = 1111 0000
 		if (0xF0 == (0xF0 & str[i]))
 		{
+			if (str.length() - i < 4)
+			{
+				return -1;
+			}
 			// 나머지 3 바이트 확인
 			// 0x80 = 1000 0000
 			if (0x80 != (0x80 & str[i + 1]) || 0x80 != (0x80 & str[i + 2]) || 0x80 != (0x80 & str[i + 3]))
@@ -66,6 +64,11 @@ size_t UTF8Length(const T& str)
 		// 0xE0 = 1110 0000
 		else if (0xE0 == (0xE0 & str[i]))
 		{
+			if (str.length() - i < 3)
+			{
+				return -1;
+			}
+
 			// 나머지 2 바이트 확인
 			// 0x80 = 1000 0000
 			if (0x80 != (0x80 & str[i + 1]) || 0x80 != (0x80 & str[i + 2]))
@@ -81,6 +84,11 @@ size_t UTF8Length(const T& str)
 		// 0xC0 = 1100 0000
 		else if (0xC0 == (0xC0 & str[i]))
 		{
+			if (str.length() - i < 2)
+			{
+				return -1;
+			}
+
 			// 나머지 1 바이트 확인
 			// 0x80 = 1000 0000
 			if (0x80 != (0x80 & str[i + 1]))
@@ -118,28 +126,28 @@ int main()
 #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);				// 윈도우 콘솔에 utf-8 문자열 출력하기 위해 필요
 #endif
-    auto s = u8"\"가나다 ABC abc 123 !@#\"";			// C++20 이전까지 utf-8로 인코딩된 const char* 타입
+	auto s = u8"\"가나다 ABC abc 123 !@#\"";			// C++20 이전까지 utf-8로 인코딩된 const char* 타입
 												// C++20 부터는 const char8_t* 타입
-	std::cout << "text:" << (char*)s << "/count:" << UTF8Length(s) << std::endl;
+	std::cout << "char8_t* / count:" << UTF8Length(s) << std::endl;
 
 	// 특수문자 '\'를 포함하고 있는 Raw string literals
 	auto r = u8R"("가나다 ABC abc 123 !@#")";		// C++20 이전까지 utf-8로 인코딩된 const char* 타입
 												// C++20 부터는 const char8_t* 타입
-	std::cout << "text:" << (char*)r << "/count:" << UTF8Length(r) << std::endl;
+	std::cout << "char8_t* / count:" << UTF8Length(r) << std::endl;
 
 	using namespace std::string_literals;		// std::string 리터럴 오퍼레이터 활성화
 												// 접미사 s가 붙으면 string 객체를 의미한다.
 	auto S = u8"\"가나다 ABC abc 123 !@#\""s;     	// C++20 이전까지 std::string, C++20 부터 std::u8string
-	std::cout << "text:" << (char*)S.c_str() << "/count:" << UTF8Length(S) << std::endl;
+	std::cout << "std::u8string / count:" << UTF8Length(S) << std::endl;
 
 	auto R = u8R"("가나다 ABC abc 123 !@#")"s;	// C++20 이전까지 std::string, C++20 부터 std::u8string
-	std::cout << "text:" << (char*)R.c_str() << "/count:" << UTF8Length(R) << std::endl;
+	std::cout << "std::u8string /count:" << UTF8Length(R) << std::endl;
 
 	char8_t a[] = u8"\"가나다 ABC abc 123 !@#\"";     	// C++20 이전까지 char[26], C++20 부터 char8_t[26]
-	std::cout << "text:" << (char*)a << "/count:" << UTF8Length(a) << std::endl;
+	std::cout << "char8_t[] / count:" << UTF8Length(a) << std::endl;
 	
 	char8_t A[] = u8R"("가나다 ABC abc 123 !@#")";     	// C++20 이전까지 char[28], C++20 부터 char8_t[28]
-	std::cout << "text:" << (char*)A << "/count:" << UTF8Length(A) << std::endl;
+	std::cout << "char8_t[] / count:" << UTF8Length(A) << std::endl;
 
 	return 0;
 }
