@@ -229,8 +229,38 @@ public class TileMap : MonoBehaviour
             Node current = new Node(from);
             openNodes.Add(current.index, current);
 
-            while (true)
+            while (0 < openNodes.Count)
             {
+                TileMap.GetInstance().recorder.Record(current, openNodes, closeNodes);
+
+                List<Node> sortedNodes = openNodes.Values.ToList<Node>();
+                if (0 == sortedNodes.Count)
+                {
+                    break;  // 경로 찾지 못함
+                }
+
+                sortedNodes.Sort((Node lhs, Node rhs) => {
+                    if (lhs.cost > rhs.cost)
+                    {
+                        return 1;
+                    }
+                    else if (lhs.cost < rhs.cost)
+                    {
+                        return -1;
+                    }
+                    else if (lhs.expectCost > rhs.expectCost)
+                    {
+                        return 1;
+                    }
+                    else if (lhs.expectCost < rhs.expectCost)
+                    {
+                        return -1;
+                    }
+                    return 0;
+                });
+
+                current = sortedNodes[0];
+
                 Vector3 position = current.tile.transform.position;
                 List<Node> children = new List<Node>();
                 int offsetIndex = UnityEngine.Random.Range(0, LOOKUP_OFFSETS.Length);
@@ -291,28 +321,6 @@ public class TileMap : MonoBehaviour
 
                 openNodes.Remove(current.index);
                 closeNodes.Add(current.index, current);
-
-                TileMap.GetInstance().recorder.Record(current, openNodes, closeNodes);
-
-                List<Node> sortedNodes = openNodes.Values.ToList<Node>();
-                if (0 == sortedNodes.Count)
-                {
-                    break;  // 경로 찾지 못함
-                }
-
-                sortedNodes.Sort((Node lhs, Node rhs) => {
-                    if (lhs.cost > rhs.cost)
-                    {
-                        return 1;
-                    }
-                    else if (lhs.cost < rhs.cost)
-                    {
-                        return -1;
-                    }
-                    return 0;
-                });
-
-                current = sortedNodes[0];
             }
 
             return path;

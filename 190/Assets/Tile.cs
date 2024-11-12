@@ -141,24 +141,28 @@ public class Tile : MonoBehaviour
         if (null == indexText)
         {
             indexText = CreateTextMeshPro("index", TextAlignmentOptions.Center, VerticalAlignmentOptions.Middle);
+            indexText.sortingOrder = 1;
         }
         indexText.text = index.ToString();
 
         if (null == costText)
         {
             costText = CreateTextMeshPro("cost", TextAlignmentOptions.Left, VerticalAlignmentOptions.Top);
+            costText.sortingOrder = 1;
         }
         costText.text = "";
 
         if (null == pathCostText)
         {
             pathCostText = CreateTextMeshPro("pathCost", TextAlignmentOptions.Left, VerticalAlignmentOptions.Bottom);
+            pathCostText.sortingOrder = 1;
         }
         pathCostText.text = "";
 
         if (null == expectCostText)
         {
             expectCostText = CreateTextMeshPro("expectCost", TextAlignmentOptions.Right, VerticalAlignmentOptions.Bottom);
+            expectCostText.sortingOrder = 1;
         }
         expectCostText.text = "";
 
@@ -166,6 +170,7 @@ public class Tile : MonoBehaviour
         {
             arrowText = CreateTextMeshPro("arraw", TextAlignmentOptions.Right, VerticalAlignmentOptions.Middle);
             arrowText.text = "->";
+            arrowText.sortingOrder = 1;
         }
         arrowText.gameObject.SetActive(false);
 
