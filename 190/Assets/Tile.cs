@@ -39,7 +39,7 @@ public class Tile : MonoBehaviour
         switch (color)
         {
             case ColorType.Floor:
-                SetTileColor(Color.white);
+                SetTileColor(HexToColor(0xDCDCDC));
                 SetTextColor(Color.black);
                 break;
             case ColorType.Wall:
@@ -55,12 +55,12 @@ public class Tile : MonoBehaviour
                 SetTextColor(Color.black);
                 break;
             case ColorType.To:
-                SetTileColor(HexToColor(0x3300FF));
+                SetTileColor(HexToColor(0xFF0033));
                 SetTextColor(Color.white);
                 break;
             case ColorType.Select:
-                SetTileColor(HexToColor(0xFF0033));
-                SetTextColor(Color.white);
+                SetTileColor(Color.white);
+                SetTextColor(Color.black);
                 break;
             case ColorType.Current:
                 SetTileColor(Color.green);
@@ -113,7 +113,7 @@ public class Tile : MonoBehaviour
     {
         set
         {
-            pathCostText.text = value.ToString();
+            pathCostText.text = "g:" + value.ToString();
         }
     }
 
@@ -121,7 +121,7 @@ public class Tile : MonoBehaviour
     {
         set
         {
-            expectCostText.text = value.ToString();
+            expectCostText.text = "h:" + value.ToString();
         }
     }
 
@@ -129,7 +129,7 @@ public class Tile : MonoBehaviour
     {
         set
         {
-            costText.text = value.ToString();
+            costText.text = "f:" + value.ToString();
         }
     }
 
