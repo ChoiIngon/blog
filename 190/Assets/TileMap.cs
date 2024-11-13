@@ -305,7 +305,7 @@ public class TileMap : MonoBehaviour
                     if (true == openNodes.ContainsKey(tile.index)) // 앞에서 한번 열린 노드에 들어 왔던 타일
                     {
                         Node openNode = openNodes[tile.index];
-                        if (openNode.pathCost < current.pathCost)
+                        if (openNode.pathCost + 1 < current.pathCost)
                         {
                             current.pathCost = openNode.pathCost + 1;
                             current.parent = openNode;
