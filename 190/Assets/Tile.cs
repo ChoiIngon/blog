@@ -45,10 +45,12 @@ public class Tile : MonoBehaviour
             case ColorType.Wall:
                 SetTileColor(Color.black);
                 SetTextColor(Color.white);
+                indexText.text = "<b>B</b>";
                 break;
             case ColorType.From:
                 SetTileColor(HexToColor(0x3366FF));
                 SetTextColor(Color.white);
+                indexText.text = "<b>S</b>";
                 break;
             case ColorType.Path:
                 SetTileColor(HexToColor(0xFFFF33));
@@ -57,6 +59,7 @@ public class Tile : MonoBehaviour
             case ColorType.To:
                 SetTileColor(HexToColor(0xFF0033));
                 SetTextColor(Color.white);
+                indexText.text = "<b>E</b>";
                 break;
             case ColorType.Select:
                 SetTileColor(Color.white);

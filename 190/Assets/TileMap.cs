@@ -34,7 +34,6 @@ public class TileMap : MonoBehaviour
 
     private void Start()
     {
-        tiles = null;
         CreateTiles();
     }
 
@@ -95,6 +94,11 @@ public class TileMap : MonoBehaviour
         {
             foreach (Tile tile in tiles)
             {
+                if (null == tile)
+                {
+                    continue;
+                }
+
                 tile.transform.parent = null;
                 GameObject.Destroy(tile.gameObject);
             }
