@@ -181,7 +181,7 @@ public class DelaunayTriangulation : MonoBehaviour
     public Triangle superTriangle = null;
     public List<Triangle> triangles = new List<Triangle>();
 
-    public void Init()
+    public void Init(int width, int height)
     {
         foreach (Triangle triangle in triangles)
         {
@@ -192,10 +192,10 @@ public class DelaunayTriangulation : MonoBehaviour
 
         List<Vector3> points = new List<Vector3>();
 
-        points.Add(new Vector3(0.0f, 10.0f));
-        points.Add(new Vector3(0.0f, 10.0f));
-        points.Add(new Vector3(10.0f, 10.0f));
-        points.Add(new Vector3(10.0f, 0.0f));
+        points.Add(new Vector3(0.0f,  0.0f));
+        points.Add(new Vector3(0.0f,  height));
+        points.Add(new Vector3(width, height));
+        points.Add(new Vector3(width, 0.0f));
 
         superTriangle = CreateSuperTriangle(points);
         if (null == superTriangle)
@@ -326,12 +326,12 @@ public class DelaunayTriangulation : MonoBehaviour
             maxY = Mathf.Max(maxY, point.y);
         }
 
-        float dx = (maxX - minX) * 10;
-        float dy = (maxY - minY) * 10;
+        float dx = maxX - minX;
+        float dy = maxY - minY;
 
-        Vector3 a = new Vector3(minX - dx, minY - dy * 3, 0.0f);
-        Vector3 b = new Vector3(minX - dx, maxY + dy, 0.0f);
-        Vector3 c = new Vector3(maxX + dx * 3, maxY + dy);
+        Vector3 a = new Vector3(minX,       minY);
+        Vector3 b = new Vector3(minX,       maxY + dy);
+        Vector3 c = new Vector3(maxX + dx,  minY);
 
         if (a == b || b == c || c == a)
         {
@@ -442,15 +442,16 @@ public class DelaunayTriangulation : MonoBehaviour
 		meshRenderer.sortingOrder = 0;
 
 		var boxCollider = go.AddComponent<BoxCollider>();
-		go.transform.position = new Vector3(-width / 2, -height / 2);
+		//go.transform.position = new Vector3(-width / 2, -height / 2);
 
         return meshRenderer;
 	}
 
     private void Start()
     {
+        Camera.main.transform.position = new Vector3(5, 10, -20);
         CreateCoordinatePlane("CoordinatePlane", 10, 10);
-        Init();
+        Init(10, 10);
     }
 
     private void Update()

@@ -13,7 +13,7 @@ public class DelaunayTriangulationEditor : Editor
         DelaunayTriangulation delaunay = (DelaunayTriangulation)this.target;
         if (true == GUILayout.Button("Reset"))
         {
-            delaunay.Init();
+            delaunay.Init(10, 10);
         }
 
         if (true == GUILayout.Button("Toggle Circle"))
