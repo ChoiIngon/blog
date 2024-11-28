@@ -180,13 +180,15 @@ public class DelaunayTriangulation : MonoBehaviour
 
     public Triangle superTriangle = null;
     public List<Triangle> triangles = new List<Triangle>();
+    private List<GameObject> children = new List<GameObject>(); 
 
     public void Init(int width, int height)
     {
-        foreach (Triangle triangle in triangles)
+        foreach (GameObject child in children)
         {
-            GameObject.Destroy(triangle.lineRenderer.gameObject);
+            GameObject.Destroy(child);
         }
+
         triangles.Clear();
         triangleNo = 0;
 
@@ -204,6 +206,8 @@ public class DelaunayTriangulation : MonoBehaviour
         }
 
         triangles.Add(superTriangle);
+
+        CreateCoordinatePlane("CoordinatePlane", width, height);
     }
 	public void AddPoint(Vector3 point)
 	{
@@ -259,7 +263,8 @@ public class DelaunayTriangulation : MonoBehaviour
 		foreach (var badTriangle in badTriangles)
 		{
 			triangles.Remove(badTriangle);
-			GameObject.Destroy(badTriangle.lineRenderer.gameObject);
+            children.Remove(badTriangle.lineRenderer.gameObject);
+            GameObject.Destroy(badTriangle.lineRenderer.gameObject);
 		}
 
 		foreach (Edge edge in polygon)
@@ -306,8 +311,9 @@ public class DelaunayTriangulation : MonoBehaviour
 
 		foreach (var triangle in remove)
 		{
-            GameObject.Destroy(triangle.lineRenderer.gameObject);
             triangles.Remove(triangle);
+            children.Remove(triangle.lineRenderer.gameObject);
+            GameObject.Destroy(triangle.lineRenderer.gameObject);
 		}
     }
 
@@ -337,6 +343,10 @@ public class DelaunayTriangulation : MonoBehaviour
         {
             return null;
         }
+
+        CreatePoint("Point", Color.red, a);
+        CreatePoint("Point", Color.red, b);
+        CreatePoint("Point", Color.red, c);
 
         return CreateTriangle(a, b, c);
     }
@@ -388,8 +398,9 @@ public class DelaunayTriangulation : MonoBehaviour
     
     private LineRenderer CreateLineRenderer(string name, Color color)
     {
-        const float lineWidth = 0.02f;
+        const float lineWidth = 0.04f;
         var go = new GameObject();
+        this.children.Add(go);
         go.name = name;
         go.transform.parent = transform;
 
@@ -406,6 +417,7 @@ public class DelaunayTriangulation : MonoBehaviour
     private MeshRenderer CreateCoordinatePlane(string name, int width, int height)
     {
         var go = new GameObject();
+        this.children.Add(go);
         go.name = name;
         go.transform.parent = transform;
 
@@ -447,10 +459,31 @@ public class DelaunayTriangulation : MonoBehaviour
         return meshRenderer;
 	}
 
+    private SpriteRenderer CreatePoint(string name, Color color, Vector3 position)
+    {
+        float size = 0.3f;
+        float imageSize = 100.0f * size;    // 유니티 픽셀 유닛을 100으로 설정했다고 가정함
+
+        var go = new GameObject();
+        this.children.Add(go);
+        go.name = name;
+        go.transform.parent = transform;
+        go.transform.position = new Vector3(position.x - size / 2, position.y - size / 2);
+
+        var texture = new Texture2D((int)imageSize, (int)imageSize);
+        var sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero, 100, 0, SpriteMeshType.FullRect, Vector4.zero, false);
+
+        var spriteRenderer = go.AddComponent<SpriteRenderer>();
+        spriteRenderer.sprite = sprite;
+        spriteRenderer.color = color;
+        spriteRenderer.sortingOrder = 2;
+
+        return spriteRenderer;
+    }
+
     private void Start()
     {
         Camera.main.transform.position = new Vector3(5, 10, -20);
-        CreateCoordinatePlane("CoordinatePlane", 10, 10);
         Init(10, 10);
     }
 
@@ -473,6 +506,7 @@ public class DelaunayTriangulation : MonoBehaviour
             }
 
             AddPoint(hit.point);
+            CreatePoint($"Point", Color.red, hit.point);
         }
     }
 
