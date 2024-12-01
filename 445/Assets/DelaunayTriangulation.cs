@@ -335,10 +335,13 @@ public class DelaunayTriangulation : MonoBehaviour
         float dx = maxX - minX;
         float dy = maxY - minY;
 
-        Vector3 a = new Vector3(minX,       minY);
-        Vector3 b = new Vector3(minX,       maxY + dy);
-        Vector3 c = new Vector3(maxX + dx,  minY);
+        // super triangle을 포인트 리스트 보다 크게 잡는 이유는
+        // super triangle의 변과 포인트가 겹치게 되면 삼각형이 아닌 직선이 되므로 델로네 삼각분할을 적용할 수 없기 때문이다.
+        Vector3 a = new Vector3(minX - dx,      minY - dy);
+        Vector3 b = new Vector3(minX - dx,      maxY + dy * 3);
+        Vector3 c = new Vector3(maxX + dx * 3,  minY - dy);
 
+        // super triangle이 직선인 경우 리턴
         if (a == b || b == c || c == a)
         {
             return null;
