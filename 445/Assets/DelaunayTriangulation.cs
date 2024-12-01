@@ -211,26 +211,27 @@ public class DelaunayTriangulation : MonoBehaviour
     }
 	public void AddPoint(Vector3 point)
 	{
-		List<Triangle> badTriangles = new List<Triangle>();
+        // 추가 되는 외접원에 점이 포함되어 삭제될 삼각형 목록
+        List<Triangle> badTriangles = new List<Triangle>();
 		foreach (var triangle in triangles)
 		{
-			if (true == triangle.circumCircle.Contains(point))
+			if (true == triangle.circumCircle.Contains(point)) // 삼각형의 외접원에 점이 포함 되는가
 			{
 				badTriangles.Add(triangle);
 			}
 		}
 
-		List<Edge> polygon = new List<Edge>();
-
-		// first find all the triangles that are no longer valid due to the insertion
+        // 삼각형 삭제로 인한 공백 영역의 경계 찾기
+		List<Edge> polygon = new List<Edge>(); 
 		foreach (var triangle in badTriangles)
 		{
 			List<Edge> edges = triangle.edges;
 
 			foreach (Edge edge in edges)
 			{
-				// find unique edge
-				bool unique = true;
+                // find unique edge
+                // 삼각형과 공유 되지 않는 변만이 공백 영역의 경계가 된다.
+                bool unique = true;
 				foreach (var other in badTriangles)
 				{
 					if (true == triangle.Equals(other))
@@ -267,6 +268,7 @@ public class DelaunayTriangulation : MonoBehaviour
             GameObject.Destroy(badTriangle.lineRenderer.gameObject);
 		}
 
+        // 공백 경계와 새로 추가된 점들을 연결해 새로운 삼각형 생성
 		foreach (Edge edge in polygon)
 		{
 			Triangle triangle = CreateTriangle(edge.v0, edge.v1, point);
