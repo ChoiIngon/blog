@@ -11,7 +11,6 @@ public class DungeonGenerator
     private int roomCount = 0;
     private int minRoomSize = 0;
     private int maxRoomSize = 0;
-	private int roomCreateRadius = 1;
 
     public class Tile
     {
@@ -75,17 +74,41 @@ public class DungeonGenerator
 	{
 		WeightRandom<int> weightRandom = CreateWeightRandom(minRoomSize, maxRoomSize);
 
-		int roomIndex = 1;
+		int roomIndex = 1;	// 방 마다 고유 번호 할당
 
+		float meanRoomSize = (minRoomSize + maxRoomSize) / 2;
+		float rangeMultiply = 1.0f; // 겹치는 사각형이 발생하면 사각형 생성 영역을 넓혀 주기 위한 변수
+        
         for (int i = 0; i < this.roomCount; i++)
 		{
-			Block room = CreateRandomBlock(roomIndex++, weightRandom.Random(), weightRandom.Random());
-			room.type = Block.Type.Room;
-			blocks.Add(room);
-			rooms.Add(room);
-        }
+            float theta = 2.0f * Mathf.PI * UnityEngine.Random.Range(0.0f, 1.0f);   // https://kukuta.tistory.com/199
+            float radius = meanRoomSize * rangeMultiply;
 
-        RepositionBlocks();
+            int x = (int)(radius * Mathf.Cos(theta));
+            int y = (int)(radius * Mathf.Sin(theta));
+			int width = weightRandom.Random();
+			int height = weightRandom.Random();
+            Block block = new Block(roomIndex, x, y, width, height);
+
+            int overlapCount = 0;	// 겹치는 방의 갯수 구하기
+            foreach (Block other in blocks)
+			{
+				if (true == other.rect.Overlaps(block.rect))
+				{
+					overlapCount++;
+				}
+			}
+
+			if (5 <= overlapCount) // 겹치는 방 갯수가 5개 이상이면 생성 되는 범위를 확장한다.
+			{
+                rangeMultiply += 1.0f;
+				RepositionBlocks();	// 겹친 방의 위치를 서로 겹치지 않는 영역으로 재설정
+            }
+
+            block.type = Block.Type.Room;
+            blocks.Add(block);
+            rooms.Add(block);
+        }
 
         for (int i = 0; i < rooms.Count; i++)
 		{
@@ -115,36 +138,9 @@ public class DungeonGenerator
             }
         }
 
-		this.tilemap = new TileMap(blocks);
-    }
+        RepositionBlocks();
 
-    private Block CreateRandomBlock(int roomIndex, int width, int height)
-    {
-	    float meanRoomSize = (minRoomSize + maxRoomSize) / 2;
-        float theta = 2.0f * Mathf.PI * UnityEngine.Random.Range(0.0f, 1.0f);
-        float rx = meanRoomSize * roomCreateRadius * Mathf.Cos(theta);
-        float ry = meanRoomSize * roomCreateRadius * Mathf.Sin(theta);
-
-        int x = (int)rx;
-        int y = (int)ry;
-
-        Block block = new Block(roomIndex, x, y, width, height);
-        
-		int overlapCount = 0;
-		foreach (Block other in blocks)
-		{
-			if (true == other.rect.Overlaps(block.rect))
-			{
-                overlapCount++;
-			}
-        }
-
-		if (5 <= overlapCount)
-		{
-			roomCreateRadius++;
-		}
-
-        return block;
+        this.tilemap = new TileMap(blocks);
     }
 
     private WeightRandom<int> CreateWeightRandom(int min, int max)
@@ -720,21 +716,21 @@ public class DungeonGenerator
             int yMax = (int)room.rect.yMax;
 
             // left bottom
-            GetTile(xMin, yMin + 1).type = Tile.Type.Wall;
+            //GetTile(xMin, yMin + 1).type = Tile.Type.Wall;
             GetTile(xMin, yMin).type = Tile.Type.Wall;
-            GetTile(xMin + 1, yMin).type = Tile.Type.Wall;
+            //GetTile(xMin + 1, yMin).type = Tile.Type.Wall;
 
-            GetTile(xMax - 1, yMin + 1).type = Tile.Type.Wall;
+            //GetTile(xMax - 1, yMin + 1).type = Tile.Type.Wall;
             GetTile(xMax - 1, yMin).type = Tile.Type.Wall;
-            GetTile(xMax - 2, yMin).type = Tile.Type.Wall;
+            //GetTile(xMax - 2, yMin).type = Tile.Type.Wall;
 
-            GetTile(xMin, yMax - 2).type = Tile.Type.Wall;
+            //GetTile(xMin, yMax - 2).type = Tile.Type.Wall;
             GetTile(xMin, yMax - 1).type = Tile.Type.Wall;
-            GetTile(xMin + 1, yMax - 1).type = Tile.Type.Wall;
+            //GetTile(xMin + 1, yMax - 1).type = Tile.Type.Wall;
 
-            GetTile(xMax - 1, yMax - 2).type = Tile.Type.Wall;
+            //GetTile(xMax - 1, yMax - 2).type = Tile.Type.Wall;
             GetTile(xMax - 1, yMax - 1).type = Tile.Type.Wall;
-            GetTile(xMax - 2, yMax - 1).type = Tile.Type.Wall;
+            //GetTile(xMax - 2, yMax - 1).type = Tile.Type.Wall;
         }
     }
 
