@@ -69,40 +69,40 @@ public class DungeonGenerator
 		BuildWall();
     }
 
-	#region Create Block 관련 함수
-	private void CreateBlocks()
-	{
-		WeightRandom<int> weightRandom = CreateWeightRandom(minRoomSize, maxRoomSize);
-
-		int roomIndex = 1;	// 방 마다 고유 번호 할당
-
-		float meanRoomSize = (minRoomSize + maxRoomSize) / 2;
-		float rangeMultiply = 1.0f; // 겹치는 사각형이 발생하면 사각형 생성 영역을 넓혀 주기 위한 변수
+    #region Create Block 관련 함수
+    private void CreateBlocks()
+    {
+        WeightRandom<int> weightRandom = CreateWeightRandom(minRoomSize, maxRoomSize);
+        
+        int roomIndex = 1;	// 방 마다 고유 번호 할당
+        
+        float meanRoomSize = (minRoomSize + maxRoomSize) / 2;
+        float rangeMultiply = 1.0f; // 겹치는 사각형이 발생하면 사각형 생성 영역을 넓혀 주기 위한 변수
         
         for (int i = 0; i < this.roomCount; i++)
-		{
+        {
             float theta = 2.0f * Mathf.PI * UnityEngine.Random.Range(0.0f, 1.0f);   // https://kukuta.tistory.com/199
             float radius = meanRoomSize * rangeMultiply;
 
             int x = (int)(radius * Mathf.Cos(theta));
             int y = (int)(radius * Mathf.Sin(theta));
-			int width = weightRandom.Random();
-			int height = weightRandom.Random();
+            int width = weightRandom.Random();
+            int height = weightRandom.Random();
             Block block = new Block(roomIndex, x, y, width, height);
 
             int overlapCount = 0;	// 겹치는 방의 갯수 구하기
             foreach (Block other in blocks)
-			{
-				if (true == other.rect.Overlaps(block.rect))
-				{
-					overlapCount++;
-				}
-			}
-
-			if (5 <= overlapCount) // 겹치는 방 갯수가 5개 이상이면 생성 되는 범위를 확장한다.
-			{
+            {
+                if (true == other.rect.Overlaps(block.rect))
+                {
+                    overlapCount++;
+                }
+            }
+            
+            if (5 <= overlapCount) // 겹치는 방 갯수가 5개 이상이면 생성 되는 범위를 확장한다.
+            {
                 rangeMultiply += 1.0f;
-				RepositionBlocks();	// 겹친 방의 위치를 서로 겹치지 않는 영역으로 재설정
+                RepositionBlocks();	// 겹친 방의 위치를 서로 겹치지 않는 영역으로 재설정
             }
 
             block.type = Block.Type.Room;
@@ -111,34 +111,31 @@ public class DungeonGenerator
         }
 
         for (int i = 0; i < rooms.Count; i++)
-		{
-			Block room = rooms[i];
-			for(int j = i+1; j < rooms.Count; j++) 
-			{
-				Block neighbor = rooms[j];
-
-				float distance = Vector3.Distance(room.rect.center, neighbor.rect.center);
-				float roomRadius = Vector3.Distance(room.rect.center, new Vector3(room.rect.x, room.rect.y));
+        {
+            Block room = rooms[i];
+            for(int j = i+1; j < rooms.Count; j++) 
+            {
+                Block neighbor = rooms[j];
+                
+                float distance = Vector3.Distance(room.rect.center, neighbor.rect.center);
+                float roomRadius = Vector3.Distance(room.rect.center, new Vector3(room.rect.x, room.rect.y));
                 float neighorRadius = Vector3.Distance(neighbor.rect.center, new Vector3(neighbor.rect.x, neighbor.rect.y));
-
-				if (distance < roomRadius + neighorRadius)
-				{
+                
+                if (distance < roomRadius + neighorRadius)
+                {
                     Vector3 interpolation = Vector3.Lerp(room.rect.center, neighbor.rect.center, 0.5f);
-					int width = weightRandom.Random() / 2; 
-					int height = weightRandom.Random() / 2;
-					int x = (int)(interpolation.x - width / 2);
+                    int width = weightRandom.Random() / 2;
+                    int height = weightRandom.Random() / 2;
+                    int x = (int)(interpolation.x - width / 2);
                     int y = (int)(interpolation.y - height / 2);
-
-					Block block = new Block(roomIndex++, x, y, width, height);
-					block.type = Block.Type.Corridor;
+                    
+                    Block block = new Block(roomIndex++, x, y, width, height);
+                    block.type = Block.Type.Corridor;
                     blocks.Add(block);
-
-                    RepositionBlocks();
                 }
             }
+            RepositionBlocks();
         }
-
-        RepositionBlocks();
 
         this.tilemap = new TileMap(blocks);
     }

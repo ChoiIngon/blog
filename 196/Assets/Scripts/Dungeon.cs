@@ -132,7 +132,7 @@ public class Dungeon : MonoBehaviour
 
     public void Clear()
     {
-        Camera.main.fieldOfView = (minFieldOfView + maxFieldOfView) / 2;
+        //Camera.main.fieldOfView = (minFieldOfView + maxFieldOfView) / 2;
         enableBlockGizmo = true;
         enableEdgeGizmo = true;
         enableCorridorGizmo = true;
