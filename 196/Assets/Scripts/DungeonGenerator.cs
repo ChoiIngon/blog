@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class DungeonGenerator
@@ -42,7 +40,7 @@ public class DungeonGenerator
         public Rect rect;
         public Type type;
         public Vector3 connectPoint;
-		
+
         public Block(int index, float x, float y, float width, float height)
         {
             this.index = index;
@@ -53,85 +51,85 @@ public class DungeonGenerator
     }
 
     public TileMap tilemap = null;
-	public DelaunayTriangulation triangulation = null;
-	public MinimumSpanningTree graph = null;
+    public DelaunayTriangulation triangulation = null;
+    public MinimumSpanningTree graph = null;
 
     public List<Block> blocks = new List<Block>();
-	private List<Block> rooms = new List<Block>();
-		
-	public DungeonGenerator(int roomCount, int minRoomSize, int maxRoomSize)
+    private List<Block> rooms = new List<Block>();
+
+    public DungeonGenerator(int roomCount, int minRoomSize, int maxRoomSize)
     {
         this.roomCount = roomCount;
         this.minRoomSize = Mathf.Max(MinRoomSize, minRoomSize);
         this.maxRoomSize = Mathf.Max(MinRoomSize, maxRoomSize);
 
-		CreateBlocks();
-		CreateConnectEdge();
-		ConnectRooms();
-		BuildWall();
+        CreateBlocks();
+        CreateConnectEdge();
+        ConnectRooms();
+        BuildWall();
     }
 
     #region Create Block 관련 함수
     private void CreateBlocks()
     {
-		int roomIndex = 1;  // 방 마다 고유 번호 할당
-		float meanRoomSize = (minRoomSize + maxRoomSize) / 2;
+        int roomIndex = 1;  // 방 마다 고유 번호 할당
+        float meanRoomSize = (minRoomSize + maxRoomSize) / 2;
 
-		WeightRandom<int> roomSizeWeightRandom = CreateRoomSizeWeightRandom(minRoomSize, maxRoomSize);
+        WeightRandom<int> roomSizeWeightRandom = CreateRoomSizeWeightRandom(minRoomSize, maxRoomSize);
         WeightRandom<Tuple<float, float>> ratioWeightRandom = CreateRatioWeightRandom();
-        
+
         for (int i = 0; i < this.roomCount; i++)
         {
             float theta = 2.0f * Mathf.PI * UnityEngine.Random.Range(0.0f, 1.0f);   // https://kukuta.tistory.com/199
-			float radius = meanRoomSize * 3 * UnityEngine.Random.Range(0.0f, 1.0f);
+            float radius = meanRoomSize * 3 * UnityEngine.Random.Range(0.0f, 1.0f);
 
             int x = (int)(radius * Mathf.Cos(theta));
             int y = (int)(radius * Mathf.Sin(theta));
-			int width = 0;
-			int height = 0;
-			var range = ratioWeightRandom.Random();
+            int width = 0;
+            int height = 0;
+            var range = ratioWeightRandom.Random();
 
-			if (0 == UnityEngine.Random.Range(0, 100) % 2)
-			{
-				width = roomSizeWeightRandom.Random();
-				height = (int)(width * UnityEngine.Random.Range(range.Item1, range.Item2));
-				height = Mathf.Max(minRoomSize, height);
-				height = Mathf.Min(maxRoomSize, height);
-			}
-			else
-			{
-				height = roomSizeWeightRandom.Random();
-				width = (int)(height * UnityEngine.Random.Range(range.Item1, range.Item2));
-				width = Mathf.Max(minRoomSize, width);
-				width = Mathf.Min(maxRoomSize, width);
-			}
+            if (0 == UnityEngine.Random.Range(0, 100) % 2)
+            {
+                width = roomSizeWeightRandom.Random();
+                height = (int)(width * UnityEngine.Random.Range(range.Item1, range.Item2));
+                height = Mathf.Max(minRoomSize, height);
+                height = Mathf.Min(maxRoomSize, height);
+            }
+            else
+            {
+                height = roomSizeWeightRandom.Random();
+                width = (int)(height * UnityEngine.Random.Range(range.Item1, range.Item2));
+                width = Mathf.Max(minRoomSize, width);
+                width = Mathf.Min(maxRoomSize, width);
+            }
 
-			UnityEngine.Debug.Log($"create rect(width:{width}, height:{height})");
-			Block block = new Block(roomIndex++, x, y, width, height);
-        
+            UnityEngine.Debug.Log($"create rect(width:{width}, height:{height})");
+            Block block = new Block(roomIndex++, x, y, width, height);
+
             block.type = Block.Type.Room;
             blocks.Add(block);
             rooms.Add(block);
         }
 
-		RepositionBlocks();
+        RepositionBlocks();
 
-		for (int i = 0; i < rooms.Count; i++)
+        for (int i = 0; i < rooms.Count; i++)
         {
             Block room = rooms[i];
-            for(int j = i+1; j < rooms.Count; j++) 
+            for (int j = i + 1; j < rooms.Count; j++)
             {
-				if (70 < UnityEngine.Random.Range(0, 100))
-				{
-					continue;
-				}
+                if (70 < UnityEngine.Random.Range(0, 100))
+                {
+                    continue;
+                }
 
                 Block neighbor = rooms[j];
-                
+
                 float distance = Vector3.Distance(room.rect.center, neighbor.rect.center);
                 float roomRadius = Vector3.Distance(room.rect.center, new Vector3(room.rect.x, room.rect.y));
                 float neighorRadius = Vector3.Distance(neighbor.rect.center, new Vector3(neighbor.rect.x, neighbor.rect.y));
-                
+
                 if (distance < roomRadius + neighorRadius)
                 {
                     Vector3 interpolation = Vector3.Lerp(room.rect.center, neighbor.rect.center, 0.5f);
@@ -140,81 +138,81 @@ public class DungeonGenerator
                     int x = (int)(interpolation.x - width / 2);
                     int y = (int)(interpolation.y - height / 2);
 
-		            Block block = new Block(roomIndex++, x, y, width, height);
+                    Block block = new Block(roomIndex++, x, y, width, height);
                     block.type = Block.Type.Corridor;
                     blocks.Add(block);
-				}
+                }
             }
         }
 
-		RepositionBlocks();
-		this.tilemap = new TileMap(blocks);
-	}
+        RepositionBlocks();
+        this.tilemap = new TileMap(blocks);
+    }
 
     private WeightRandom<Tuple<float, float>> CreateRatioWeightRandom()
     {
         var weightRandom = new WeightRandom<Tuple<float, float>>();
-		int weight = 1;
-		for (float rate = 3.0f; rate >= 0.5f; rate -= 0.1f)
-		{
-			var range = new Tuple<float, float>(rate - 0.1f, rate);
-			weightRandom.AddElement(weight, range);
-			if (1.0f < rate)
-			{
-				weight++;
-			}
-			else
-			{
-				weight--;
-			}
-		}
+        int weight = 1;
+        for (float rate = 3.0f; rate >= 0.5f; rate -= 0.1f)
+        {
+            var range = new Tuple<float, float>(rate - 0.1f, rate);
+            weightRandom.AddElement(weight, range);
+            if (1.0f < rate)
+            {
+                weight++;
+            }
+            else
+            {
+                weight--;
+            }
+        }
 
         return weightRandom;
     }
 
-	private WeightRandom<int> CreateRoomSizeWeightRandom(int min, int max)
-	{
-		var weightRandom = new WeightRandom<int>();
+    private WeightRandom<int> CreateRoomSizeWeightRandom(int min, int max)
+    {
+        var weightRandom = new WeightRandom<int>();
 
-		#region build room size random object // range의 가운데 값부터 바깥으로 점점 더 적은 확율을 가지도록 배치
-		int delta = 0;
-		int elmtCount = max - min + 1;
-		if (0 == elmtCount % 2)
-		{
-			delta = 0;
-			for (int i = (min + max) / 2; i >= min; i--)
-			{
-				int weight = elmtCount / 2 - delta++;
-				weightRandom.AddElement(weight, i);
-			}
+        #region build room size random object // range의 가운데 값부터 바깥으로 점점 더 적은 확율을 가지도록 배치
+        int delta = 0;
+        int elmtCount = max - min + 1;
+        if (0 == elmtCount % 2)
+        {
+            delta = 0;
+            for (int i = (min + max) / 2; i >= min; i--)
+            {
+                int weight = elmtCount / 2 - delta++;
+                weightRandom.AddElement(weight, i);
+            }
 
-			delta = 0;
-			for (int i = (min + max) / 2 + 1; i <= max; i++)
-			{
-				int weight = elmtCount / 2 - delta++;
-				weightRandom.AddElement(weight, i);
-			}
-		}
-		else
-		{
-			delta = 0;
-			for (int i = (min + max) / 2; i >= min; i--)
-			{
-				int weight = elmtCount / 2 + 1 - delta++;
-				weightRandom.AddElement(weight, i);
-			}
+            delta = 0;
+            for (int i = (min + max) / 2 + 1; i <= max; i++)
+            {
+                int weight = elmtCount / 2 - delta++;
+                weightRandom.AddElement(weight, i);
+            }
+        }
+        else
+        {
+            delta = 0;
+            for (int i = (min + max) / 2; i >= min; i--)
+            {
+                int weight = elmtCount / 2 + 1 - delta++;
+                weightRandom.AddElement(weight, i);
+            }
 
-			delta = 1;
-			for (int i = (min + max) / 2 + 1; i <= max; i++)
-			{
-				int weight = elmtCount / 2 + 1 - delta++;
-				weightRandom.AddElement(weight, i);
-			}
-		}
-		#endregion
+            delta = 1;
+            for (int i = (min + max) / 2 + 1; i <= max; i++)
+            {
+                int weight = elmtCount / 2 + 1 - delta++;
+                weightRandom.AddElement(weight, i);
+            }
+        }
+        #endregion
 
-		return weightRandom;
-	}
+        return weightRandom;
+    }
 
     private void RepositionBlocks()
     {
@@ -259,7 +257,7 @@ public class DungeonGenerator
             Mathf.Abs(block1.rect.y + block1.rect.height - block2.rect.y),
             Mathf.Abs(block2.rect.y + block2.rect.height - block1.rect.y)
         );
-        
+
         // 거리가 가까운 축 기준으로 블록 이동
         if (dx < dy) // 두 블록이 x축으로 더 가까움
         {
@@ -303,57 +301,57 @@ public class DungeonGenerator
             {
                 if (center.y < block1.rect.y)
                 {
-                    block1.rect.y += 1;
+                    block1.rect.y += 1; // block1이 중앙 보다 위에 있으면 block1을 위로 1칸 이동
                 }
                 else
                 {
-                    block2.rect.y -= 1;
+                    block2.rect.y -= 1;  // block1이 중앙 보다 아래에 있으면 block2를 아래로 1칸 이동
                 }
             }
         }
     }
-	#endregion
+    #endregion
 
-	private void CreateConnectEdge()
-	{
-		// 델루네 삼각분할법을 이용해 인접 룸들을 찾아냄
+    private void CreateConnectEdge()
+    {
+        // 델루네 삼각분할법을 이용해 인접 룸들을 찾아냄
         this.triangulation = new DelaunayTriangulation(rooms);
         this.graph = new MinimumSpanningTree(rooms);
-		
-		foreach (var triangle in triangulation.triangles)
-		{
-			foreach (var edge in triangle.edges) 
-			{
+
+        foreach (var triangle in triangulation.triangles)
+        {
+            foreach (var edge in triangle.edges)
+            {
                 graph.AddEdge(new MinimumSpanningTree.Edge(edge.v0.block, edge.v1.block, Vector3.Distance(edge.v0.block.rect.center, edge.v1.block.rect.center)));
-			}
-		}
+            }
+        }
 
-		graph.BuildTree();
+        graph.BuildTree();
 
-		foreach (var edge in graph.edges)
-		{
-			if (12.5f < UnityEngine.Random.Range(0.0f, 100.0f)) // 12.5 % 확률로 엣지 추가
-			{
-				continue;
-			}
+        foreach (var edge in graph.edges)
+        {
+            if (12.5f < UnityEngine.Random.Range(0.0f, 100.0f)) // 12.5 % 확률로 엣지 추가
+            {
+                continue;
+            }
 
             if (true == graph.connections.Contains(edge))
-			{
-				continue;
-			}
+            {
+                continue;
+            }
 
-			graph.connections.Add(edge);
-		}
+            graph.connections.Add(edge);
+        }
     }
 
-	private void ConnectRooms()
-	{
+    private void ConnectRooms()
+    {
         Dictionary<Block, List<Block>> searchLimitBoundaries = new Dictionary<Block, List<Block>>();
         foreach (var edge in graph.connections)
         {
-			if (false == searchLimitBoundaries.ContainsKey(edge.p1))
-			{
-				searchLimitBoundaries.Add(edge.p1, new List<Block>());
+            if (false == searchLimitBoundaries.ContainsKey(edge.p1))
+            {
+                searchLimitBoundaries.Add(edge.p1, new List<Block>());
             }
 
             if (false == searchLimitBoundaries.ContainsKey(edge.p2))
@@ -367,22 +365,22 @@ public class DungeonGenerator
 
         long elapsedTime = 0;
         foreach (var edge in graph.connections)
-		{
-			Block src = edge.p1;
-			Block dest = edge.p2;
+        {
+            Block src = edge.p1;
+            Block dest = edge.p2;
 
-        	Tile from = tilemap.GetTile((int)src.rect.center.x, (int)src.rect.center.y);
-			Tile to = tilemap.GetTile((int)dest.rect.center.x, (int)dest.rect.center.y);
+            Tile from = tilemap.GetTile((int)src.rect.center.x, (int)src.rect.center.y);
+            Tile to = tilemap.GetTile((int)dest.rect.center.x, (int)dest.rect.center.y);
 
-			// 속도를 높이기 위해 AStar 검색 범위를 제한한다f.
-			Rect searchLimitBoundary = new Rect();
-			searchLimitBoundary.xMin = Mathf.Min(src.rect.xMin, to.rect.xMin);
+            // 속도를 높이기 위해 AStar 검색 범위를 제한한다f.
+            Rect searchLimitBoundary = new Rect();
+            searchLimitBoundary.xMin = Mathf.Min(src.rect.xMin, to.rect.xMin);
             searchLimitBoundary.xMax = Mathf.Max(src.rect.xMax, to.rect.xMax);
             searchLimitBoundary.yMin = Mathf.Min(src.rect.yMin, to.rect.yMin);
             searchLimitBoundary.yMax = Mathf.Max(src.rect.yMax, to.rect.yMax);
 
             foreach (var neighbor in searchLimitBoundaries[src])
-			{
+            {
                 searchLimitBoundary.xMin = Mathf.Min(searchLimitBoundary.xMin, neighbor.rect.xMin);
                 searchLimitBoundary.xMax = Mathf.Max(searchLimitBoundary.xMax, neighbor.rect.xMax);
                 searchLimitBoundary.yMin = Mathf.Min(searchLimitBoundary.yMin, neighbor.rect.yMin);
@@ -398,82 +396,82 @@ public class DungeonGenerator
             }
 
             Stopwatch stopWatch = new Stopwatch();
-			stopWatch.Start();
-			var path = tilemap.FindPath(from, to, searchLimitBoundary);
-			stopWatch.Stop();
+            stopWatch.Start();
+            var path = tilemap.FindPath(from, to, searchLimitBoundary);
+            stopWatch.Stop();
 
-			UnityEngine.Debug.Log($"{edge.p1.index} -> {edge.p2.index}, elasped time:{stopWatch.ElapsedMilliseconds}");
-			elapsedTime += stopWatch.ElapsedMilliseconds;
+            UnityEngine.Debug.Log($"{edge.p1.index} -> {edge.p2.index}, elasped time:{stopWatch.ElapsedMilliseconds}");
+            elapsedTime += stopWatch.ElapsedMilliseconds;
 
             foreach (var tile in path)
-			{
-				tile.cost = 1;
+            {
+                tile.cost = 1;
                 edge.path.Add(tile);
             }
-		}
+        }
 
-		UnityEngine.Debug.Log($"total elapsed time:{elapsedTime}, connection count:{graph.connections.Count}");
-	}
+        UnityEngine.Debug.Log($"total elapsed time:{elapsedTime}, connection count:{graph.connections.Count}");
+    }
 
-	private void BuildWall()
-	{
-		foreach (Block room in rooms)
-		{
-			for (int y = (int)room.rect.yMin; y < (int)room.rect.yMax - 1; y++)
-			{
-				Tile left = tilemap.GetTile((int)room.rect.xMin, y);
-				left.type = Tile.Type.Wall;
+    private void BuildWall()
+    {
+        foreach (Block room in rooms)
+        {
+            for (int y = (int)room.rect.yMin; y < (int)room.rect.yMax - 1; y++)
+            {
+                Tile left = tilemap.GetTile((int)room.rect.xMin, y);
+                left.type = Tile.Type.Wall;
 
-				Tile right = tilemap.GetTile((int)room.rect.xMax - 1, y);
-				right.type = Tile.Type.Wall;
-			}
-			
-			for (int x = (int)room.rect.xMin; x < (int)room.rect.xMax - 1; x++)
-			{
-				Tile upper = tilemap.GetTile(x, (int)room.rect.yMin);
-				upper.type = Tile.Type.Wall;
+                Tile right = tilemap.GetTile((int)room.rect.xMax - 1, y);
+                right.type = Tile.Type.Wall;
+            }
 
-				Tile bottom = tilemap.GetTile(x, (int)room.rect.yMax - 1);
-				bottom.type = Tile.Type.Wall;
-			}
-		}
+            for (int x = (int)room.rect.xMin; x < (int)room.rect.xMax - 1; x++)
+            {
+                Tile upper = tilemap.GetTile(x, (int)room.rect.yMin);
+                upper.type = Tile.Type.Wall;
 
-		foreach (var edge in graph.connections)
-		{
-			foreach (var tile in edge.path)
-			{
-				tile.type = Tile.Type.Floor;
-			}
-		}
+                Tile bottom = tilemap.GetTile(x, (int)room.rect.yMax - 1);
+                bottom.type = Tile.Type.Wall;
+            }
+        }
 
         foreach (var edge in graph.connections)
         {
             foreach (var tile in edge.path)
             {
-				int x = (int)tile.rect.x;
-				int y = (int)tile.rect.y;
-				
-				Action<int, int> IfNotNullBuildWall = (int x, int y) => 
-				{
+                tile.type = Tile.Type.Floor;
+            }
+        }
+
+        foreach (var edge in graph.connections)
+        {
+            foreach (var tile in edge.path)
+            {
+                int x = (int)tile.rect.x;
+                int y = (int)tile.rect.y;
+
+                Action<int, int> IfNotNullBuildWall = (int x, int y) =>
+                {
                     Tile tile = tilemap.GetTile(x, y);
-					if (null == tile)
-					{
-						return;
-					}
+                    if (null == tile)
+                    {
+                        return;
+                    }
 
-					if (Tile.Type.None != tile.type)
-					{
-						return;
-					}
+                    if (Tile.Type.None != tile.type)
+                    {
+                        return;
+                    }
 
-					tile.type = Tile.Type.Wall;
+                    tile.type = Tile.Type.Wall;
                 };
 
-				IfNotNullBuildWall(x - 1, y - 1);
+                IfNotNullBuildWall(x - 1, y - 1);
                 IfNotNullBuildWall(x - 1, y);
                 IfNotNullBuildWall(x - 1, y + 1);
-                IfNotNullBuildWall(x    , y - 1);
-                IfNotNullBuildWall(x	, y + 1);
+                IfNotNullBuildWall(x, y - 1);
+                IfNotNullBuildWall(x, y + 1);
                 IfNotNullBuildWall(x + 1, y - 1);
                 IfNotNullBuildWall(x + 1, y);
                 IfNotNullBuildWall(x + 1, y + 1);
@@ -481,20 +479,20 @@ public class DungeonGenerator
         }
     }
 
-	private List<T> Shuffle<T>(List<T> list)
-	{
-		var shuffled = new List<T>(list);
-		for (int i = 0; i < shuffled.Count; ++i)
-		{
-			int random = UnityEngine.Random.Range(0, shuffled.Count);
+    private List<T> Shuffle<T>(List<T> list)
+    {
+        var shuffled = new List<T>(list);
+        for (int i = 0; i < shuffled.Count; ++i)
+        {
+            int random = UnityEngine.Random.Range(0, shuffled.Count);
 
-			T temp = shuffled[i];
-			shuffled[i] = shuffled[random];
-			shuffled[random] = temp;
-		}
+            T temp = shuffled[i];
+            shuffled[i] = shuffled[random];
+            shuffled[random] = temp;
+        }
 
-		return shuffled;
-	}
+        return shuffled;
+    }
 
     public class TileMap
     {
@@ -638,7 +636,8 @@ public class DungeonGenerator
                     break;  // 경로 찾지 못함
                 }
 
-                sortedNodes.Sort((Node lhs, Node rhs) => {
+                sortedNodes.Sort((Node lhs, Node rhs) =>
+                {
                     if (lhs.cost > rhs.cost)
                     {
                         return 1;
@@ -799,572 +798,572 @@ public class DungeonGenerator
 
     #region 기타 서브 클래스들
     public class WeightRandom<T>
-	{
-		public class Element
-		{
-			public T value;
-
-			public int weight = 0;
-			public int min = 0;
-			public int max = 0;
-
-			public Element left = null;
-			public Element right = null;
-		}
-
-		private int total_weight = 0;
-		private Element root = null;
-		private List<Element> elements = new List<Element>();
-
-		public void AddElement(int weight, T value)
-		{
-			if (0 == weight)
-			{
-				return;
-			}
-
-			Element elmt = new Element();
-			elmt.value = value;
-			elmt.weight = weight;
-
-			elements.Add(elmt);
-
-			root = null;
-		}
-
-		public T Random()
-		{
-			if (null == root)
-			{
-				BuildTree();
-			}
-
-			int weight = UnityEngine.Random.Range(1, total_weight + 1);
-			return Search(weight).value;
-		}
-
-		private void BuildTree()
-		{
-			elements.Sort((Element lhs, Element rhs) =>
-			{
-				if (lhs.weight == rhs.weight)
-				{
-					return 0;
-				}
-				else if (lhs.weight > rhs.weight)
-				{
-					return -1;
-				}
-				return 1;
-			});
-
-			int j = 1;
-			for (int i = 0; i < elements.Count; i++)
-			{
-				Element elmt = elements[i];
-
-				if (i + j < elements.Count)
-				{
-					elmt.left = elements[i + j];
-				}
-
-				if (i + j + 1 < elements.Count)
-				{
-					elmt.right = elements[i + j + 1];
-				}
-
-				j++;
-			}
-
-			root = elements[0];
-			elements.Clear();
-
-			SortByTreeOrder(root);
-		}
-
-		private void SortByTreeOrder(Element element)
-		{
-			if (null == element)
-			{
-				return;
-			}
-
-			SortByTreeOrder(element.left);
-
-			this.total_weight += element.weight;
-			element.min = this.total_weight - element.weight + 1;
-			element.max = this.total_weight;
-			elements.Add(element);
-
-			SortByTreeOrder(element.right);
-		}
-
-		private Element Search(int weight)
-		{
-			Element curr = root;
-
-			while (null != curr)
-			{
-				if (curr.min <= weight && weight <= curr.max)
-				{
-					return curr;
-				}
-
-				if (curr.min > weight)
-				{
-					curr = curr.left;
-				}
-				else
-				{
-					curr = curr.right;
-				}
-			}
-
-			return null;
-		}
-	}
-	
-	public class DelaunayTriangulation
-	{
-		public class Point
-		{
-			public Vector3 position;
-			public Block block;
-
-			public Point(Vector3 position, Block block)
-			{
-				this.position = position;
-				this.block = block;
-			}
-		}
-
-		public class Edge
-		{
-			public Point v0;
-			public Point v1;
-			public float cost
-			{
-				get
-				{
-					if (null == v0 || null == v1)
-					{
-						return 0.0f;
-					}
-
-					return Vector3.Distance(v0.position, v1.position);
-				}
-			}
-
-			public Edge(Point v0, Point v1)
-			{
-				this.v0 = v0;
-				this.v1 = v1;
-			}
-
-			public override bool Equals(object other)
-			{
-				if (false == (other is Edge))
-				{
-					return false;
-				}
-
-				return Equals((Edge)other);
-			}
-
-			public bool Equals(Edge edge)
-			{
-				return ((this.v0.position.Equals(edge.v0.position) && this.v1.position.Equals(edge.v1.position)) || (this.v0.position.Equals(edge.v1.position) && this.v1.position.Equals(edge.v0.position)));
-			}
-
-			public override int GetHashCode()
-			{
-				return v0.GetHashCode() ^ (v1.GetHashCode() << 2);
-			}
-		}
-
-		public class Circle
-		{
-			public Vector3 center;
-			public float radius;
-
-			public Circle(Vector3 center, float radius)
-			{
-				this.center = center;
-				this.radius = radius;
-			}
-
-			public bool Contains(Vector3 point)
-			{
-				float d = Vector3.Distance(center, point);
-				if (radius < d)
-				{
-					return false;
-				}
-
-				return true;
-			}
-		}
-
-		public class Triangle
-		{
-			public Vector3 a;
-			public Vector3 b;
-			public Vector3 c;
-			public Circle circumCircle;
-			public List<Edge> edges;
-
-			public Triangle(Point p1, Point p2, Point p3)
-			{
-				this.a = p1.position;
-				this.b = p2.position;
-				this.c = p3.position;
-
-				this.circumCircle = calcCircumCircle(a, b, c);
-				this.edges = new List<Edge>();
-				this.edges.Add(new Edge(p1, p2));
-				this.edges.Add(new Edge(p2, p3));
-				this.edges.Add(new Edge(p3, p1));
-			}
-
-			public override bool Equals(object other)
-			{
-				if (false == (other is Triangle))
-				{
-					return false;
-				}
-
-				return Equals((Triangle)other);
-			}
-
-			public override int GetHashCode()
-			{
-				return a.GetHashCode() ^ (b.GetHashCode() << 2) ^ (c.GetHashCode() >> 2);
-			}
-
-			public bool Equals(Triangle triangle)
-			{
-				return this.a == triangle.a && this.b == triangle.b && this.c == triangle.c;
-			}
-
-			private Circle calcCircumCircle(Vector3 a, Vector3 b, Vector3 c)
-			{
-				// 출처: 삼각형 외접원 구하기 - https://kukuta.tistory.com/444
-
-				if (a == b || b == c || c == a) // 같은 점이 있음. 삼각형 아님. 외접원 구할 수 없음.
-				{
-					return null;
-				}
-
-				float mab = (b.x - a.x) / (b.y - a.y) * -1.0f;  // 직선 ab에 수직이등분선의 기울기
-				float a1 = (b.x + a.x) / 2.0f;                  // 직선 ab의 x축 중심 좌표
-				float b1 = (b.y + a.y) / 2.0f;                  // 직선 ab의 y축 중심 좌표
-
-				// 직선 bc
-				float mbc = (b.x - c.x) / (b.y - c.y) * -1.0f;  // 직선 bc에 수직이등분선의 기울기
-				float a2 = (b.x + c.x) / 2.0f;                  // 직선 bc의 x축 중심 좌표
-				float b2 = (b.y + c.y) / 2.0f;                  // 직선 bc의 y축 중심 좌표
-
-				if (mab == mbc)     // 두 수직이등분선의 기울기가 같음. 평행함. 
-				{
-					return null;    // 교점 구할 수 없음
-				}
-
-				float x = (mab * a1 - mbc * a2 + b2 - b1) / (mab - mbc);
-				float y = mab * (x - a1) + b1;
-
-				if (b.x == a.x)     // 수직이등분선의 기울기가 0인 경우(수평선)
-				{
-					x = a2 + (b1 - b2) / mbc;
-					y = b1;
-				}
-
-				if (b.y == a.y)     // 수직이등분선의 기울기가 무한인 경우(수직선)
-				{
-					x = a1;
-					if (0.0f == mbc)
-					{
-						y = b2;
-					}
-					else
-					{
-						y = mbc * (a1 - a2) + b2;
-					}
-				}
-
-				if (b.x == c.x)     // 수직이등분선의 기울기가 0인 경우(수평선)
-				{
-					x = a1 + (b2 - b1) / mab;
-					y = b2;
-				}
-
-				if (b.y == c.y)     // 수직이등분선의 기울기가 무한인 경우(수직선)
-				{
-					x = a2;
-					if (0.0f == mab)
-					{
-						y = b1;
-					}
-					else
-					{
-						y = mab * (a2 - a1) + b1;
-					}
-				}
-
-				Vector3 center = new Vector3(x, y, 0.0f);
-				float radius = Vector3.Distance(center, a);
-
-				return new Circle(center, radius);
-			}
-		}
-
-		public Triangle superTriangle = null;
-		public List<Triangle> triangles = new List<Triangle>();
-
-		public DelaunayTriangulation(List<Block> blocks)
-		{
-			superTriangle = CreateSuperTriangle(blocks);
-			if (null == superTriangle)
-			{
-				return;
-			}
-
-			triangles.Add(superTriangle);
-
-			foreach(var block in blocks)
-			{
-				AddPoint(block);
-			}
-
-			RemoveSuperTriangle();
-		}
-
-		public void AddPoint(Block block)
-		{
-			Vector3 point = block.rect.center;
-
-			List<Triangle> badTriangles = new List<Triangle>();
-			foreach (var triangle in triangles)
-			{
-				if (true == triangle.circumCircle.Contains(point))
-				{
-					badTriangles.Add(triangle);
-				}
-			}
-
-			List<Edge> polygon = new List<Edge>();
-
-			// first find all the triangles that are no longer valid due to the insertion
-			foreach (var triangle in badTriangles)
-			{
-				List<Edge> edges = triangle.edges;
-
-				foreach (Edge edge in edges)
-				{
-					// find unique edge
-					bool unique = true;
-					foreach (var other in badTriangles)
-					{
-						if (true == triangle.Equals(other))
-						{
-							continue;
-						}
-
-						foreach (var otherEdge in other.edges)
-						{
-							if (true == edge.Equals(otherEdge))
-							{
-								unique = false;
-								break;
-							}
-						}
-
-						if (false == unique)
-						{
-							break;
-						}
-					}
-
-					if (true == unique)
-					{
-						polygon.Add(edge);
-					}
-				}
-			}
-
-			foreach (var badTriangle in badTriangles)
-			{
-				triangles.Remove(badTriangle);
-			}
-
-			foreach (Edge edge in polygon)
-			{
-				Triangle triangle = CreateTriangle(edge.v0, edge.v1, new Point(point, block));
-				if (null == triangle)
-				{
-					continue;
-				}
-				triangles.Add(triangle);
-			}
-		}
-		
-		public void RemoveSuperTriangle()
-		{
-			if (null == superTriangle)
-			{
-				return;
-			}
-
-			List<Triangle> remove = new List<Triangle>();
-			foreach (var triangle in triangles)
-			{
-				if (true == (triangle.a == superTriangle.a || triangle.a == superTriangle.b || triangle.a == superTriangle.c ||
-							 triangle.b == superTriangle.a || triangle.b == superTriangle.b || triangle.b == superTriangle.c ||
-							 triangle.c == superTriangle.a || triangle.c == superTriangle.b || triangle.c == superTriangle.c
-				   )
-				)
-				{
-					remove.Add(triangle);
-				}
-			}
-
-			foreach (var triangle in remove)
-			{
-				triangles.Remove(triangle);
-			}
-		}
-
-		private Triangle CreateSuperTriangle(List<Block> blocks)
-		{
-			float minX = float.MaxValue;
-			float maxX = float.MinValue;
-			float minY = float.MaxValue;
-			float maxY = float.MinValue;
-
-			foreach (Block block in blocks)
-			{
-				Vector3 point = block.rect.center;
-				minX = Mathf.Min(minX, point.x);
-				maxX = Mathf.Max(maxX, point.x);
-				minY = Mathf.Min(minY, point.y);
-				maxY = Mathf.Max(maxY, point.y);
-			}
-
-			float dx = maxX - minX;
-			float dy = maxY - minY;
-
-			// super triangle을 포인트 리스트 보다 크게 잡는 이유는
-			// super triangle의 변과 포인트가 겹치게 되면 삼각형이 아닌 직선이 되므로 델로네 삼각분할을 적용할 수 없기 때문이다.
-			Vector3 a = new Vector3(minX - dx, minY - dy);
-			Vector3 b = new Vector3(minX - dx, maxY + dy * 3);
-			Vector3 c = new Vector3(maxX + dx * 3, minY - dy);
-
-			// super triangle이 직선인 경우 리턴
-			if (a == b || b == c || c == a)
-			{
-				return null;
-			}
-
-			return new Triangle(new Point(a, null), new Point(b, null), new Point(c, null));
-		}
-
-		private Triangle CreateTriangle(Point a, Point b, Point c)
-		{
-			if (a == b || b == c || c == a)
-			{
-				return null;
-			}
-
-			return new Triangle(a, b, c);
-		}
-	}
-
-	public class MinimumSpanningTree
-	{
-		public class Edge
-		{
-			public Edge(Block p1, Block p2, float cost)
-			{
-				this.p1 = p1;
-				this.p2 = p2;
-				this.cost = cost;
-				this.path = new List<Tile>();
-			}
-				
-			public Block p1;
-			public Block p2;
-			public float cost;
-			public List<Tile> path;
-		}
-
-		private Dictionary<Block, Block> parents = new Dictionary<Block, Block>();
-		public List<Edge> edges = new List<Edge>();
-		public List<Edge> connections = new List<Edge>();
-
-		public MinimumSpanningTree(List<Block> rooms)
-		{
-			foreach (Block room in rooms)
-			{
-				parents.Add(room, room);
-			}
-		}
-
-		public void AddEdge(Edge edge)
-		{
-			foreach (Edge other in edges)
-			{
-				if(true == (edge.p1 == other.p1 && edge.p2 == other.p2) || (edge.p1 == other.p2 && edge.p2 == other.p1))
-				{
-					return;
-				}
-			}
-
-			edges.Add(edge);
-		}
-
-		public void BuildTree()
-		{
-			edges.Sort((Edge e1, Edge e2) =>
-			{
-				if (e1.cost == e2.cost)
-				{
-					return 0;
-				}
-				else if (e1.cost > e2.cost)
-				{
-					return 1;
-				}
-				return -1;
-			});
-
-			foreach (Edge edge in edges)
-			{
-				Block srcParent = FindParent(edge.p1);
-				Block destParent = FindParent(edge.p2);
-
-				if (srcParent != destParent)
-				{
-					connections.Add(edge);
-					Union(srcParent, destParent);
-				}
-			}
-		}
-
-		private Block FindParent(Block room)
-		{
-			var parent = parents[room];
-			if (parent != room)
-			{
-				parents[room] = FindParent(parent);
-			}
-			return parents[room];
-		}
-
-		private void Union(Block src, Block dest)
-		{
-			Block srcParent = FindParent(src);
-			Block destParent = FindParent(dest);
-			parents[srcParent] = destParent;
-		}
-	}
-	#endregion
+    {
+        public class Element
+        {
+            public T value;
+
+            public int weight = 0;
+            public int min = 0;
+            public int max = 0;
+
+            public Element left = null;
+            public Element right = null;
+        }
+
+        private int total_weight = 0;
+        private Element root = null;
+        private List<Element> elements = new List<Element>();
+
+        public void AddElement(int weight, T value)
+        {
+            if (0 == weight)
+            {
+                return;
+            }
+
+            Element elmt = new Element();
+            elmt.value = value;
+            elmt.weight = weight;
+
+            elements.Add(elmt);
+
+            root = null;
+        }
+
+        public T Random()
+        {
+            if (null == root)
+            {
+                BuildTree();
+            }
+
+            int weight = UnityEngine.Random.Range(1, total_weight + 1);
+            return Search(weight).value;
+        }
+
+        private void BuildTree()
+        {
+            elements.Sort((Element lhs, Element rhs) =>
+            {
+                if (lhs.weight == rhs.weight)
+                {
+                    return 0;
+                }
+                else if (lhs.weight > rhs.weight)
+                {
+                    return -1;
+                }
+                return 1;
+            });
+
+            int j = 1;
+            for (int i = 0; i < elements.Count; i++)
+            {
+                Element elmt = elements[i];
+
+                if (i + j < elements.Count)
+                {
+                    elmt.left = elements[i + j];
+                }
+
+                if (i + j + 1 < elements.Count)
+                {
+                    elmt.right = elements[i + j + 1];
+                }
+
+                j++;
+            }
+
+            root = elements[0];
+            elements.Clear();
+
+            SortByTreeOrder(root);
+        }
+
+        private void SortByTreeOrder(Element element)
+        {
+            if (null == element)
+            {
+                return;
+            }
+
+            SortByTreeOrder(element.left);
+
+            this.total_weight += element.weight;
+            element.min = this.total_weight - element.weight + 1;
+            element.max = this.total_weight;
+            elements.Add(element);
+
+            SortByTreeOrder(element.right);
+        }
+
+        private Element Search(int weight)
+        {
+            Element curr = root;
+
+            while (null != curr)
+            {
+                if (curr.min <= weight && weight <= curr.max)
+                {
+                    return curr;
+                }
+
+                if (curr.min > weight)
+                {
+                    curr = curr.left;
+                }
+                else
+                {
+                    curr = curr.right;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    public class DelaunayTriangulation
+    {
+        public class Point
+        {
+            public Vector3 position;
+            public Block block;
+
+            public Point(Vector3 position, Block block)
+            {
+                this.position = position;
+                this.block = block;
+            }
+        }
+
+        public class Edge
+        {
+            public Point v0;
+            public Point v1;
+            public float cost
+            {
+                get
+                {
+                    if (null == v0 || null == v1)
+                    {
+                        return 0.0f;
+                    }
+
+                    return Vector3.Distance(v0.position, v1.position);
+                }
+            }
+
+            public Edge(Point v0, Point v1)
+            {
+                this.v0 = v0;
+                this.v1 = v1;
+            }
+
+            public override bool Equals(object other)
+            {
+                if (false == (other is Edge))
+                {
+                    return false;
+                }
+
+                return Equals((Edge)other);
+            }
+
+            public bool Equals(Edge edge)
+            {
+                return ((this.v0.position.Equals(edge.v0.position) && this.v1.position.Equals(edge.v1.position)) || (this.v0.position.Equals(edge.v1.position) && this.v1.position.Equals(edge.v0.position)));
+            }
+
+            public override int GetHashCode()
+            {
+                return v0.GetHashCode() ^ (v1.GetHashCode() << 2);
+            }
+        }
+
+        public class Circle
+        {
+            public Vector3 center;
+            public float radius;
+
+            public Circle(Vector3 center, float radius)
+            {
+                this.center = center;
+                this.radius = radius;
+            }
+
+            public bool Contains(Vector3 point)
+            {
+                float d = Vector3.Distance(center, point);
+                if (radius < d)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+        }
+
+        public class Triangle
+        {
+            public Vector3 a;
+            public Vector3 b;
+            public Vector3 c;
+            public Circle circumCircle;
+            public List<Edge> edges;
+
+            public Triangle(Point p1, Point p2, Point p3)
+            {
+                this.a = p1.position;
+                this.b = p2.position;
+                this.c = p3.position;
+
+                this.circumCircle = calcCircumCircle(a, b, c);
+                this.edges = new List<Edge>();
+                this.edges.Add(new Edge(p1, p2));
+                this.edges.Add(new Edge(p2, p3));
+                this.edges.Add(new Edge(p3, p1));
+            }
+
+            public override bool Equals(object other)
+            {
+                if (false == (other is Triangle))
+                {
+                    return false;
+                }
+
+                return Equals((Triangle)other);
+            }
+
+            public override int GetHashCode()
+            {
+                return a.GetHashCode() ^ (b.GetHashCode() << 2) ^ (c.GetHashCode() >> 2);
+            }
+
+            public bool Equals(Triangle triangle)
+            {
+                return this.a == triangle.a && this.b == triangle.b && this.c == triangle.c;
+            }
+
+            private Circle calcCircumCircle(Vector3 a, Vector3 b, Vector3 c)
+            {
+                // 출처: 삼각형 외접원 구하기 - https://kukuta.tistory.com/444
+
+                if (a == b || b == c || c == a) // 같은 점이 있음. 삼각형 아님. 외접원 구할 수 없음.
+                {
+                    return null;
+                }
+
+                float mab = (b.x - a.x) / (b.y - a.y) * -1.0f;  // 직선 ab에 수직이등분선의 기울기
+                float a1 = (b.x + a.x) / 2.0f;                  // 직선 ab의 x축 중심 좌표
+                float b1 = (b.y + a.y) / 2.0f;                  // 직선 ab의 y축 중심 좌표
+
+                // 직선 bc
+                float mbc = (b.x - c.x) / (b.y - c.y) * -1.0f;  // 직선 bc에 수직이등분선의 기울기
+                float a2 = (b.x + c.x) / 2.0f;                  // 직선 bc의 x축 중심 좌표
+                float b2 = (b.y + c.y) / 2.0f;                  // 직선 bc의 y축 중심 좌표
+
+                if (mab == mbc)     // 두 수직이등분선의 기울기가 같음. 평행함. 
+                {
+                    return null;    // 교점 구할 수 없음
+                }
+
+                float x = (mab * a1 - mbc * a2 + b2 - b1) / (mab - mbc);
+                float y = mab * (x - a1) + b1;
+
+                if (b.x == a.x)     // 수직이등분선의 기울기가 0인 경우(수평선)
+                {
+                    x = a2 + (b1 - b2) / mbc;
+                    y = b1;
+                }
+
+                if (b.y == a.y)     // 수직이등분선의 기울기가 무한인 경우(수직선)
+                {
+                    x = a1;
+                    if (0.0f == mbc)
+                    {
+                        y = b2;
+                    }
+                    else
+                    {
+                        y = mbc * (a1 - a2) + b2;
+                    }
+                }
+
+                if (b.x == c.x)     // 수직이등분선의 기울기가 0인 경우(수평선)
+                {
+                    x = a1 + (b2 - b1) / mab;
+                    y = b2;
+                }
+
+                if (b.y == c.y)     // 수직이등분선의 기울기가 무한인 경우(수직선)
+                {
+                    x = a2;
+                    if (0.0f == mab)
+                    {
+                        y = b1;
+                    }
+                    else
+                    {
+                        y = mab * (a2 - a1) + b1;
+                    }
+                }
+
+                Vector3 center = new Vector3(x, y, 0.0f);
+                float radius = Vector3.Distance(center, a);
+
+                return new Circle(center, radius);
+            }
+        }
+
+        public Triangle superTriangle = null;
+        public List<Triangle> triangles = new List<Triangle>();
+
+        public DelaunayTriangulation(List<Block> blocks)
+        {
+            superTriangle = CreateSuperTriangle(blocks);
+            if (null == superTriangle)
+            {
+                return;
+            }
+
+            triangles.Add(superTriangle);
+
+            foreach (var block in blocks)
+            {
+                AddPoint(block);
+            }
+
+            RemoveSuperTriangle();
+        }
+
+        public void AddPoint(Block block)
+        {
+            Vector3 point = block.rect.center;
+
+            List<Triangle> badTriangles = new List<Triangle>();
+            foreach (var triangle in triangles)
+            {
+                if (true == triangle.circumCircle.Contains(point))
+                {
+                    badTriangles.Add(triangle);
+                }
+            }
+
+            List<Edge> polygon = new List<Edge>();
+
+            // first find all the triangles that are no longer valid due to the insertion
+            foreach (var triangle in badTriangles)
+            {
+                List<Edge> edges = triangle.edges;
+
+                foreach (Edge edge in edges)
+                {
+                    // find unique edge
+                    bool unique = true;
+                    foreach (var other in badTriangles)
+                    {
+                        if (true == triangle.Equals(other))
+                        {
+                            continue;
+                        }
+
+                        foreach (var otherEdge in other.edges)
+                        {
+                            if (true == edge.Equals(otherEdge))
+                            {
+                                unique = false;
+                                break;
+                            }
+                        }
+
+                        if (false == unique)
+                        {
+                            break;
+                        }
+                    }
+
+                    if (true == unique)
+                    {
+                        polygon.Add(edge);
+                    }
+                }
+            }
+
+            foreach (var badTriangle in badTriangles)
+            {
+                triangles.Remove(badTriangle);
+            }
+
+            foreach (Edge edge in polygon)
+            {
+                Triangle triangle = CreateTriangle(edge.v0, edge.v1, new Point(point, block));
+                if (null == triangle)
+                {
+                    continue;
+                }
+                triangles.Add(triangle);
+            }
+        }
+
+        public void RemoveSuperTriangle()
+        {
+            if (null == superTriangle)
+            {
+                return;
+            }
+
+            List<Triangle> remove = new List<Triangle>();
+            foreach (var triangle in triangles)
+            {
+                if (true == (triangle.a == superTriangle.a || triangle.a == superTriangle.b || triangle.a == superTriangle.c ||
+                             triangle.b == superTriangle.a || triangle.b == superTriangle.b || triangle.b == superTriangle.c ||
+                             triangle.c == superTriangle.a || triangle.c == superTriangle.b || triangle.c == superTriangle.c
+                   )
+                )
+                {
+                    remove.Add(triangle);
+                }
+            }
+
+            foreach (var triangle in remove)
+            {
+                triangles.Remove(triangle);
+            }
+        }
+
+        private Triangle CreateSuperTriangle(List<Block> blocks)
+        {
+            float minX = float.MaxValue;
+            float maxX = float.MinValue;
+            float minY = float.MaxValue;
+            float maxY = float.MinValue;
+
+            foreach (Block block in blocks)
+            {
+                Vector3 point = block.rect.center;
+                minX = Mathf.Min(minX, point.x);
+                maxX = Mathf.Max(maxX, point.x);
+                minY = Mathf.Min(minY, point.y);
+                maxY = Mathf.Max(maxY, point.y);
+            }
+
+            float dx = maxX - minX;
+            float dy = maxY - minY;
+
+            // super triangle을 포인트 리스트 보다 크게 잡는 이유는
+            // super triangle의 변과 포인트가 겹치게 되면 삼각형이 아닌 직선이 되므로 델로네 삼각분할을 적용할 수 없기 때문이다.
+            Vector3 a = new Vector3(minX - dx, minY - dy);
+            Vector3 b = new Vector3(minX - dx, maxY + dy * 3);
+            Vector3 c = new Vector3(maxX + dx * 3, minY - dy);
+
+            // super triangle이 직선인 경우 리턴
+            if (a == b || b == c || c == a)
+            {
+                return null;
+            }
+
+            return new Triangle(new Point(a, null), new Point(b, null), new Point(c, null));
+        }
+
+        private Triangle CreateTriangle(Point a, Point b, Point c)
+        {
+            if (a == b || b == c || c == a)
+            {
+                return null;
+            }
+
+            return new Triangle(a, b, c);
+        }
+    }
+
+    public class MinimumSpanningTree
+    {
+        public class Edge
+        {
+            public Edge(Block p1, Block p2, float cost)
+            {
+                this.p1 = p1;
+                this.p2 = p2;
+                this.cost = cost;
+                this.path = new List<Tile>();
+            }
+
+            public Block p1;
+            public Block p2;
+            public float cost;
+            public List<Tile> path;
+        }
+
+        private Dictionary<Block, Block> parents = new Dictionary<Block, Block>();
+        public List<Edge> edges = new List<Edge>();
+        public List<Edge> connections = new List<Edge>();
+
+        public MinimumSpanningTree(List<Block> rooms)
+        {
+            foreach (Block room in rooms)
+            {
+                parents.Add(room, room);
+            }
+        }
+
+        public void AddEdge(Edge edge)
+        {
+            foreach (Edge other in edges)
+            {
+                if (true == (edge.p1 == other.p1 && edge.p2 == other.p2) || (edge.p1 == other.p2 && edge.p2 == other.p1))
+                {
+                    return;
+                }
+            }
+
+            edges.Add(edge);
+        }
+
+        public void BuildTree()
+        {
+            edges.Sort((Edge e1, Edge e2) =>
+            {
+                if (e1.cost == e2.cost)
+                {
+                    return 0;
+                }
+                else if (e1.cost > e2.cost)
+                {
+                    return 1;
+                }
+                return -1;
+            });
+
+            foreach (Edge edge in edges)
+            {
+                Block srcParent = FindParent(edge.p1);
+                Block destParent = FindParent(edge.p2);
+
+                if (srcParent != destParent)
+                {
+                    connections.Add(edge);
+                    Union(srcParent, destParent);
+                }
+            }
+        }
+
+        private Block FindParent(Block room)
+        {
+            var parent = parents[room];
+            if (parent != room)
+            {
+                parents[room] = FindParent(parent);
+            }
+            return parents[room];
+        }
+
+        private void Union(Block src, Block dest)
+        {
+            Block srcParent = FindParent(src);
+            Block destParent = FindParent(dest);
+            parents[srcParent] = destParent;
+        }
+    }
+    #endregion
 }
