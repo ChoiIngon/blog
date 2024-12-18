@@ -216,16 +216,15 @@ public class DungeonGenerator
 		return weightRandom;
 	}
 
-	private void RepositionBlocks()
+    private void RepositionBlocks()
     {
-    	Vector2 center = Vector2.zero;
-
-		foreach (Block block in blocks)
-		{
-			center += block.rect.center;
-		}
-
-		center /= blocks.Count;	// 생성된 전체 블록들의 무게 중심을 구한다.
+        // 생성된 전체 블록들의 중심을 구한다.
+        Vector2 center = Vector2.zero;
+        foreach (Block block in blocks)
+        {
+            center += block.rect.center;
+        }
+        center /= blocks.Count;
 
         while (true)
         {
@@ -251,68 +250,68 @@ public class DungeonGenerator
     }
 
     private void ResolveOverlap(Vector2 center, Block block1, Block block2)
-	{
-		int dx = (int)Mathf.Min(
-			Mathf.Abs(block1.rect.x + block1.rect.width - block2.rect.x),
-			Mathf.Abs(block2.rect.x + block2.rect.width - block1.rect.x)
-		);
-
-		int dy = (int)Mathf.Min(
-			Mathf.Abs(block1.rect.y + block1.rect.height - block2.rect.y),
-			Mathf.Abs(block2.rect.y + block2.rect.height - block1.rect.y)
-		);
-
-		if (dx < dy) // x축으로 이동
-		{
-			if (block1.rect.x < block2.rect.x)
-			{
-				if (center.x < block2.rect.x)
-				{
-					block2.rect.x += 1;
-				}
-				else
-				{
-					block1.rect.x -= 1;
-				}
-			}
-			else
-			{
-				if (center.x < block1.rect.x)
-				{
-					block1.rect.x += 1;
-				}
-				else
-				{
-					block2.rect.x -= 1;
-				}
-			}
-		}
-		else // y축으로 이동
-		{
-			if (block1.rect.y < block2.rect.y)
-			{
-				if (center.y < block2.rect.y)
-				{
-					block2.rect.y += 1;
-				}
-				else
-				{
-					block1.rect.y -= 1;
-				}
-			}
-			else
-			{
-				if (center.y < block1.rect.y)
-				{
-					block1.rect.y += 1;
-				}
-				else
-				{
-					block2.rect.y -= 1;
-				}
-			}
-		}
-	}
+    {
+        int dx = (int)Mathf.Min(
+            Mathf.Abs(block1.rect.x + block1.rect.width - block2.rect.x),
+            Mathf.Abs(block2.rect.x + block2.rect.width - block1.rect.x)
+        );
+        int dy = (int)Mathf.Min(
+            Mathf.Abs(block1.rect.y + block1.rect.height - block2.rect.y),
+            Mathf.Abs(block2.rect.y + block2.rect.height - block1.rect.y)
+        );
+        
+        // 거리가 가까운 축 기준으로 블록 이동
+        if (dx < dy) // 두 블록이 x축으로 더 가까움
+        {
+            if (block1.rect.x < block2.rect.x) // 두 블록 중 block2가 오른쪽 있는 경우
+            {
+                if (center.x < block2.rect.x)
+                {
+                    block2.rect.x += 1; // block2가 중앙 보다 오른쪽에 있으면 block2를 오른쪽으로 1칸 이동
+                }
+                else
+                {
+                    block1.rect.x -= 1; // block2가 중앙 보다 왼쪽에 있으면 block1을 왼쪽으로 1칸 이동
+                }
+            }
+            else // 두 블록 중 block1이 오른쪽 있는 경우
+            {
+                if (center.x < block1.rect.x)
+                {
+                    block1.rect.x += 1; // block1이 중앙 보다 오른쪽에 있으면 block1를 오른쪽으로 1칸 이동
+                }
+                else
+                {
+                    block2.rect.x -= 1; // block1가 중앙 보다 왼쪽에 있으면 block2를 왼쪽으로 1칸 이동
+                }
+            }
+        }
+        else // 두 블록이 y으로 더 가까움
+        {
+            if (block1.rect.y < block2.rect.y)
+            {
+                if (center.y < block2.rect.y)
+                {
+                    block2.rect.y += 1; // block2가 중앙 보다 위에 있으면 block2를 윗쪽으로 1칸 이동
+                }
+                else
+                {
+                    block1.rect.y -= 1; // block2가 중앙 보다 아래에 있으면 block1을 아래로 1칸 이동
+                }
+            }
+            else
+            {
+                if (center.y < block1.rect.y)
+                {
+                    block1.rect.y += 1;
+                }
+                else
+                {
+                    block2.rect.y -= 1;
+                }
+            }
+        }
+    }
 	#endregion
 
 	private void CreateConnectEdge()
