@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class DungeonGenerator
@@ -72,49 +74,58 @@ public class DungeonGenerator
     #region Create Block 관련 함수
     private void CreateBlocks()
     {
-        WeightRandom<int> weightRandom = CreateWeightRandom(minRoomSize, maxRoomSize);
-        
-        int roomIndex = 1;	// 방 마다 고유 번호 할당
-        
-        float meanRoomSize = (minRoomSize + maxRoomSize) / 2;
-        float rangeMultiply = 1.0f; // 겹치는 사각형이 발생하면 사각형 생성 영역을 넓혀 주기 위한 변수
+		int roomIndex = 1;  // 방 마다 고유 번호 할당
+		float meanRoomSize = (minRoomSize + maxRoomSize) / 2;
+
+		WeightRandom<int> roomSizeWeightRandom = CreateRoomSizeWeightRandom(minRoomSize, maxRoomSize);
+        WeightRandom<Tuple<float, float>> ratioWeightRandom = CreateRatioWeightRandom();
         
         for (int i = 0; i < this.roomCount; i++)
         {
             float theta = 2.0f * Mathf.PI * UnityEngine.Random.Range(0.0f, 1.0f);   // https://kukuta.tistory.com/199
-            float radius = meanRoomSize * rangeMultiply;
+			float radius = meanRoomSize * 3 * UnityEngine.Random.Range(0.0f, 1.0f);
 
             int x = (int)(radius * Mathf.Cos(theta));
             int y = (int)(radius * Mathf.Sin(theta));
-            int width = weightRandom.Random();
-            int height = weightRandom.Random();
-            Block block = new Block(roomIndex, x, y, width, height);
+			int width = 0;
+			int height = 0;
+			var range = ratioWeightRandom.Random();
 
-            int overlapCount = 0;	// 겹치는 방의 갯수 구하기
-            foreach (Block other in blocks)
-            {
-                if (true == other.rect.Overlaps(block.rect))
-                {
-                    overlapCount++;
-                }
-            }
-            
-            if (5 <= overlapCount) // 겹치는 방 갯수가 5개 이상이면 생성 되는 범위를 확장한다.
-            {
-                rangeMultiply += 1.0f;
-                RepositionBlocks();	// 겹친 방의 위치를 서로 겹치지 않는 영역으로 재설정
-            }
+			if (0 == UnityEngine.Random.Range(0, 100) % 2)
+			{
+				width = roomSizeWeightRandom.Random();
+				height = (int)(width * UnityEngine.Random.Range(range.Item1, range.Item2));
+				height = Mathf.Max(minRoomSize, height);
+				height = Mathf.Min(maxRoomSize, height);
+			}
+			else
+			{
+				height = roomSizeWeightRandom.Random();
+				width = (int)(height * UnityEngine.Random.Range(range.Item1, range.Item2));
+				width = Mathf.Max(minRoomSize, width);
+				width = Mathf.Min(maxRoomSize, width);
+			}
 
+			UnityEngine.Debug.Log($"create rect(width:{width}, height:{height})");
+			Block block = new Block(roomIndex++, x, y, width, height);
+        
             block.type = Block.Type.Room;
             blocks.Add(block);
             rooms.Add(block);
         }
 
-        for (int i = 0; i < rooms.Count; i++)
+		RepositionBlocks();
+
+		for (int i = 0; i < rooms.Count; i++)
         {
             Block room = rooms[i];
             for(int j = i+1; j < rooms.Count; j++) 
             {
+				if (70 < UnityEngine.Random.Range(0, 100))
+				{
+					continue;
+				}
+
                 Block neighbor = rooms[j];
                 
                 float distance = Vector3.Distance(room.rect.center, neighbor.rect.center);
@@ -124,69 +135,97 @@ public class DungeonGenerator
                 if (distance < roomRadius + neighorRadius)
                 {
                     Vector3 interpolation = Vector3.Lerp(room.rect.center, neighbor.rect.center, 0.5f);
-                    int width = weightRandom.Random() / 2;
-                    int height = weightRandom.Random() / 2;
+                    int width = roomSizeWeightRandom.Random() / 2;
+                    int height = roomSizeWeightRandom.Random() / 2;
                     int x = (int)(interpolation.x - width / 2);
                     int y = (int)(interpolation.y - height / 2);
-                    
-                    Block block = new Block(roomIndex++, x, y, width, height);
+
+		            Block block = new Block(roomIndex++, x, y, width, height);
                     block.type = Block.Type.Corridor;
                     blocks.Add(block);
-                }
+				}
             }
-            RepositionBlocks();
         }
 
-        this.tilemap = new TileMap(blocks);
-    }
+		RepositionBlocks();
+		this.tilemap = new TileMap(blocks);
+	}
 
-    private WeightRandom<int> CreateWeightRandom(int min, int max)
+    private WeightRandom<Tuple<float, float>> CreateRatioWeightRandom()
     {
-        var weightRandom = new WeightRandom<int>();
-
-        #region build room size random object // range의 가운데 값부터 바깥으로 점점 더 적은 확율을 가지도록 배치
-        int delta = 0;
-        int elmtCount = max - min + 1;
-        if (0 == elmtCount % 2)
-        {
-            delta = 0;
-            for (int i = (min + max) / 2; i >= min; i--)
-            {
-                int weight = elmtCount / 2 - delta++;
-                weightRandom.AddElement(weight, i);
-            }
-
-            delta = 0;
-            for (int i = (min + max) / 2 + 1; i <= max; i++)
-            {
-                int weight = elmtCount / 2 - delta++;
-                weightRandom.AddElement(weight, i);
-            }
-        }
-        else
-        {
-            delta = 0;
-            for (int i = (min + max) / 2; i >= min; i--)
-            {
-                int weight = elmtCount / 2 + 1 - delta++;
-                weightRandom.AddElement(weight, i);
-            }
-
-            delta = 1;
-            for (int i = (min + max) / 2 + 1; i <= max; i++)
-            {
-                int weight = elmtCount / 2 + 1 - delta++;
-                weightRandom.AddElement(weight, i);
-            }
-        }
-        #endregion
+        var weightRandom = new WeightRandom<Tuple<float, float>>();
+		int weight = 1;
+		for (float rate = 3.0f; rate >= 0.5f; rate -= 0.1f)
+		{
+			var range = new Tuple<float, float>(rate - 0.1f, rate);
+			weightRandom.AddElement(weight, range);
+			if (1.0f < rate)
+			{
+				weight++;
+			}
+			else
+			{
+				weight--;
+			}
+		}
 
         return weightRandom;
     }
 
-    private void RepositionBlocks()
+	private WeightRandom<int> CreateRoomSizeWeightRandom(int min, int max)
+	{
+		var weightRandom = new WeightRandom<int>();
+
+		#region build room size random object // range의 가운데 값부터 바깥으로 점점 더 적은 확율을 가지도록 배치
+		int delta = 0;
+		int elmtCount = max - min + 1;
+		if (0 == elmtCount % 2)
+		{
+			delta = 0;
+			for (int i = (min + max) / 2; i >= min; i--)
+			{
+				int weight = elmtCount / 2 - delta++;
+				weightRandom.AddElement(weight, i);
+			}
+
+			delta = 0;
+			for (int i = (min + max) / 2 + 1; i <= max; i++)
+			{
+				int weight = elmtCount / 2 - delta++;
+				weightRandom.AddElement(weight, i);
+			}
+		}
+		else
+		{
+			delta = 0;
+			for (int i = (min + max) / 2; i >= min; i--)
+			{
+				int weight = elmtCount / 2 + 1 - delta++;
+				weightRandom.AddElement(weight, i);
+			}
+
+			delta = 1;
+			for (int i = (min + max) / 2 + 1; i <= max; i++)
+			{
+				int weight = elmtCount / 2 + 1 - delta++;
+				weightRandom.AddElement(weight, i);
+			}
+		}
+		#endregion
+
+		return weightRandom;
+	}
+
+	private void RepositionBlocks()
     {
-        blocks = Shuffle(blocks);
+    	Vector2 center = Vector2.zero;
+
+		foreach (Block block in blocks)
+		{
+			center += block.rect.center;
+		}
+
+		center /= blocks.Count;	// 생성된 전체 블록들의 무게 중심을 구한다.
 
         while (true)
         {
@@ -198,7 +237,7 @@ public class DungeonGenerator
                 {
                     if (true == blocks[i].rect.Overlaps(blocks[j].rect))
                     {
-                        ResolveOverlap(blocks[i], blocks[j]);
+                        ResolveOverlap(center, blocks[i], blocks[j]);
                         overlap = true;
                     }
                 }
@@ -211,7 +250,7 @@ public class DungeonGenerator
         }
     }
 
-    private void ResolveOverlap(Block block1, Block block2)
+    private void ResolveOverlap(Vector2 center, Block block1, Block block2)
 	{
 		int dx = (int)Mathf.Min(
 			Mathf.Abs(block1.rect.x + block1.rect.width - block2.rect.x),
@@ -227,22 +266,50 @@ public class DungeonGenerator
 		{
 			if (block1.rect.x < block2.rect.x)
 			{
-				block2.rect.x += dx;
+				if (center.x < block2.rect.x)
+				{
+					block2.rect.x += 1;
+				}
+				else
+				{
+					block1.rect.x -= 1;
+				}
 			}
 			else
 			{
-				block1.rect.x += dx;
+				if (center.x < block1.rect.x)
+				{
+					block1.rect.x += 1;
+				}
+				else
+				{
+					block2.rect.x -= 1;
+				}
 			}
 		}
 		else // y축으로 이동
 		{
 			if (block1.rect.y < block2.rect.y)
 			{
-				block2.rect.y += dy;
+				if (center.y < block2.rect.y)
+				{
+					block2.rect.y += 1;
+				}
+				else
+				{
+					block1.rect.y -= 1;
+				}
 			}
 			else
 			{
-				block1.rect.y += dy;
+				if (center.y < block1.rect.y)
+				{
+					block1.rect.y += 1;
+				}
+				else
+				{
+					block2.rect.y -= 1;
+				}
 			}
 		}
 	}
@@ -713,21 +780,21 @@ public class DungeonGenerator
             int yMax = (int)room.rect.yMax;
 
             // left bottom
-            //GetTile(xMin, yMin + 1).type = Tile.Type.Wall;
+            GetTile(xMin, yMin + 1).type = Tile.Type.Wall;
             GetTile(xMin, yMin).type = Tile.Type.Wall;
-            //GetTile(xMin + 1, yMin).type = Tile.Type.Wall;
+            GetTile(xMin + 1, yMin).type = Tile.Type.Wall;
 
-            //GetTile(xMax - 1, yMin + 1).type = Tile.Type.Wall;
+            GetTile(xMax - 1, yMin + 1).type = Tile.Type.Wall;
             GetTile(xMax - 1, yMin).type = Tile.Type.Wall;
-            //GetTile(xMax - 2, yMin).type = Tile.Type.Wall;
+            GetTile(xMax - 2, yMin).type = Tile.Type.Wall;
 
-            //GetTile(xMin, yMax - 2).type = Tile.Type.Wall;
+            GetTile(xMin, yMax - 2).type = Tile.Type.Wall;
             GetTile(xMin, yMax - 1).type = Tile.Type.Wall;
-            //GetTile(xMin + 1, yMax - 1).type = Tile.Type.Wall;
+            GetTile(xMin + 1, yMax - 1).type = Tile.Type.Wall;
 
-            //GetTile(xMax - 1, yMax - 2).type = Tile.Type.Wall;
+            GetTile(xMax - 1, yMax - 2).type = Tile.Type.Wall;
             GetTile(xMax - 1, yMax - 1).type = Tile.Type.Wall;
-            //GetTile(xMax - 2, yMax - 1).type = Tile.Type.Wall;
+            GetTile(xMax - 2, yMax - 1).type = Tile.Type.Wall;
         }
     }
 
