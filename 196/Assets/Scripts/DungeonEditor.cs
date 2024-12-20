@@ -12,13 +12,17 @@ public class DungeonEditor : Editor
 		{
 			dungeon.CreateRooms();
 		}
-		if (true == GUILayout.Button("Create Connection Edges"))
+		if (true == GUILayout.Button("Delaunay Triangulation"))
 		{
-			dungeon.CreateConnectionEdge();
+			dungeon.DelaunayTriangulation();
 		}
-		if (true == GUILayout.Button("Create Corridor"))
+        if (true == GUILayout.Button("MinimumSpanningTree"))
+        {
+            dungeon.MinimumSpanningTree();
+        }
+        if (true == GUILayout.Button("Astar Path Finding"))
 		{
-			dungeon.CreateCorridor();
+			dungeon.AstarPathFinding();
 		}
         if (true == GUILayout.Button("Build Wall"))
         {

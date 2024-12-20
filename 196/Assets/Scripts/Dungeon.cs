@@ -57,7 +57,7 @@ public class Dungeon : MonoBehaviour
         SetCameraCenter();
     }
 
-    public void CreateConnectionEdge()
+    public void DelaunayTriangulation()
     {
         if (null == generator)
         {
@@ -73,7 +73,16 @@ public class Dungeon : MonoBehaviour
             gizmo.sortingOrder = SortingOrder.Edge;
             edges.Add(gizmo);
         }
+    }
 
+    public void MinimumSpanningTree()
+    {
+        if (null == generator)
+        {
+            return;
+        }
+
+        var graph = generator.graph;
         foreach (var edge in graph.connections)
         {
             int from = Mathf.Min(edge.p1.index, edge.p2.index);
@@ -84,7 +93,7 @@ public class Dungeon : MonoBehaviour
         }
     }
 
-    public void CreateCorridor()
+    public void AstarPathFinding()
     {
         DungeonGizmo.Grid grid = new DungeonGizmo.Grid("grid", generator.tilemap.width, generator.tilemap.height);
 

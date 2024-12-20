@@ -7,6 +7,7 @@ using UnityEngine;
 public class DungeonGenerator
 {
     private const int MinRoomSize = 5;
+    private const float roomCreateRange = 4.0f;
 
     private int roomCount = 0;
     private int minRoomSize = 0;
@@ -39,14 +40,12 @@ public class DungeonGenerator
         public int index;
         public Rect rect;
         public Type type;
-        public Vector3 connectPoint;
 
         public Block(int index, float x, float y, float width, float height)
         {
             this.index = index;
             this.type = Type.None;
             this.rect = new Rect(x, y, width, height);
-            this.connectPoint = Vector3.zero;
         }
     }
 
@@ -81,7 +80,7 @@ public class DungeonGenerator
         for (int i = 0; i < this.roomCount; i++)
         {
             float theta = 2.0f * Mathf.PI * UnityEngine.Random.Range(0.0f, 1.0f);   // https://kukuta.tistory.com/199
-            float radius = meanRoomSize * 3 * UnityEngine.Random.Range(0.0f, 1.0f);
+            float radius = meanRoomSize * UnityEngine.Random.Range(0.0f, roomCreateRange);
 
             int x = (int)(radius * Mathf.Cos(theta));
             int y = (int)(radius * Mathf.Sin(theta));
@@ -317,7 +316,7 @@ public class DungeonGenerator
         // µ¨·ç³× »ï°¢ºÐÇÒ¹ýÀ» ÀÌ¿ëÇØ ÀÎÁ¢ ·ëµéÀ» Ã£¾Æ³¿
         this.triangulation = new DelaunayTriangulation(rooms);
         this.graph = new MinimumSpanningTree(rooms);
-
+        
         foreach (var triangle in triangulation.triangles)
         {
             foreach (var edge in triangle.edges)
@@ -477,21 +476,6 @@ public class DungeonGenerator
                 IfNotNullBuildWall(x + 1, y + 1);
             }
         }
-    }
-
-    private List<T> Shuffle<T>(List<T> list)
-    {
-        var shuffled = new List<T>(list);
-        for (int i = 0; i < shuffled.Count; ++i)
-        {
-            int random = UnityEngine.Random.Range(0, shuffled.Count);
-
-            T temp = shuffled[i];
-            shuffled[i] = shuffled[random];
-            shuffled[random] = temp;
-        }
-
-        return shuffled;
     }
 
     public class TileMap
@@ -949,7 +933,7 @@ public class DungeonGenerator
                     {
                         return 0.0f;
                     }
-
+            
                     return Vector3.Distance(v0.position, v1.position);
                 }
             }

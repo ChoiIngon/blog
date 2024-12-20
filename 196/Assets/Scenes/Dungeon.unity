@@ -167,7 +167,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 768f424c8902d1a4c9e354b2ff85d80d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roomCount: 30
+  roomCount: 20
   minRoomSize: 7
   maxRoomSize: 15
   enableBlockGizmo: 1
