@@ -7,12 +7,7 @@ using UnityEngine;
 public class DungeonGenerator
 {
     private const int MinRoomSize = 5;
-    private const float roomCreateRange = 4.0f;
-
-    private int roomCount = 0;
-    private int minRoomSize = 0;
-    private int maxRoomSize = 0;
-
+    
     public class Tile
     {
         public enum Type
@@ -58,29 +53,29 @@ public class DungeonGenerator
 
     public DungeonGenerator(int roomCount, int minRoomSize, int maxRoomSize)
     {
-        this.roomCount = roomCount;
-        this.minRoomSize = Mathf.Max(MinRoomSize, minRoomSize);
-        this.maxRoomSize = Mathf.Max(MinRoomSize, maxRoomSize);
-
-        CreateBlocks();
+        CreateBlocks(roomCount, minRoomSize, maxRoomSize);
         CreateConnectEdge();
         ConnectRooms();
         BuildWall();
     }
 
     #region Create Block 관련 함수
-    private void CreateBlocks()
+    private void CreateBlocks(int roomCount, int minRoomSize, int maxRoomSize)
     {
-        int roomIndex = 1;  // 방 마다 고유 번호 할당
-        float meanRoomSize = (minRoomSize + maxRoomSize) / 2;
+        // 방 마다 고유 번호 할당
+        int roomIndex = 1;
+
+        // 방 블록의 넓이와 갯수에 따라 적절한 생성 영역 반지름 구하기
+        float areaOfBlocks = maxRoomSize * maxRoomSize * roomCount;
+        float roomCreateRaduis = Mathf.Sqrt(areaOfBlocks / Mathf.PI);
 
         WeightRandom<int> roomSizeWeightRandom = CreateRoomSizeWeightRandom(minRoomSize, maxRoomSize);
         WeightRandom<Tuple<float, float>> ratioWeightRandom = CreateRatioWeightRandom();
 
-        for (int i = 0; i < this.roomCount; i++)
+        for (int i = 0; i < roomCount; i++)
         {
             float theta = 2.0f * Mathf.PI * UnityEngine.Random.Range(0.0f, 1.0f);   // https://kukuta.tistory.com/199
-            float radius = meanRoomSize * UnityEngine.Random.Range(0.0f, roomCreateRange);
+            float radius = UnityEngine.Random.Range(0.0f, roomCreateRaduis);
 
             int x = (int)(radius * Mathf.Cos(theta));
             int y = (int)(radius * Mathf.Sin(theta));
@@ -103,9 +98,7 @@ public class DungeonGenerator
                 width = Mathf.Min(maxRoomSize, width);
             }
 
-            UnityEngine.Debug.Log($"create rect(width:{width}, height:{height})");
             Block block = new Block(roomIndex++, x, y, width, height);
-
             block.type = Block.Type.Room;
             blocks.Add(block);
             rooms.Add(block);
@@ -399,7 +392,6 @@ public class DungeonGenerator
             var path = tilemap.FindPath(from, to, searchLimitBoundary);
             stopWatch.Stop();
 
-            UnityEngine.Debug.Log($"{edge.p1.index} -> {edge.p2.index}, elasped time:{stopWatch.ElapsedMilliseconds}");
             elapsedTime += stopWatch.ElapsedMilliseconds;
 
             foreach (var tile in path)
@@ -408,8 +400,6 @@ public class DungeonGenerator
                 edge.path.Add(tile);
             }
         }
-
-        UnityEngine.Debug.Log($"total elapsed time:{elapsedTime}, connection count:{graph.connections.Count}");
     }
 
     private void BuildWall()
