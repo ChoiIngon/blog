@@ -1,0 +1,126 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class GameManager : MonoBehaviour
+{
+    private static GameManager _instance = null;
+    public static GameManager Instance
+    {
+        get
+        {
+            if (null == _instance)
+            {
+                _instance = (GameManager)GameObject.FindObjectOfType(typeof(GameManager));
+                if (!_instance)
+                {
+                    GameObject container = new GameObject();
+                    container.name = typeof(GameManager).Name;
+                    _instance = container.AddComponent<GameManager>();
+                }
+            }
+
+            return _instance;
+        }
+    }
+
+    private float mouseWheelSpeed = 10.0f;
+    private float minFieldOfView = 20.0f;
+    private float maxFieldOfView = 120.0f;
+
+    public int roomCount;
+    public int minRoomSize;
+    public int maxRoomSize;
+
+    public bool showBlockGizmo;
+    public bool showCorridorGraph;
+    public bool showAstarPath;
+    public bool showTile;
+
+    public Action<Vector3> OnClick;
+
+    public Dictionary<string, Sprite> sprites = new Dictionary<string, Sprite>();
+    public Dungeon dungeon;
+    public Player player;
+
+    public void CreateDungeon()
+    {
+        this.showBlockGizmo = false;
+        this.showCorridorGraph = false;
+        this.showAstarPath = false;
+        this.showTile = true;
+
+        dungeon.CreateDungeon(roomCount, minRoomSize, maxRoomSize);
+
+        dungeon.EnableGizmo();
+    }
+    
+    public void Clear()
+    {
+        dungeon.Clear();
+    }
+
+    private IEnumerator Start()
+    {
+        this.showBlockGizmo = true;
+        this.showCorridorGraph = true;
+        this.showAstarPath = true;
+        this.showTile = true;
+
+        Sprite[] loadedSprites = Resources.LoadAll<Sprite>("DungeonTileset");
+        if (0 < loadedSprites.Length)
+        {
+            foreach(Sprite sprite in loadedSprites)
+            {
+                sprites.Add(sprite.name, sprite);
+            }
+        }
+        
+        {
+            GameObject go = new GameObject("Dungeon");
+            go.transform.parent = transform;
+
+            dungeon = go.AddComponent<Dungeon>();
+        }
+        {
+            //GameObject go = new GameObject("Player");
+            //go.transform.parent = transform;
+            //
+            //player = go.AddComponent<Player>();
+        }
+
+        yield return new WaitForEndOfFrame();
+
+        CreateDungeon();
+    }
+
+    private void LoadResources()
+    {
+        Sprite[] loadedSprites = Resources.LoadAll<Sprite>("DungeonTileset");
+        if (0 < loadedSprites.Length)
+        {
+            foreach (Sprite sprite in loadedSprites)
+            {
+                sprites.Add(sprite.name, sprite);
+            }
+        }
+    }
+
+    private void Update()
+    {
+        float scroll = Input.GetAxis("Mouse ScrollWheel") * mouseWheelSpeed;
+        if (Camera.main.fieldOfView < minFieldOfView && scroll < 0.0f)
+        {
+            Camera.main.fieldOfView = minFieldOfView;
+        }
+        else if (Camera.main.fieldOfView > maxFieldOfView && scroll > 0.0f)
+        {
+            Camera.main.fieldOfView = maxFieldOfView;
+        }
+        else
+        {
+            Camera.main.fieldOfView -= scroll;
+        }
+    }
+}
