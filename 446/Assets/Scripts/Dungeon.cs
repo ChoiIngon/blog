@@ -1,6 +1,4 @@
-using Data;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,6 +9,7 @@ public class Dungeon : MonoBehaviour
         public static int Block = 0;
         public static int CorridorGraph = 10;
         public static int CorridorPath = 20;
+        public static int CorridorCost = 21;
 
         public static int Floor = 100;
         public static int Wall = 110;
@@ -363,6 +362,7 @@ public class Dungeon : MonoBehaviour
 
     public List<DungeonGizmo.Gizmo> blockGizmo = new List<DungeonGizmo.Gizmo>();
     public List<DungeonGizmo.Gizmo> corridorGraphGizmo = new List<DungeonGizmo.Gizmo>();
+    public List<DungeonGizmo.Gizmo> astarCostGizmo = new List<DungeonGizmo.Gizmo>();
     public List<DungeonGizmo.Gizmo> astarPathGizmo = new List<DungeonGizmo.Gizmo>();
     public List<DungeonGizmo.Gizmo> tileGizmo = new List<DungeonGizmo.Gizmo>();
 
@@ -430,10 +430,6 @@ public class Dungeon : MonoBehaviour
         Wall.VerticalRight.Add(GameManager.Instance.sprites["DungeonTileset_11"]);
         Wall.VerticalRight.Add(GameManager.Instance.sprites["DungeonTileset_17"]);
         Wall.VerticalRight.Add(GameManager.Instance.sprites["DungeonTileset_23"]);
-
-        GameManager.Instance.OnClick += (Vector3 point) => {
-            Debug.Log(point.ToString());
-        };
     }
 
     public void CreateDungeon(int roomCount, int minRoomSize, int maxRoomSize)
@@ -468,43 +464,8 @@ public class Dungeon : MonoBehaviour
             }
         }
 
-        foreach (var block in data.blocks)
-        {
-            Color color;
-            if (Data.Block.Type.Room == block.type)
-            {
-                color = Color.red;
-            }
-            else
-            {
-                color = Color.blue;
-            }
-
-            DungeonGizmo.Block gizmo = new DungeonGizmo.Block($"Block_{block.index}", color, block.rect.width, block.rect.height);
-            gizmo.sortingOrder = SortingOrder.Block;
-            gizmo.SetPosition(new Vector3(block.rect.x, block.rect.y));
-            blockGizmo.Add(gizmo);
-        }
-
-        foreach (var corridor in data.corridorGraph.corridors)
-        {
-            int from = Mathf.Min(corridor.p1.index, corridor.p2.index);
-            int to = Mathf.Max(corridor.p1.index, corridor.p2.index);
-            DungeonGizmo.Line line = new DungeonGizmo.Line($"Connection_{from}_{to}", Color.green, corridor.p1.rect.center, corridor.p2.rect.center, 0.5f);
-            line.sortingOrder = SortingOrder.CorridorGraph;
-            corridorGraphGizmo.Add(line);
-        }
-
-        foreach (var pathTiles in data.astarPathFindResults)
-        {
-            foreach (var tile in pathTiles)
-            {
-                DungeonGizmo.Point point = new DungeonGizmo.Point($"Path_{tile.index}", Color.white, 1.0f);
-                point.SetPosition(new Vector3(tile.rect.x + 0.5f, tile.rect.y + 0.5f));
-                point.sortingOrder = SortingOrder.CorridorPath;
-                astarPathGizmo.Add(point);
-            }
-        }
+        InitGizmo();
+        
 
         int startRoomIndex = UnityEngine.Random.Range(0, data.rooms.Count);
         start = data.rooms[startRoomIndex];
@@ -540,8 +501,59 @@ public class Dungeon : MonoBehaviour
         blockGizmo.Clear();
         corridorGraphGizmo.Clear();
         astarPathGizmo.Clear();
-        
+        astarCostGizmo.Clear();
+
         DungeonGizmo.ClearAll();
+    }
+
+    public void InitGizmo()
+    {
+        foreach (var block in data.blocks)
+        {
+            Color color;
+            if (Data.Block.Type.Room == block.type)
+            {
+                color = Color.red;
+            }
+            else
+            {
+                color = Color.blue;
+            }
+
+            DungeonGizmo.Block gizmo = new DungeonGizmo.Block($"Block_{block.index}", color, block.rect.width, block.rect.height);
+            gizmo.sortingOrder = SortingOrder.Block;
+            gizmo.SetPosition(new Vector3(block.rect.x, block.rect.y));
+            blockGizmo.Add(gizmo);
+        }
+
+        foreach (var corridor in data.corridorGraph.corridors)
+        {
+            int from = Mathf.Min(corridor.p1.index, corridor.p2.index);
+            int to = Mathf.Max(corridor.p1.index, corridor.p2.index);
+            DungeonGizmo.Line line = new DungeonGizmo.Line($"Connection_{from}_{to}", Color.green, corridor.p1.rect.center, corridor.p2.rect.center, 0.5f);
+            line.sortingOrder = SortingOrder.CorridorGraph;
+            corridorGraphGizmo.Add(line);
+        }
+
+        foreach (int tileIndex in data.astarPathTiles)
+        {
+            var tile = data.tileMap.GetTile(tileIndex);
+            DungeonGizmo.Point point = new DungeonGizmo.Point($"Path_{tile.index}", Color.white, 1.0f);
+            point.SetPosition(new Vector3(tile.rect.x + 0.5f, tile.rect.y + 0.5f));
+            point.sortingOrder = SortingOrder.CorridorPath;
+            astarPathGizmo.Add(point);
+        }
+
+        for (int tileIndex = 0; tileIndex < data.tileMap.width * data.tileMap.height; tileIndex++)
+        {
+            var tile = data.tileMap.GetTile(tileIndex);
+            float cost = data.astarPathCost[tileIndex];
+
+            DungeonGizmo.Point point = new DungeonGizmo.Point($"Cost_{tile.index}", new Color(1.0f, 1.0f - cost / Data.Tile.PathCost.MaxCost, 0.0f), 1.0f);
+            point.SetPosition(new Vector3(tile.rect.x + 0.5f, tile.rect.y + 0.5f));
+            point.sortingOrder = SortingOrder.CorridorCost;
+            astarCostGizmo.Add(point);
+        }
     }
 
     public void EnableGizmo()
@@ -559,6 +571,11 @@ public class Dungeon : MonoBehaviour
         foreach (var shape in astarPathGizmo)
         {
             shape.gameObject.SetActive(GameManager.Instance.showAstarPath);
+        }
+
+        foreach (var shape in astarCostGizmo)
+        {
+            shape.gameObject.SetActive(GameManager.Instance.showAstarCost);
         }
 
         tileRoot.gameObject.SetActive(GameManager.Instance.showTile);

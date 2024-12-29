@@ -8,10 +8,12 @@ namespace Data
     {
         public class PathCost
         {
-            public const int Default = 100;
-            public const int Floor = 90;
-            public const int Wall = 200;
-            public const int PathCostDecrement = -50;
+            public const int Default = 10;
+            public const int Floor = 9;
+            public const int Wall = 15;
+            public const int Corridor = 1;
+            public const int MinCost = 1;
+            public const int MaxCost = 15;
         }
 
         public enum Type
@@ -57,7 +59,8 @@ namespace Data
         public TileMap tileMap;
         public CorridorGraph corridorGraph;
 
-        public List<List<Tile>> astarPathFindResults = new List<List<Tile>>();
+        public List<int> astarPathTiles = new List<int>();
+        public List<int> astarPathCost = new List<int>();
 
         public int width
         {
@@ -447,8 +450,6 @@ namespace Data
                 AStarPathFinder pathFinder = new AStarPathFinder(tileMap, searchLimitBoundary, new AStarPathFinder.StraightLookup());
                 var path = pathFinder.FindPath(from, to);
 
-                astarPathFindResults.Add(path);
-
                 { // 구해지 경로 중 블록과 겹치는 부분을 뺀 실제 복도 타일만 구한다
 
                     // src 블록의 벽을 뺀 나머지 영역
@@ -457,8 +458,9 @@ namespace Data
                     Rect floorAreaOfDest = new Rect(dest.rect.xMin + 1, dest.rect.yMin + 1, dest.rect.width - 2, dest.rect.height - 2);
                     foreach (var tile in path)
                     {
-                        tile.cost += Tile.PathCost.PathCostDecrement;
-                        tile.cost = Mathf.Max(1, tile.cost);
+                        tile.cost = Tile.PathCost.Corridor;
+
+                        astarPathTiles.Add(tile.index);
 
                         if (true == floorAreaOfSrc.Contains(new Vector2(tile.rect.x, tile.rect.y)) || true == floorAreaOfDest.Contains(new Vector2(tile.rect.x, tile.rect.y)))
                         {
@@ -473,6 +475,12 @@ namespace Data
 
         private void GenerateWall()
         {
+            for (int i = 0; i < tileMap.width * tileMap.height; i++)
+            {
+                Tile tile = tileMap.GetTile(i);
+                astarPathCost.Add(tile.cost);
+            }
+
             foreach (Block room in rooms)
             {
                 for (int y = (int)room.rect.yMin; y < (int)room.rect.yMax - 1; y++)

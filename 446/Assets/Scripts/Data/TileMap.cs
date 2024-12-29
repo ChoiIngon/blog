@@ -65,34 +65,59 @@ namespace Data
                 { // 블록의 벽은 cost를 높여 벽에 길을 내지 안도록 막음
                     for (int x = (int)block.rect.xMin; x < (int)block.rect.xMax; x++)
                     {
-                        Tile top = GetTile(x, (int)block.rect.yMin);
+                        Tile outofTop = GetTile(x, (int)block.rect.yMax);
+                        if (null != outofTop)
+                        {
+                            outofTop.cost = Tile.PathCost.Wall;
+                        }
+
+                        Tile top = GetTile(x, (int)block.rect.yMax - 1);
                         top.cost = Tile.PathCost.Wall;
 
-                        Tile bottom = GetTile(x, (int)block.rect.yMax - 1);
+                        Tile bottom = GetTile(x, (int)block.rect.yMin);
                         bottom.cost = Tile.PathCost.Wall;
+
+                        Tile outofBottom = GetTile(x, (int)block.rect.yMin -1);
+                        if (null != outofBottom)
+                        {
+                            outofBottom.cost = Tile.PathCost.Wall;
+                        }
                     }
 
                     for (int y = (int)block.rect.yMin; y < (int)block.rect.yMax; y++)
                     {
+                        Tile outOfLeft = GetTile((int)block.rect.xMin - 1, y);
+                        if (null != outOfLeft)
+                        {
+                            outOfLeft.cost = Tile.PathCost.Wall;
+                        }
+
                         Tile left = GetTile((int)block.rect.xMin, y);
                         left.cost = Tile.PathCost.Wall;
 
                         Tile right = GetTile((int)block.rect.xMax - 1, y);
                         right.cost = Tile.PathCost.Wall;
+
+                        Tile outOfRight = GetTile((int)block.rect.xMax, y);
+                        if (null != outOfRight)
+                        {
+                            outOfRight.cost = Tile.PathCost.Wall;
+                        }
                     }
                 }
 
+                if(Block.Type.Corridor == block.type)
                 { // 블록의 가운데에 cost를 낮춰 블록의 가운도로 길을 내도록 유도
                     for (int x = (int)block.rect.xMin + 1; x < (int)block.rect.xMax - 1; x++)
                     {
                         Tile tile = GetTile(x, (int)block.rect.center.y);
-                        tile.cost = 1; // Tile.PathCost.PathCostDecrement;
+                        tile.cost = Tile.PathCost.Corridor;
                     }
 
                     for (int y = (int)block.rect.yMin + 1; y < (int)block.rect.yMax - 1; y++)
                     {
                         Tile tile = GetTile((int)block.rect.center.x, y);
-                        tile.cost = 1; // Tile.PathCost.PathCostDecrement;
+                        tile.cost = Tile.PathCost.Corridor;
                     }
                 }
 

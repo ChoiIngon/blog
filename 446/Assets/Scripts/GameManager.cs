@@ -36,19 +36,20 @@ public class GameManager : MonoBehaviour
     public bool showBlockGizmo;
     public bool showCorridorGraph;
     public bool showAstarPath;
+    public bool showAstarCost;
     public bool showTile;
 
-    public Action<Vector3> OnClick;
-
     public Dictionary<string, Sprite> sprites = new Dictionary<string, Sprite>();
+
+    [HideInInspector]
     public Dungeon dungeon;
-    public Player player;
 
     public void CreateDungeon()
     {
         this.showBlockGizmo = false;
         this.showCorridorGraph = false;
         this.showAstarPath = false;
+        this.showAstarCost = false;
         this.showTile = true;
 
         dungeon.CreateDungeon(roomCount, minRoomSize, maxRoomSize);
