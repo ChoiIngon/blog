@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,29 +10,45 @@ public class Dungeon : MonoBehaviour
         public static int CorridorPath = 20;
         public static int CorridorCost = 21;
 
-        public static int Floor = 100;
-        public static int Wall = 110;
+        public static int Tile = 100;
+        public static int Gimmick = 110;
         public static int Player = 120;
     }
 
     public class Tile
     {
-        public static Func<int, int, Data.Tile> GetTile;
-
         public readonly GameObject gameObject;
         
         protected SpriteRenderer spriteRenderer;
+        public Gimmick gimmick;
 
         public Tile(Data.Tile data)
         {
             this.gameObject = new GameObject($"Tile_{data.index}");
             this.gameObject.transform.position = new Vector3(data.rect.x + 0.5f, data.rect.y + 0.5f);
             this.spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
+            this.spriteRenderer.sortingOrder = SortingOrder.Tile;
         }
 
         public void SetParent(Transform transform)
         {
             gameObject.transform.parent = transform;
+        }
+
+        public void Visible(bool flag)
+        {
+            float alpha = 1.0f;
+            if (false == flag)
+            {
+                alpha = 0.5f;
+            }
+
+            color = new Color(color.r, color.g, color.b, alpha);
+
+            if (null != gimmick)
+            {
+                gimmick.Visible(flag);
+            }
         }
 
         public Color color
@@ -48,16 +63,6 @@ public class Dungeon : MonoBehaviour
             }
         }
 
-        protected static Sprite GetRandomSprite(List<Sprite> sprites)
-        {
-            if (0 == sprites.Count)
-            {
-                return null;
-            }
-
-            return sprites[UnityEngine.Random.Range(0, sprites.Count)];
-        }
-        
         protected bool IsWall(Data.Tile data)
         {
             if (null == data)
@@ -104,7 +109,6 @@ public class Dungeon : MonoBehaviour
         public Floor(Data.Tile data) : base(data)
         {
             spriteRenderer.sprite = GetSprite(data);
-            spriteRenderer.sortingOrder = Dungeon.SortingOrder.Floor;
         }
 
         private Sprite GetSprite(Data.Tile tile)
@@ -167,7 +171,6 @@ public class Dungeon : MonoBehaviour
 
     public class Wall : Tile
     {
-        public static List<Sprite> Undefined = new List<Sprite>();
         public static List<Sprite> HorizontalTop = new List<Sprite>();
         public static List<Sprite> HorizontalBottom = new List<Sprite>();
         public static List<Sprite> VerticalTop = new List<Sprite>();
@@ -184,7 +187,6 @@ public class Dungeon : MonoBehaviour
         public Wall(Data.Tile tile) : base(tile)
         {
             spriteRenderer.sprite = GetSprite(tile);
-            spriteRenderer.sortingOrder = Dungeon.SortingOrder.Floor;
         }
 
         private Sprite GetSprite(Data.Tile tile)
@@ -347,7 +349,74 @@ public class Dungeon : MonoBehaviour
                 }
             }
 
-            return GetRandomSprite(Undefined);
+            return GetRandomSprite(HorizontalTop);
+        }
+    }
+
+    public class Gimmick
+    {
+        public readonly GameObject gameObject;
+        protected SpriteRenderer spriteRenderer;
+
+        public Gimmick(Data.Tile tile)
+        {
+            this.gameObject = new GameObject($"Gimmick_{tile.index}");
+            this.gameObject.transform.position = new Vector3(tile.rect.x + 0.5f, tile.rect.y + 0.5f);
+
+            this.spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
+            this.spriteRenderer.sortingOrder = SortingOrder.Gimmick;
+        }
+
+        public void SetParent(Transform transform)
+        {
+            this.gameObject.transform.parent = transform;
+        }
+
+        public Color color
+        {
+            get
+            {
+                return this.spriteRenderer.color;
+            }
+            set
+            {
+                this.spriteRenderer.color = value;
+            }
+        }
+
+        public void Visible(bool flag)
+        {
+            float alpha = 1.0f;
+            if (false == flag)
+            {
+                alpha = 0.5f;
+            }
+
+            color = new Color(color.r, color.g, color.b, alpha);
+        }
+    }
+
+    public class Bone : Gimmick
+    {
+        public static List<Sprite> Sprites = new List<Sprite>();
+
+        public Bone(Data.Tile tile) : base(tile)
+        {
+            gameObject.name = $"Bone_{tile.index}";
+            spriteRenderer.sprite = GetRandomSprite(Sprites);
+            color = new Color(color.r, color.g, color.b, 0.0f);
+        }
+    }
+
+    public class Shackle : Gimmick
+    {
+        public static List<Sprite> Sprites = new List<Sprite>();
+
+        public Shackle(Data.Tile tile) : base(tile)
+        {
+            gameObject.name = $"Shackle_{tile.index}";
+            spriteRenderer.sprite = GetRandomSprite(Sprites);
+            color = new Color(color.r, color.g, color.b, 0.0f);
         }
     }
 
@@ -356,6 +425,7 @@ public class Dungeon : MonoBehaviour
     public Player player;
 
     public Transform tileRoot;
+    public Transform gimmickRoot;
     public Tile[] tiles;
 
     private BoxCollider boxCollider;
@@ -372,64 +442,13 @@ public class Dungeon : MonoBehaviour
         tileRootGameObject.transform.parent = transform;
         this.tileRoot = tileRootGameObject.transform;
 
+        GameObject gimmickGameObject = new GameObject("GimmickRoot");
+        gimmickGameObject.transform.parent = transform;
+        this.gimmickRoot = gimmickGameObject.transform;
+
         boxCollider = gameObject.AddComponent<BoxCollider>();
 
-        Tile.GetTile = (int x, int y) =>
-        {
-            return data.GetTile(x, y);
-        };
-
-        Floor.CornerInnerLeftTop.Add(GameManager.Instance.sprites["DungeonTileset_7"]);
-        Floor.HorizontalTop.Add(GameManager.Instance.sprites["DungeonTileset_8"]);
-        Floor.HorizontalTop.Add(GameManager.Instance.sprites["DungeonTileset_9"]);
-        Floor.CornerInnerRightTop.Add(GameManager.Instance.sprites["DungeonTileset_10"]);
-        Floor.VerticalLeft.Add(GameManager.Instance.sprites["DungeonTileset_13"]);
-        Floor.VerticalRight.Add(GameManager.Instance.sprites["DungeonTileset_16"]);
-        Floor.CornerInnerLeftBottom.Add(GameManager.Instance.sprites["DungeonTileset_19"]);
-        Floor.HorizontalBottom.Add(GameManager.Instance.sprites["DungeonTileset_20"]);
-        Floor.HorizontalBottom.Add(GameManager.Instance.sprites["DungeonTileset_21"]);
-        Floor.CornerInnerRightBottom.Add(GameManager.Instance.sprites["DungeonTileset_22"]);
-        Floor.InnerNormal.Add(GameManager.Instance.sprites["DungeonTileset_14"]);
-        Floor.InnerNormal.Add(GameManager.Instance.sprites["DungeonTileset_15"]);
-        
-        Wall.Undefined.Add(GameManager.Instance.sprites["DungeonTileset_42"]);
-        Wall.Undefined.Add(GameManager.Instance.sprites["DungeonTileset_43"]);
-        Wall.Undefined.Add(GameManager.Instance.sprites["DungeonTileset_44"]);
-
-        Wall.CornerInnerLeftTop.Add(GameManager.Instance.sprites["DungeonTileset_0"]);
-        Wall.CornerInnerRightTop.Add(GameManager.Instance.sprites["DungeonTileset_5"]);
-        Wall.CornerInnerLeftBottom.Add(GameManager.Instance.sprites["DungeonTileset_24"]);
-        Wall.CornerInnerRightBottom.Add(GameManager.Instance.sprites["DungeonTileset_29"]);
-
-        Wall.CornerOuterLeftTop.Add(GameManager.Instance.sprites["DungeonTileset_30"]);
-        Wall.CornerOuterLeftTop.Add(GameManager.Instance.sprites["DungeonTileset_34"]);
-        Wall.CornerOuterRightTop.Add(GameManager.Instance.sprites["DungeonTileset_33"]);
-        Wall.CornerOuterRightTop.Add(GameManager.Instance.sprites["DungeonTileset_35"]);
-
-        Wall.HorizontalTop.Add(GameManager.Instance.sprites["DungeonTileset_1"]);
-        Wall.HorizontalTop.Add(GameManager.Instance.sprites["DungeonTileset_2"]);
-        Wall.HorizontalTop.Add(GameManager.Instance.sprites["DungeonTileset_3"]);
-        Wall.HorizontalTop.Add(GameManager.Instance.sprites["DungeonTileset_4"]);
-
-        Wall.HorizontalBottom.Add(GameManager.Instance.sprites["DungeonTileset_25"]);
-        Wall.HorizontalBottom.Add(GameManager.Instance.sprites["DungeonTileset_26"]);
-        Wall.HorizontalBottom.Add(GameManager.Instance.sprites["DungeonTileset_27"]);
-        Wall.HorizontalBottom.Add(GameManager.Instance.sprites["DungeonTileset_28"]);
-
-        Wall.VerticalTop.Add(GameManager.Instance.sprites["DungeonTileset_42"]);
-
-        Wall.VerticalLeft.Add(GameManager.Instance.sprites["DungeonTileset_6"]);
-        Wall.VerticalLeft.Add(GameManager.Instance.sprites["DungeonTileset_12"]);
-        Wall.VerticalLeft.Add(GameManager.Instance.sprites["DungeonTileset_18"]);
-
-        Wall.VerticalSplit.Add(GameManager.Instance.sprites["DungeonTileset_36"]);
-        Wall.VerticalSplit.Add(GameManager.Instance.sprites["DungeonTileset_37"]);
-        Wall.VerticalSplit.Add(GameManager.Instance.sprites["DungeonTileset_38"]);
-        Wall.VerticalSplit.Add(GameManager.Instance.sprites["DungeonTileset_39"]);
-
-        Wall.VerticalRight.Add(GameManager.Instance.sprites["DungeonTileset_11"]);
-        Wall.VerticalRight.Add(GameManager.Instance.sprites["DungeonTileset_17"]);
-        Wall.VerticalRight.Add(GameManager.Instance.sprites["DungeonTileset_23"]);
+        LoadSprite();
     }
 
     public void CreateDungeon(int roomCount, int minRoomSize, int maxRoomSize)
@@ -442,36 +461,14 @@ public class Dungeon : MonoBehaviour
         boxCollider.size = new Vector3(data.width, data.height);
         boxCollider.center = new Vector3(data.width / 2, data.height / 2);
 
-        for (int i = 0; i < tiles.Length; i++)
-        {
-            var tileData = data.GetTile(i);
-            Tile tile = null;
-            if (Data.Tile.Type.Floor == tileData.type)
-            {
-                tile = new Floor(tileData);
-            }
-
-            if (Data.Tile.Type.Wall == tileData.type)
-            {
-                tile = new Wall(tileData);
-            }
-
-            if (null != tile)
-            {
-                tile.SetParent(tileRoot);
-                tile.color = new Color(tile.color.r, tile.color.g, tile.color.b, 0.0f);
-                tiles[i] = tile;
-            }
-        }
-
+        InitTile();
+        IniitGimmick();
         InitGizmo();
-        
 
         int startRoomIndex = UnityEngine.Random.Range(0, data.rooms.Count);
         start = data.rooms[startRoomIndex];
 
         player = CreatePlayer();
-        
     }
 
     public void Clear()
@@ -498,6 +495,13 @@ public class Dungeon : MonoBehaviour
             GameObject.DestroyImmediate(player.gameObject);
         }
 
+        while (0 < gimmickRoot.childCount)
+        {
+            Transform gimmick = gimmickRoot.GetChild(0);
+            gimmick.parent = null;
+            GameObject.Destroy(gimmick.gameObject);
+        }
+
         blockGizmo.Clear();
         corridorGraphGizmo.Clear();
         astarPathGizmo.Clear();
@@ -506,7 +510,107 @@ public class Dungeon : MonoBehaviour
         DungeonGizmo.ClearAll();
     }
 
-    public void InitGizmo()
+    private void InitTile()
+    {
+        for (int i = 0; i < tiles.Length; i++)
+        {
+            var tileData = data.GetTile(i);
+            Tile tile = null;
+            if (Data.Tile.Type.Floor == tileData.type)
+            {
+                tile = new Floor(tileData);
+            }
+
+            if (Data.Tile.Type.Wall == tileData.type)
+            {
+                tile = new Wall(tileData);
+            }
+
+            if (null != tile)
+            {
+                tile.SetParent(tileRoot);
+                tile.color = new Color(tile.color.r, tile.color.g, tile.color.b, 0.0f);
+                tiles[i] = tile;
+            }
+        }
+    }
+    private void IniitGimmick()
+    {
+        Data.WeightRandom<int> gimmickCountWeightRandom = new Data.WeightRandom<int>();
+        gimmickCountWeightRandom.AddElement(2, 2);
+        gimmickCountWeightRandom.AddElement(1, 1);
+        gimmickCountWeightRandom.AddElement(1, 3);
+
+        foreach (var room in data.rooms)
+        {
+            if (30.0f < UnityEngine.Random.Range(0, 100))
+            {
+                continue;
+            }
+
+            int gimmickCount = gimmickCountWeightRandom.Random();
+
+            for (int i = 0; i < gimmickCount; i++)
+            {
+                int x = UnityEngine.Random.Range((int)room.rect.xMin + 1, (int)room.rect.xMax - 2);
+                int y = UnityEngine.Random.Range((int)room.rect.yMin + 1, (int)room.rect.yMax - 2);
+
+                var tileData = data.GetTile(x, y);
+                if (null == tileData)
+                {
+                    continue;
+                }
+
+                var tile = tiles[tileData.index];
+                if (null != tile.gimmick)
+                {
+                    continue;
+                }
+
+                Bone bone = new Bone(tileData);
+                tile.gimmick = bone;
+                bone.SetParent(gimmickRoot);
+            }
+        }
+
+        foreach (var room in data.rooms)
+        {
+            if (30.0f < UnityEngine.Random.Range(0, 100))
+            {
+                continue;
+            }
+
+            int gimmickCount = gimmickCountWeightRandom.Random();
+
+            for (int i = 0; i < gimmickCount; i++)
+            {
+                int x = UnityEngine.Random.Range((int)room.rect.xMin + 1, (int)room.rect.xMax - 2);
+                int y = (int)room.rect.yMax - 1;
+
+                var tileData = data.GetTile(x, y);
+                if (null == tileData)
+                {
+                    continue;
+                }
+
+                if (Data.Tile.Type.Wall != tileData.type)
+                {
+                    continue;
+                }
+
+                var tile = tiles[tileData.index];
+                if (null != tile.gimmick)
+                {
+                    continue;
+                }
+
+                Shackle shackle = new Shackle(tileData);
+                tile.gimmick = shackle;
+                shackle.SetParent(gimmickRoot);
+            }
+        }
+    }
+    private void InitGizmo()
     {
         foreach (var block in data.blocks)
         {
@@ -592,5 +696,82 @@ public class Dungeon : MonoBehaviour
         player.Move((int)start.rect.center.x, (int)start.rect.center.y);
 
         return player;
+    }
+
+    private void LoadSprite()
+    {
+        Floor.CornerInnerLeftBottom.Add(GameManager.Instance.sprites["Floor.CornerInnerLeftBottom_1"]);
+        Floor.CornerInnerLeftTop.Add(GameManager.Instance.sprites["Floor.CornerInnerLeftTop_1"]);
+        Floor.CornerInnerRightBottom.Add(GameManager.Instance.sprites["Floor.CornerInnerRightBottom_1"]);
+        Floor.CornerInnerRightTop.Add(GameManager.Instance.sprites["Floor.CornerInnerRightTop_1"]);
+        Floor.HorizontalBottom.Add(GameManager.Instance.sprites["Floor.HorizontalBottom_1"]);
+        Floor.HorizontalBottom.Add(GameManager.Instance.sprites["Floor.HorizontalBottom_2"]);
+        Floor.HorizontalTop.Add(GameManager.Instance.sprites["Floor.HorizontalTop_1"]);
+        Floor.HorizontalTop.Add(GameManager.Instance.sprites["Floor.HorizontalTop_2"]);
+        Floor.InnerNormal.Add(GameManager.Instance.sprites["Floor.InnerNormal_1"]);
+        Floor.InnerNormal.Add(GameManager.Instance.sprites["Floor.InnerNormal_2"]);
+        Floor.VerticalLeft.Add(GameManager.Instance.sprites["Floor.VerticalLeft_1"]);
+        Floor.VerticalRight.Add(GameManager.Instance.sprites["Floor.VerticalRight_1"]);
+
+        Wall.CornerInnerLeftBottom.Add(GameManager.Instance.sprites["Wall.CornerInnerLeftBottom_1"]);
+        Wall.CornerInnerLeftTop.Add(GameManager.Instance.sprites["Wall.CornerInnerLeftTop_1"]);
+        Wall.CornerInnerRightBottom.Add(GameManager.Instance.sprites["Wall.CornerInnerRightBottom_1"]);
+        Wall.CornerInnerRightTop.Add(GameManager.Instance.sprites["Wall.CornerInnerRightTop_1"]);
+
+        Wall.CornerOuterLeftTop.Add(GameManager.Instance.sprites["Wall.CornerOuterLeftTop_1"]);
+        Wall.CornerOuterLeftTop.Add(GameManager.Instance.sprites["Wall.CornerOuterLeftTop_2"]);
+        Wall.CornerOuterRightTop.Add(GameManager.Instance.sprites["Wall.CornerOuterRightTop_1"]);
+        Wall.CornerOuterRightTop.Add(GameManager.Instance.sprites["Wall.CornerOuterRightTop_2"]);
+
+        Wall.HorizontalBottom.Add(GameManager.Instance.sprites["Wall.HorizontalBottom_1"]);
+        Wall.HorizontalBottom.Add(GameManager.Instance.sprites["Wall.HorizontalBottom_2"]);
+        Wall.HorizontalBottom.Add(GameManager.Instance.sprites["Wall.HorizontalBottom_3"]);
+        Wall.HorizontalBottom.Add(GameManager.Instance.sprites["Wall.HorizontalBottom_4"]);
+
+        Wall.HorizontalTop.Add(GameManager.Instance.sprites["Wall.HorizontalTop_1"]);
+        Wall.HorizontalTop.Add(GameManager.Instance.sprites["Wall.HorizontalTop_2"]);
+        Wall.HorizontalTop.Add(GameManager.Instance.sprites["Wall.HorizontalTop_3"]);
+        Wall.HorizontalTop.Add(GameManager.Instance.sprites["Wall.HorizontalTop_4"]);
+
+        Wall.VerticalLeft.Add(GameManager.Instance.sprites["Wall.VerticalLeft_1"]);
+        Wall.VerticalLeft.Add(GameManager.Instance.sprites["Wall.VerticalLeft_2"]);
+        Wall.VerticalLeft.Add(GameManager.Instance.sprites["Wall.VerticalLeft_3"]);
+
+        Wall.VerticalRight.Add(GameManager.Instance.sprites["Wall.VerticalRight_1"]);
+        Wall.VerticalRight.Add(GameManager.Instance.sprites["Wall.VerticalRight_2"]);
+        Wall.VerticalRight.Add(GameManager.Instance.sprites["Wall.VerticalRight_3"]);
+
+        Wall.VerticalSplit.Add(GameManager.Instance.sprites["Wall.VerticalSplit_1"]);
+        Wall.VerticalSplit.Add(GameManager.Instance.sprites["Wall.VerticalSplit_2"]);
+        Wall.VerticalSplit.Add(GameManager.Instance.sprites["Wall.VerticalSplit_3"]);
+        Wall.VerticalSplit.Add(GameManager.Instance.sprites["Wall.VerticalSplit_4"]);
+
+        Wall.VerticalTop.Add(GameManager.Instance.sprites["Wall.VerticalTop_1"]);
+
+        Bone.Sprites.Add(GameManager.Instance.sprites["Bone_1"]);
+        Bone.Sprites.Add(GameManager.Instance.sprites["Bone_2"]);
+
+        Shackle.Sprites.Add(GameManager.Instance.sprites["Shackle_1"]);
+        Shackle.Sprites.Add(GameManager.Instance.sprites["Shackle_2"]);
+    }
+
+    private static Sprite GetRandomSprite(List<Sprite> sprites)
+    {
+        if (0 == sprites.Count)
+        {
+            return null;
+        }
+
+        return sprites[UnityEngine.Random.Range(0, sprites.Count)];
+    }
+
+    private static Data.Tile GetTile(int x, int y)
+    {
+        return GameManager.Instance.dungeon.data.GetTile(x, y);
+    }
+
+    private static Data.Tile GetTile(int index)
+    {
+        return GameManager.Instance.dungeon.data.GetTile(index);
     }
 }

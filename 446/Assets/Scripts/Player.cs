@@ -1,6 +1,7 @@
 using Data;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class Player : MonoBehaviour
 {
@@ -26,11 +27,10 @@ public class Player : MonoBehaviour
 
         if (null != sight)
         {
-            foreach (var tile in sight.tiles)
+            foreach (var tileData in sight.tiles)
             {
-                var point = dungeon.tiles[tile.index];
-                Color color = point.color;
-                point.color = new Color(color.r, color.g, color.b, 0.5f);
+                var tile = dungeon.tiles[tileData.index];
+                tile.Visible(false);
             }
         }
 
@@ -40,11 +40,10 @@ public class Player : MonoBehaviour
 
         sight = dungeon.data.CastLight(x, y, sightRange);
         {
-            foreach (var tile in sight.tiles)
+            foreach (var tileData in sight.tiles)
             {
-                var point = dungeon.tiles[tile.index];
-                Color color = point.color;
-                point.color = new Color(color.r, color.g, color.b, 1.0f);
+                var tile = dungeon.tiles[tileData.index];
+                tile.Visible(true);
             }
         }
     }

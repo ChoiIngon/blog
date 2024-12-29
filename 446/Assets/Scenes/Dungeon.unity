@@ -239,8 +239,12 @@ MonoBehaviour:
   roomCount: 10
   minRoomSize: 7
   maxRoomSize: 14
+  showBlockGizmo: 0
+  showCorridorGraph: 0
+  showAstarPath: 0
+  showAstarCost: 0
+  showTile: 0
   dungeon: {fileID: 0}
-  player: {fileID: 0}
 --- !u!4 &700434673
 Transform:
   m_ObjectHideFlags: 0

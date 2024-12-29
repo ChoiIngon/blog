@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.U2D;
 
 public class GameManager : MonoBehaviour
 {
@@ -69,12 +70,17 @@ public class GameManager : MonoBehaviour
         this.showAstarPath = true;
         this.showTile = true;
 
-        Sprite[] loadedSprites = Resources.LoadAll<Sprite>("DungeonTileset");
-        if (0 < loadedSprites.Length)
         {
-            foreach(Sprite sprite in loadedSprites)
+            SpriteAtlas spriteAtlas = Resources.Load<SpriteAtlas>("DungeonTileset");
+            Sprite[] laodedSprites = new Sprite[spriteAtlas.spriteCount];
+            spriteAtlas.GetSprites(laodedSprites);
+            if (0 < laodedSprites.Length)
             {
-                sprites.Add(sprite.name, sprite);
+                foreach (Sprite sprite in laodedSprites)
+                {
+                    string name = sprite.name.Replace("(Clone)", "");
+                    sprites.Add(name, sprite);
+                }
             }
         }
         

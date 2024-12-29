@@ -1,0 +1,154 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!687078895 &4343727234628468602
+SpriteAtlas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: DungeonTileset
+  m_EditorData:
+    serializedVersion: 2
+    textureSettings:
+      serializedVersion: 2
+      anisoLevel: 1
+      compressionQuality: 50
+      maxTextureSize: 2048
+      textureCompression: 0
+      filterMode: 1
+      generateMipMaps: 0
+      readable: 0
+      crunchedCompression: 0
+      sRGB: 1
+    platformSettings: []
+    packingSettings:
+      serializedVersion: 2
+      padding: 4
+      blockOffset: 1
+      allowAlphaSplitting: 0
+      enableRotation: 1
+      enableTightPacking: 1
+      enableAlphaDilation: 0
+    secondaryTextureSettings: {}
+    variantMultiplier: 1
+    packables:
+    - {fileID: 102900000, guid: 5c461d6304a744042ae03a6f8430142c, type: 3}
+    bindAsDefault: 1
+    isAtlasV2: 0
+    cachedData: {fileID: 0}
+  m_MasterAtlas: {fileID: 0}
+  m_PackedSprites:
+  - {fileID: 21300000, guid: f1339b80a69646c42a0f39674a781dd9, type: 3}
+  - {fileID: 21300000, guid: 4f4bca01b13705143825b4807c7f0768, type: 3}
+  - {fileID: 21300000, guid: b3063631acaeb17469e8da6998bff722, type: 3}
+  - {fileID: 21300000, guid: 73de2e5170cf57d40bb4935da5a8b835, type: 3}
+  - {fileID: 21300000, guid: e31fc2d1f9ff47140891abc7ba359a8c, type: 3}
+  - {fileID: 21300000, guid: 35c140025b9f73a4f8cad379edbe1955, type: 3}
+  - {fileID: 21300000, guid: e8f24632d82e3764abaee5c6eb4eae2a, type: 3}
+  - {fileID: 21300000, guid: 3c88ce423aa11b447bb4902ae256ca82, type: 3}
+  - {fileID: 21300000, guid: dea3aa62937bb5341a4572c22213c3bd, type: 3}
+  - {fileID: 21300000, guid: 0b01f7929dfeb6245b8aff85820830b7, type: 3}
+  - {fileID: 21300000, guid: fe5fae03d611f1945a682aaceb8c19bc, type: 3}
+  - {fileID: 21300000, guid: 215e08831451e4d4fa33a902123ffca5, type: 3}
+  - {fileID: 21300000, guid: f50a12c3542b9214bbdfff4f46d792d1, type: 3}
+  - {fileID: 21300000, guid: 34d7439498226454e8d6c8834a0ef4f3, type: 3}
+  - {fileID: 21300000, guid: 4ae44ed4880c16043809608a0850cc4a, type: 3}
+  - {fileID: 21300000, guid: e90fb1e45fdfbd94f82f02b61cbe23a4, type: 3}
+  - {fileID: 21300000, guid: b99fc415b6a91cc4ca658f7a80b8d796, type: 3}
+  - {fileID: 21300000, guid: 3d4296f5ee204c241ac596f5a68505d5, type: 3}
+  - {fileID: 21300000, guid: a6446d361a6d7f247851afec8d083609, type: 3}
+  - {fileID: 21300000, guid: 310db366730d92740a70b1af6be671ca, type: 3}
+  - {fileID: 21300000, guid: 3436b866587305440af0c0d624950ed8, type: 3}
+  - {fileID: 21300000, guid: f7a853b6c46494349a2907c863dbf564, type: 3}
+  - {fileID: 21300000, guid: 3a5bb5e629d43fe4f81d633e8856d4ad, type: 3}
+  - {fileID: 21300000, guid: 3f50385716d2b7249849c58ac5ee7c2d, type: 3}
+  - {fileID: 21300000, guid: a0ccdec777c035f46a0092b771310213, type: 3}
+  - {fileID: 21300000, guid: e2abf1d78e1662742b386b3501ac8a1d, type: 3}
+  - {fileID: 21300000, guid: dd23b908ed089774f95653ce1b88d7eb, type: 3}
+  - {fileID: 21300000, guid: 6196ff5828c4f2f48a86610dacf7aca7, type: 3}
+  - {fileID: 21300000, guid: f8323578365f9d747b5bc69dc5330be1, type: 3}
+  - {fileID: 21300000, guid: 3ca94b88f46793c46bf048b0b715bee5, type: 3}
+  - {fileID: 21300000, guid: d247d17919788084ba9663dd11df8c37, type: 3}
+  - {fileID: 21300000, guid: 05e40e79391fac54ab00e155c3f26b4e, type: 3}
+  - {fileID: 21300000, guid: e23e76a956c97e74f83ad0adbad3410c, type: 3}
+  - {fileID: 21300000, guid: ae40401a1b8474c4f9797088061dcaf1, type: 3}
+  - {fileID: 21300000, guid: 24dfde5a89340054c831f1487bbd3cc2, type: 3}
+  - {fileID: 21300000, guid: 741e119a47b23954d9f5b88d9adf3012, type: 3}
+  - {fileID: 21300000, guid: 4af0906b838d8e34db24e8c3d2c08a4f, type: 3}
+  - {fileID: 21300000, guid: 13abae8bf6a6f7449bf7144e5504309f, type: 3}
+  - {fileID: 21300000, guid: f9d710bb413cb324795326e6567cf1d4, type: 3}
+  - {fileID: 21300000, guid: 2db0fcbb8b3a74546b9c04fade63ac00, type: 3}
+  - {fileID: 21300000, guid: ee7e415c96a1e254a90a156c8b52df96, type: 3}
+  - {fileID: 21300000, guid: 0625665cafd24354691416a4f8b3e163, type: 3}
+  - {fileID: 21300000, guid: 0b50fdcc4281be84198dbb4f5afed2e8, type: 3}
+  - {fileID: 21300000, guid: f336e43da45c0ae458932ad225e7af72, type: 3}
+  - {fileID: 21300000, guid: f7a84a3d074ec684f8d4184645cba8fb, type: 3}
+  - {fileID: 21300000, guid: cd9dfd5da406a9743a4c6f4efc24abfa, type: 3}
+  - {fileID: 21300000, guid: e3580b8db7f315c4494ae3990583c0bf, type: 3}
+  - {fileID: 21300000, guid: 03958fedb2042a648bc8dd7a318b10f3, type: 3}
+  - {fileID: 21300000, guid: da86e7fdee193264f8c2feef8c8efdd1, type: 3}
+  - {fileID: 21300000, guid: 273c8e1efa6ebed44aa85f201a1a1206, type: 3}
+  - {fileID: 21300000, guid: ffeb78bea67d9204c963802659fc0e9b, type: 3}
+  - {fileID: 21300000, guid: 8afa4afeef7893841a9551daafd1f8f8, type: 3}
+  - {fileID: 21300000, guid: c7a2d6aff28f5c6498e47513435b8f85, type: 3}
+  - {fileID: 21300000, guid: 9a8201cf846a21048a3587d807a06ed7, type: 3}
+  - {fileID: 21300000, guid: a98711cf0db4d0049a330e20fae9ed89, type: 3}
+  m_PackedSpriteNamesToIndex:
+  - Wall.CornerOuterLeftTop_2
+  - CandleLight_3
+  - Wall.HorizontalBottom_1
+  - Bone_2
+  - Wall.CornerInnerLeftBottom_1
+  - CandleLight_1
+  - Wall.VerticalTop_2
+  - Wall.VerticalTop_1
+  - Wall.VerticalRight_2
+  - Floor.HorizontalBottom_1
+  - Wall.HorizontalBottom_2
+  - Bone_1
+  - CandleLight_2
+  - Torch_3
+  - Shackle_2
+  - Floor.CornerInnerRightTop_1
+  - Wall.VerticalSplit_4
+  - Wall.HorizontalBottom_3
+  - Wall.VerticalLeft_3
+  - Wall.VerticalLeft_2
+  - Wall.VerticalRight_1
+  - Torch_2
+  - Wall.CornerOuterLeftTop_1
+  - Wall.VerticalLeft_1
+  - Floor.InnerNormal_1
+  - Wall.CornerOuterRightTop_2
+  - Tapestry_1
+  - Floor.InnerNormal_2
+  - Wall.CornerInnerLeftTop_1
+  - Wall.VerticalSplit_1
+  - Floor.HorizontalTop_2
+  - Wall.HorizontalBottom_4
+  - Wall.VerticalSplit_3
+  - Wall.VerticalTop_3
+  - Shackle_1
+  - SpiderWeb_2
+  - Wall.HorizontalTop_4
+  - SpiderWeb_1
+  - Floor.VerticalRight_1
+  - Torch_1
+  - Wall.VerticalSplit_2
+  - Wall.CornerInnerRightTop_1
+  - Wall.CornerOuterRightTop_1
+  - Wall.HorizontalTop_1
+  - Floor.CornerInnerRightBottom_1
+  - CandleLight_4
+  - Floor.HorizontalTop_1
+  - Wall.VerticalRight_3
+  - Floor.CornerInnerLeftBottom_1
+  - Wall.CornerInnerRightBottom_1
+  - Floor.HorizontalBottom_2
+  - Wall.HorizontalTop_2
+  - Wall.HorizontalTop_3
+  - Floor.CornerInnerLeftTop_1
+  - Floor.VerticalLeft_1
+  m_RenderDataMap: {}
+  m_Tag: DungeonTileset
+  m_IsVariant: 0
