@@ -14,7 +14,7 @@ public class Dungeon : MonoBehaviour
         public static int Gimmick = 110;
         public static int Player = 120;
     }
-
+        
     public class Tile
     {
         public readonly GameObject gameObject;
@@ -447,6 +447,8 @@ public class Dungeon : MonoBehaviour
         this.gimmickRoot = gimmickGameObject.transform;
 
         boxCollider = gameObject.AddComponent<BoxCollider>();
+        gameObject.AddComponent<CameraDrag>();
+        gameObject.AddComponent<CameraScale>();
 
         LoadSprite();
     }
@@ -773,5 +775,54 @@ public class Dungeon : MonoBehaviour
     private static Data.Tile GetTile(int index)
     {
         return GameManager.Instance.dungeon.data.GetTile(index);
+    }
+
+    public class CameraScale : MonoBehaviour
+    {
+        private const float mouseWheelSpeed = 10.0f;
+        private const float minFieldOfView = 20.0f;
+        private const float maxFieldOfView = 120.0f;
+
+        private void Update()
+        {
+            float scroll = Input.GetAxis("Mouse ScrollWheel") * mouseWheelSpeed;
+            if (Camera.main.fieldOfView < minFieldOfView && scroll < 0.0f)
+            {
+                Camera.main.fieldOfView = minFieldOfView;
+            }
+            else if (Camera.main.fieldOfView > maxFieldOfView && scroll > 0.0f)
+            {
+                Camera.main.fieldOfView = maxFieldOfView;
+            }
+            else
+            {
+                Camera.main.fieldOfView -= scroll;
+            }
+        }
+    }
+
+    public class CameraDrag : MonoBehaviour 
+    {
+        private const float dragSpeed = 2;
+        private Vector3 dragOrigin;
+
+        private void Update()
+        {
+            if (true == Input.GetMouseButtonDown(1))
+            {
+                dragOrigin = Input.mousePosition;
+                return;
+            }
+
+            if (false == Input.GetMouseButton(1))
+            {
+                return;
+            }
+
+            Vector3 pos = Camera.main.ScreenToViewportPoint(Input.mousePosition - dragOrigin);
+            Vector3 move = new Vector3(pos.x * dragSpeed, pos.y * dragSpeed, 0.0f);
+
+            Camera.main.transform.Translate(-move, Space.World);
+        }
     }
 }

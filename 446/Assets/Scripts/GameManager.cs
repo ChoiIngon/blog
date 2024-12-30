@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -25,10 +24,6 @@ public class GameManager : MonoBehaviour
             return _instance;
         }
     }
-
-    private float mouseWheelSpeed = 10.0f;
-    private float minFieldOfView = 20.0f;
-    private float maxFieldOfView = 120.0f;
 
     public int roomCount;
     public int minRoomSize;
@@ -114,20 +109,5 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
-        float scroll = Input.GetAxis("Mouse ScrollWheel") * mouseWheelSpeed;
-        if (Camera.main.fieldOfView < minFieldOfView && scroll < 0.0f)
-        {
-            Camera.main.fieldOfView = minFieldOfView;
-        }
-        else if (Camera.main.fieldOfView > maxFieldOfView && scroll > 0.0f)
-        {
-            Camera.main.fieldOfView = maxFieldOfView;
-        }
-        else
-        {
-            Camera.main.fieldOfView -= scroll;
-        }
-    }
+    
 }
