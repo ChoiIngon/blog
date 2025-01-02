@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Tilemaps;
+using static Dungeon;
 
 public class Dungeon : MonoBehaviour
 {
@@ -12,7 +14,7 @@ public class Dungeon : MonoBehaviour
 
         public static int Tile = 100;
         public static int Gimmick = 110;
-        public static int Player = 120;
+        public static int Character = 120;
     }
         
     public class Tile
@@ -28,6 +30,7 @@ public class Dungeon : MonoBehaviour
             this.gameObject.transform.position = new Vector3(data.rect.x + 0.5f, data.rect.y + 0.5f);
             this.spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
             this.spriteRenderer.sortingOrder = SortingOrder.Tile;
+            this.spriteRenderer.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
         }
 
         public void SetParent(Transform transform)
@@ -108,7 +111,7 @@ public class Dungeon : MonoBehaviour
 
         public Floor(Data.Tile data) : base(data)
         {
-            spriteRenderer.sprite = GetSprite(data);
+            this.spriteRenderer.sprite = GetSprite(data);
         }
 
         private Sprite GetSprite(Data.Tile tile)
@@ -186,7 +189,7 @@ public class Dungeon : MonoBehaviour
         
         public Wall(Data.Tile tile) : base(tile)
         {
-            spriteRenderer.sprite = GetSprite(tile);
+            this.spriteRenderer.sprite = GetSprite(tile);
         }
 
         private Sprite GetSprite(Data.Tile tile)
@@ -365,6 +368,7 @@ public class Dungeon : MonoBehaviour
 
             this.spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
             this.spriteRenderer.sortingOrder = SortingOrder.Gimmick;
+            this.spriteRenderer.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
         }
 
         public void SetParent(Transform transform)
@@ -404,7 +408,6 @@ public class Dungeon : MonoBehaviour
         {
             gameObject.name = $"Bone_{tile.index}";
             spriteRenderer.sprite = GetRandomSprite(Sprites);
-            color = new Color(color.r, color.g, color.b, 0.0f);
         }
     }
 
@@ -416,12 +419,29 @@ public class Dungeon : MonoBehaviour
         {
             gameObject.name = $"Shackle_{tile.index}";
             spriteRenderer.sprite = GetRandomSprite(Sprites);
-            color = new Color(color.r, color.g, color.b, 0.0f);
+        }
+    }
+
+    public class UpStair : Gimmick
+    {
+        public UpStair(Data.Tile tile) : base(tile)
+        {
+            gameObject.name = $"UpStair_{tile.index}";
+            spriteRenderer.sprite = GameManager.Instance.resources.GetSprite("Stair.Up");
+        }
+    }
+
+    public class DownStair : Gimmick
+    {
+        public DownStair(Data.Tile tile) : base(tile)
+        {
+            gameObject.name = $"DownStair_{tile.index}";
+            spriteRenderer.sprite = GameManager.Instance.resources.GetSprite("Stair.Down");
         }
     }
 
     public Data.Dungeon data;
-    public Data.Block start;
+    
     public Player player;
 
     public Transform tileRoot;
@@ -466,9 +486,6 @@ public class Dungeon : MonoBehaviour
         InitTile();
         IniitGimmick();
         InitGizmo();
-
-        int startRoomIndex = UnityEngine.Random.Range(0, data.rooms.Count);
-        start = data.rooms[startRoomIndex];
 
         player = CreatePlayer();
     }
@@ -531,7 +548,6 @@ public class Dungeon : MonoBehaviour
             if (null != tile)
             {
                 tile.SetParent(tileRoot);
-                tile.color = new Color(tile.color.r, tile.color.g, tile.color.b, 0.0f);
                 tiles[i] = tile;
             }
         }
@@ -554,8 +570,9 @@ public class Dungeon : MonoBehaviour
 
             for (int i = 0; i < gimmickCount; i++)
             {
-                int x = UnityEngine.Random.Range((int)room.rect.xMin + 1, (int)room.rect.xMax - 2);
-                int y = UnityEngine.Random.Range((int)room.rect.yMin + 1, (int)room.rect.yMax - 2);
+                Rect floorRect = room.GetFloorRect();
+                int x = UnityEngine.Random.Range((int)floorRect.xMin, (int)floorRect.xMax);
+                int y = UnityEngine.Random.Range((int)floorRect.yMin, (int)floorRect.yMax);
 
                 var tileData = data.GetTile(x, y);
                 if (null == tileData)
@@ -610,6 +627,22 @@ public class Dungeon : MonoBehaviour
                 tile.gimmick = shackle;
                 shackle.SetParent(gimmickRoot);
             }
+        }
+
+        {
+            UpStair upStair = new UpStair(data.start);
+            upStair.SetParent(gimmickRoot);
+
+            var tile = tiles[data.start.index];
+            tile.gimmick = upStair;
+        }
+
+        {
+            DownStair downStair = new DownStair(data.end);
+            downStair.SetParent(gimmickRoot);
+
+            var tile = tiles[data.end.index];
+            tile.gimmick = downStair;
         }
     }
     private void InitGizmo()
@@ -691,70 +724,66 @@ public class Dungeon : MonoBehaviour
     {
         GameObject go = new GameObject("Player");
         go.transform.parent = transform;
+        go.transform.position = data.start.rect.center;
         var player = go.AddComponent<Player>();
-        player.sightRange = GameManager.Instance.maxRoomSize;
-        player.gizmo = new DungeonGizmo.Point("Sprite", Color.red, 1.0f);
-        player.gizmo.sortingOrder = SortingOrder.Player;
-        player.Move((int)start.rect.center.x, (int)start.rect.center.y);
-
         return player;
     }
 
     private void LoadSprite()
     {
-        Floor.CornerInnerLeftBottom.Add(GameManager.Instance.sprites["Floor.CornerInnerLeftBottom_1"]);
-        Floor.CornerInnerLeftTop.Add(GameManager.Instance.sprites["Floor.CornerInnerLeftTop_1"]);
-        Floor.CornerInnerRightBottom.Add(GameManager.Instance.sprites["Floor.CornerInnerRightBottom_1"]);
-        Floor.CornerInnerRightTop.Add(GameManager.Instance.sprites["Floor.CornerInnerRightTop_1"]);
-        Floor.HorizontalBottom.Add(GameManager.Instance.sprites["Floor.HorizontalBottom_1"]);
-        Floor.HorizontalBottom.Add(GameManager.Instance.sprites["Floor.HorizontalBottom_2"]);
-        Floor.HorizontalTop.Add(GameManager.Instance.sprites["Floor.HorizontalTop_1"]);
-        Floor.HorizontalTop.Add(GameManager.Instance.sprites["Floor.HorizontalTop_2"]);
-        Floor.InnerNormal.Add(GameManager.Instance.sprites["Floor.InnerNormal_1"]);
-        Floor.InnerNormal.Add(GameManager.Instance.sprites["Floor.InnerNormal_2"]);
-        Floor.VerticalLeft.Add(GameManager.Instance.sprites["Floor.VerticalLeft_1"]);
-        Floor.VerticalRight.Add(GameManager.Instance.sprites["Floor.VerticalRight_1"]);
+        Floor.CornerInnerLeftBottom.Add(GameManager.Instance.resources.GetSprite("Floor.CornerInnerLeftBottom_1"));
+        Floor.CornerInnerLeftTop.Add(GameManager.Instance.resources.GetSprite("Floor.CornerInnerLeftTop_1"));
+        Floor.CornerInnerRightBottom.Add(GameManager.Instance.resources.GetSprite("Floor.CornerInnerRightBottom_1"));
+        Floor.CornerInnerRightTop.Add(GameManager.Instance.resources.GetSprite("Floor.CornerInnerRightTop_1"));
+        Floor.HorizontalBottom.Add(GameManager.Instance.resources.GetSprite("Floor.HorizontalBottom_1"));
+        Floor.HorizontalBottom.Add(GameManager.Instance.resources.GetSprite("Floor.HorizontalBottom_2"));
+        Floor.HorizontalTop.Add(GameManager.Instance.resources.GetSprite("Floor.HorizontalTop_1"));
+        Floor.HorizontalTop.Add(GameManager.Instance.resources.GetSprite("Floor.HorizontalTop_2"));
+        Floor.InnerNormal.Add(GameManager.Instance.resources.GetSprite("Floor.InnerNormal_1"));
+        Floor.InnerNormal.Add(GameManager.Instance.resources.GetSprite("Floor.InnerNormal_2"));
+        Floor.VerticalLeft.Add(GameManager.Instance.resources.GetSprite("Floor.VerticalLeft_1"));
+        Floor.VerticalRight.Add(GameManager.Instance.resources.GetSprite("Floor.VerticalRight_1"));
 
-        Wall.CornerInnerLeftBottom.Add(GameManager.Instance.sprites["Wall.CornerInnerLeftBottom_1"]);
-        Wall.CornerInnerLeftTop.Add(GameManager.Instance.sprites["Wall.CornerInnerLeftTop_1"]);
-        Wall.CornerInnerRightBottom.Add(GameManager.Instance.sprites["Wall.CornerInnerRightBottom_1"]);
-        Wall.CornerInnerRightTop.Add(GameManager.Instance.sprites["Wall.CornerInnerRightTop_1"]);
+        Wall.CornerInnerLeftBottom.Add(GameManager.Instance.resources.GetSprite("Wall.CornerInnerLeftBottom_1"));
+        Wall.CornerInnerLeftTop.Add(GameManager.Instance.resources.GetSprite("Wall.CornerInnerLeftTop_1"));
+        Wall.CornerInnerRightBottom.Add(GameManager.Instance.resources.GetSprite("Wall.CornerInnerRightBottom_1"));
+        Wall.CornerInnerRightTop.Add(GameManager.Instance.resources.GetSprite("Wall.CornerInnerRightTop_1"));
 
-        Wall.CornerOuterLeftTop.Add(GameManager.Instance.sprites["Wall.CornerOuterLeftTop_1"]);
-        Wall.CornerOuterLeftTop.Add(GameManager.Instance.sprites["Wall.CornerOuterLeftTop_2"]);
-        Wall.CornerOuterRightTop.Add(GameManager.Instance.sprites["Wall.CornerOuterRightTop_1"]);
-        Wall.CornerOuterRightTop.Add(GameManager.Instance.sprites["Wall.CornerOuterRightTop_2"]);
+        Wall.CornerOuterLeftTop.Add(GameManager.Instance.resources.GetSprite("Wall.CornerOuterLeftTop_1"));
+        Wall.CornerOuterLeftTop.Add(GameManager.Instance.resources.GetSprite("Wall.CornerOuterLeftTop_2"));
+        Wall.CornerOuterRightTop.Add(GameManager.Instance.resources.GetSprite("Wall.CornerOuterRightTop_1"));
+        Wall.CornerOuterRightTop.Add(GameManager.Instance.resources.GetSprite("Wall.CornerOuterRightTop_2"));
 
-        Wall.HorizontalBottom.Add(GameManager.Instance.sprites["Wall.HorizontalBottom_1"]);
-        Wall.HorizontalBottom.Add(GameManager.Instance.sprites["Wall.HorizontalBottom_2"]);
-        Wall.HorizontalBottom.Add(GameManager.Instance.sprites["Wall.HorizontalBottom_3"]);
-        Wall.HorizontalBottom.Add(GameManager.Instance.sprites["Wall.HorizontalBottom_4"]);
+        Wall.HorizontalBottom.Add(GameManager.Instance.resources.GetSprite("Wall.HorizontalBottom_1"));
+        Wall.HorizontalBottom.Add(GameManager.Instance.resources.GetSprite("Wall.HorizontalBottom_2"));
+        Wall.HorizontalBottom.Add(GameManager.Instance.resources.GetSprite("Wall.HorizontalBottom_3"));
+        Wall.HorizontalBottom.Add(GameManager.Instance.resources.GetSprite("Wall.HorizontalBottom_4"));
 
-        Wall.HorizontalTop.Add(GameManager.Instance.sprites["Wall.HorizontalTop_1"]);
-        Wall.HorizontalTop.Add(GameManager.Instance.sprites["Wall.HorizontalTop_2"]);
-        Wall.HorizontalTop.Add(GameManager.Instance.sprites["Wall.HorizontalTop_3"]);
-        Wall.HorizontalTop.Add(GameManager.Instance.sprites["Wall.HorizontalTop_4"]);
+        Wall.HorizontalTop.Add(GameManager.Instance.resources.GetSprite("Wall.HorizontalTop_1"));
+        Wall.HorizontalTop.Add(GameManager.Instance.resources.GetSprite("Wall.HorizontalTop_2"));
+        Wall.HorizontalTop.Add(GameManager.Instance.resources.GetSprite("Wall.HorizontalTop_3"));
+        Wall.HorizontalTop.Add(GameManager.Instance.resources.GetSprite("Wall.HorizontalTop_4"));
 
-        Wall.VerticalLeft.Add(GameManager.Instance.sprites["Wall.VerticalLeft_1"]);
-        Wall.VerticalLeft.Add(GameManager.Instance.sprites["Wall.VerticalLeft_2"]);
-        Wall.VerticalLeft.Add(GameManager.Instance.sprites["Wall.VerticalLeft_3"]);
+        Wall.VerticalLeft.Add(GameManager.Instance.resources.GetSprite("Wall.VerticalLeft_1"));
+        Wall.VerticalLeft.Add(GameManager.Instance.resources.GetSprite("Wall.VerticalLeft_2"));
+        Wall.VerticalLeft.Add(GameManager.Instance.resources.GetSprite("Wall.VerticalLeft_3"));
 
-        Wall.VerticalRight.Add(GameManager.Instance.sprites["Wall.VerticalRight_1"]);
-        Wall.VerticalRight.Add(GameManager.Instance.sprites["Wall.VerticalRight_2"]);
-        Wall.VerticalRight.Add(GameManager.Instance.sprites["Wall.VerticalRight_3"]);
+        Wall.VerticalRight.Add(GameManager.Instance.resources.GetSprite("Wall.VerticalRight_1"));
+        Wall.VerticalRight.Add(GameManager.Instance.resources.GetSprite("Wall.VerticalRight_2"));
+        Wall.VerticalRight.Add(GameManager.Instance.resources.GetSprite("Wall.VerticalRight_3"));
 
-        Wall.VerticalSplit.Add(GameManager.Instance.sprites["Wall.VerticalSplit_1"]);
-        Wall.VerticalSplit.Add(GameManager.Instance.sprites["Wall.VerticalSplit_2"]);
-        Wall.VerticalSplit.Add(GameManager.Instance.sprites["Wall.VerticalSplit_3"]);
-        Wall.VerticalSplit.Add(GameManager.Instance.sprites["Wall.VerticalSplit_4"]);
+        Wall.VerticalSplit.Add(GameManager.Instance.resources.GetSprite("Wall.VerticalSplit_1"));
+        Wall.VerticalSplit.Add(GameManager.Instance.resources.GetSprite("Wall.VerticalSplit_2"));
+        Wall.VerticalSplit.Add(GameManager.Instance.resources.GetSprite("Wall.VerticalSplit_3"));
+        Wall.VerticalSplit.Add(GameManager.Instance.resources.GetSprite("Wall.VerticalSplit_4"));
 
-        Wall.VerticalTop.Add(GameManager.Instance.sprites["Wall.VerticalTop_1"]);
+        Wall.VerticalTop.Add(GameManager.Instance.resources.GetSprite("Wall.VerticalTop_1"));
 
-        Bone.Sprites.Add(GameManager.Instance.sprites["Bone_1"]);
-        Bone.Sprites.Add(GameManager.Instance.sprites["Bone_2"]);
+        Bone.Sprites.Add(GameManager.Instance.resources.GetSprite("Bone_1"));
+        Bone.Sprites.Add(GameManager.Instance.resources.GetSprite("Bone_2"));
 
-        Shackle.Sprites.Add(GameManager.Instance.sprites["Shackle_1"]);
-        Shackle.Sprites.Add(GameManager.Instance.sprites["Shackle_2"]);
+        Shackle.Sprites.Add(GameManager.Instance.resources.GetSprite("Shackle_1"));
+        Shackle.Sprites.Add(GameManager.Instance.resources.GetSprite("Shackle_2"));
     }
 
     private static Sprite GetRandomSprite(List<Sprite> sprites)

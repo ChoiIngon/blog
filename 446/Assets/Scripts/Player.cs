@@ -1,14 +1,40 @@
 using Data;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public class Player : MonoBehaviour
 {
-    public DungeonGizmo.Point gizmo;
-    public Data.ShadowCast sight;
+    public static class Direction
+    {
+        public const int front = 0;
+        public const int back = 1;
+        public const int right = 2;
+        public const int left = 3;
+    }
 
+    public int direction = Direction.front;
+    public SpriteRenderer spriteRenderer;
+    public Data.ShadowCast sight;
     public int sightRange;
+
+    public ActorAnimation animation;
+
+    private IEnumerator Start()
+    {
+        animation = gameObject.AddComponent<ActorAnimation>();
+        spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
+
+        yield return new WaitForEndOfFrame();
+
+        spriteRenderer.sortingOrder = Dungeon.SortingOrder.Character;
+        animation.skin = GameManager.Instance.resources.GetSkin("Player");
+        animation.direction = ActorAnimation.Direction.Down;
+        animation.Play(ActorAnimation.Action.Idle);
+
+        sightRange = GameManager.Instance.maxRoomSize;
+
+        Move((int)transform.position.x, (int)transform.position.y);
+    }
 
     public void Move(int x, int y)
     {
@@ -34,8 +60,27 @@ public class Player : MonoBehaviour
             }
         }
 
+        if (transform.position.x < x)
+        {
+            animation.direction = ActorAnimation.Direction.Right;
+        }
+
+        if (x < transform.position.x)
+        {
+            animation.direction = ActorAnimation.Direction.Left;
+        }
+
+        if (transform.position.y < y)
+        {
+            animation.direction = ActorAnimation.Direction.Up;
+        }
+
+        if (y < transform.position.y)
+        {
+            animation.direction = ActorAnimation.Direction.Down;
+        }
+
         transform.position = new Vector3(x, y);
-        gizmo.SetPosition(new Vector3(transform.position.x + 0.5f, transform.position.y + 0.5f));
         Camera.main.transform.position = new Vector3(transform.position.x, transform.position.y, Camera.main.transform.position.z);
 
         sight = dungeon.data.CastLight(x, y, sightRange);
@@ -45,6 +90,11 @@ public class Player : MonoBehaviour
                 var tile = dungeon.tiles[tileData.index];
                 tile.Visible(true);
             }
+        }
+
+        if (dungeon.data.end == destTile)
+        {
+            GameManager.Instance.CreateDungeon();
         }
     }
     
@@ -106,12 +156,14 @@ public class Player : MonoBehaviour
 
     private IEnumerator MoveCoroutine(AStarPathFinder pathFinder)
     {
+        animation.Play(ActorAnimation.Action.Walk);
         foreach(var tile in pathFinder.tiles)
         {
             Move((int)tile.rect.x, (int)tile.rect.y);
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(GameManager.TurnPassSpeed);
         }
 
+        animation.Play(ActorAnimation.Action.Idle);
         move = null;
         yield break;
     }

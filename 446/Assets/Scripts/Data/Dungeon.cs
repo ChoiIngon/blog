@@ -50,6 +50,16 @@ namespace Data
             this.type = Type.None;
             this.rect = new Rect(x, y, width, height);
         }
+
+        public Rect GetFloorRect()
+        {
+            Rect floorRect = new Rect(rect.x, rect.y, rect.width, rect.height);
+            floorRect.xMin += 1;
+            floorRect.xMax -= 1;
+            floorRect.yMin += 1;
+            floorRect.yMax -= 1;
+            return floorRect;
+        }
     }
 
     public class Dungeon
@@ -58,6 +68,8 @@ namespace Data
         public List<Block> blocks;
         public TileMap tileMap;
         public CorridorGraph corridorGraph;
+        public Tile start;
+        public Tile end;
 
         public List<int> astarPathTiles = new List<int>();
         public List<int> astarPathCost = new List<int>();
@@ -85,18 +97,6 @@ namespace Data
         public Tile GetTile(int x, int y)
         {
             return tileMap.GetTile(x, y);
-        }
-
-        public Block GetRoom(int x, int y)
-        {
-            foreach (Block room in rooms)
-            {
-                if (true == room.rect.Contains(new Vector2(x, y)))
-                {
-                    return room;
-                }
-            }
-            return null;
         }
 
         public AStarPathFinder FindPath(Tile from, Tile to)
@@ -558,6 +558,45 @@ namespace Data
                     IfNotNullBuildWall(x + 1, y);
                     IfNotNullBuildWall(x + 1, y + 1);
                 }
+            }
+
+            int distance = 0;
+            Block startRoom = null;
+            Block endRoom = null;
+            for (int i = 0; i < rooms.Count; i++)
+            {
+                Vector3 startPos = rooms[i].rect.center;
+                Tile start = GetTile((int)startPos.x, (int)startPos.y);
+                for (int j = i + 1; j < rooms.Count; j++)
+                {
+                    Vector3 endPos = rooms[j].rect.center;
+                    Tile end = GetTile((int)endPos.x, (int)endPos.y);
+                    var path = FindPath(start, end);
+                    if (distance < path.tiles.Count)
+                    {
+                        distance = path.tiles.Count;
+                        startRoom = rooms[i];
+                        endRoom = rooms[j];
+                    }
+                }
+            }
+
+            {
+                Rect startFloorRect = startRoom.GetFloorRect();
+
+                int x = UnityEngine.Random.Range((int)startFloorRect.xMin, (int)startFloorRect.xMax);
+                int y = UnityEngine.Random.Range((int)startFloorRect.yMin, (int)startFloorRect.yMax);
+
+                this.start = GetTile(x, y);
+            }
+
+            {
+                Rect endFloorRect = endRoom.GetFloorRect();
+
+                int x = UnityEngine.Random.Range((int)endFloorRect.xMin, (int)endFloorRect.xMax);
+                int y = UnityEngine.Random.Range((int)endFloorRect.yMin, (int)endFloorRect.yMax);
+
+                this.end = GetTile(x, y);
             }
         }
     }
