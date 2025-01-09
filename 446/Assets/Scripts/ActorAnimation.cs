@@ -67,6 +67,7 @@ public class ActorAnimation : MonoBehaviour
     private Coroutine coroutine;
 
     public Skin skin;
+
     public int direction {
         set
         {
@@ -82,6 +83,8 @@ public class ActorAnimation : MonoBehaviour
 
     public void Play(Action action)
     {
+        Stop();
+
         this.action = action;
 
         if (null == spriteRenderer)
@@ -92,8 +95,6 @@ public class ActorAnimation : MonoBehaviour
                 spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
             }
         }
-
-        Stop();
 
         SpriteSheet spriteSheet = null;
         switch (action)

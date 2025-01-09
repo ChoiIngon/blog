@@ -19,7 +19,10 @@ public class GameManagerEditor : Editor
 
         if (true == GUI.changed)
         {
-            GameManager.Instance.dungeon.EnableGizmo();
+            if (null != GameManager.Instance.dungeon)
+            {
+                GameManager.Instance.dungeon.EnableGizmo();
+            }
         }
     }
 }
