@@ -17,19 +17,19 @@ public class Player : MonoBehaviour
     public Data.ShadowCast sight;
     public int sightRange;
 
-    public ActorAnimation animation;
+    public ActorAnimation actorAnimation;
 
     private IEnumerator Start()
     {
-        animation = gameObject.AddComponent<ActorAnimation>();
+        actorAnimation = gameObject.AddComponent<ActorAnimation>();
         spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
 
         yield return new WaitForEndOfFrame();
 
         spriteRenderer.sortingOrder = Dungeon.SortingOrder.Character;
-        animation.skin = GameManager.Instance.resources.GetSkin("Player");
-        animation.direction = ActorAnimation.Direction.Down;
-        animation.Play(ActorAnimation.Action.Idle);
+        actorAnimation.skin = GameManager.Instance.resources.GetSkin("Player");
+        actorAnimation.direction = ActorAnimation.Direction.Down;
+        actorAnimation.Play(ActorAnimation.Action.Idle);
 
         sightRange = GameManager.Instance.maxRoomSize;
 
@@ -62,22 +62,22 @@ public class Player : MonoBehaviour
 
         if (transform.position.x < x)
         {
-            animation.direction = ActorAnimation.Direction.Right;
+            actorAnimation.direction = ActorAnimation.Direction.Right;
         }
 
         if (x < transform.position.x)
         {
-            animation.direction = ActorAnimation.Direction.Left;
+            actorAnimation.direction = ActorAnimation.Direction.Left;
         }
 
         if (transform.position.y < y)
         {
-            animation.direction = ActorAnimation.Direction.Up;
+            actorAnimation.direction = ActorAnimation.Direction.Up;
         }
 
         if (y < transform.position.y)
         {
-            animation.direction = ActorAnimation.Direction.Down;
+            actorAnimation.direction = ActorAnimation.Direction.Down;
         }
 
         transform.position = new Vector3(x, y);
@@ -156,14 +156,14 @@ public class Player : MonoBehaviour
 
     private IEnumerator MoveCoroutine(AStarPathFinder pathFinder)
     {
-        animation.Play(ActorAnimation.Action.Walk);
+        actorAnimation.Play(ActorAnimation.Action.Walk);
         foreach(var tile in pathFinder.tiles)
         {
             Move((int)tile.rect.x, (int)tile.rect.y);
             yield return new WaitForSeconds(GameManager.TurnPassSpeed);
         }
 
-        animation.Play(ActorAnimation.Action.Idle);
+        actorAnimation.Play(ActorAnimation.Action.Idle);
         move = null;
         yield break;
     }

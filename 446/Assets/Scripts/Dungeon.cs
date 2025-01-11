@@ -268,11 +268,13 @@ public class Dungeon : MonoBehaviour
             // 03
             if (true == wallSpriteFlags[0] && false == wallSpriteFlags[1] && false == wallSpriteFlags[2] && true == wallSpriteFlags[3])
             {
+                return GetRandomSprite(CornerOuterRightTop);
             }
 
             // 12
             if (false == wallSpriteFlags[0] && true == wallSpriteFlags[1] && true == wallSpriteFlags[2] && false == wallSpriteFlags[3])
             {
+                return GetRandomSprite(CornerOuterLeftTop);
             }
 
             // 13
