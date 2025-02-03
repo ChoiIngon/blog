@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using static Dungeon;
@@ -14,7 +15,7 @@ public class Dungeon : MonoBehaviour
 
         public static int Tile = 100;
         public static int Gimmick = 110;
-        public static int Character = 120;
+        public static int Actor = 120;
     }
         
     public class Tile
@@ -445,6 +446,7 @@ public class Dungeon : MonoBehaviour
     public Data.Dungeon data;
     
     public Player player;
+    public Dictionary<int, Monster> monsters = new Dictionary<int, Monster>();
 
     public Transform tileRoot;
     public Transform gimmickRoot;
@@ -488,7 +490,7 @@ public class Dungeon : MonoBehaviour
         InitTile();
         IniitGimmick();
         InitGizmo();
-
+        InitMonster();
         player = CreatePlayer();
     }
 
@@ -694,6 +696,35 @@ public class Dungeon : MonoBehaviour
             point.SetPosition(new Vector3(tile.rect.x + 0.5f, tile.rect.y + 0.5f));
             point.sortingOrder = SortingOrder.CorridorCost;
             astarCostGizmo.Add(point);
+        }
+    }
+    private void InitMonster()
+    {
+        while (0 < monsters.Count)
+        {
+            var pair = monsters.First();
+            var key = pair.Key;
+            var monster = pair.Value;
+
+            monster.gameObject.transform.parent = null;
+            GameObject.DestroyImmediate(monster.gameObject);
+
+            monsters.Remove(key);
+        }
+
+        foreach (var room in data.rooms)
+        {
+            if (30.0f < UnityEngine.Random.Range(0, 100))
+            {
+                continue;
+            }
+
+            GameObject go = new GameObject("Monster");
+            go.transform.parent = transform;
+            go.transform.position = room.rect.center;
+            Monster monster = go.AddComponent<Monster>();
+            monster.monsterNo = Monster.MonsterNoAllocator++;
+            monsters.Add(monster.monsterNo, monster);
         }
     }
 

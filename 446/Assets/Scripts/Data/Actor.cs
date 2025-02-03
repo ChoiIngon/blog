@@ -20,7 +20,7 @@ namespace Data
         public int luck;
 
         public int stamina;
-        public int sight; // 시야. 지각이 높아질 수록 시야도 커진다.
+        public int sightRange; // 시야. 지각이 높아질 수록 시야도 커진다.
 
         public class Meta
         {

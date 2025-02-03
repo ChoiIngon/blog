@@ -4,15 +4,6 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    public static class Direction
-    {
-        public const int front = 0;
-        public const int back = 1;
-        public const int right = 2;
-        public const int left = 3;
-    }
-
-    public int direction = Direction.front;
     public SpriteRenderer spriteRenderer;
     public Data.ShadowCast sight;
     public int sightRange;
@@ -26,7 +17,7 @@ public class Player : MonoBehaviour
 
         yield return new WaitForEndOfFrame();
 
-        spriteRenderer.sortingOrder = Dungeon.SortingOrder.Character;
+        spriteRenderer.sortingOrder = Dungeon.SortingOrder.Actor;
         actorAnimation.skin = GameManager.Instance.resources.GetSkin("Player");
         actorAnimation.direction = ActorAnimation.Direction.Down;
         actorAnimation.Play(ActorAnimation.Action.Idle);

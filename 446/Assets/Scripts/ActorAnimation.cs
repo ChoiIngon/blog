@@ -25,13 +25,6 @@ public class ActorAnimation : MonoBehaviour
         public float loopTime;
         public List<Sprite> sprites;
 
-        public SpriteSheet(List<Sprite> sprites, float loopTime, bool loop = true)
-        {
-            this.loopTime = loopTime;
-            this.sprites = sprites;
-            this.loop = loop;
-        }
-
         public SpriteSheet(string[] spriteNames, float loopTime, bool loop = true)
         {
             List<Sprite> sprites = new List<Sprite>();
