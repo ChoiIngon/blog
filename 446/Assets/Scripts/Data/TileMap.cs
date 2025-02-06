@@ -50,37 +50,7 @@ namespace Data
                 // 블록들을 (0, 0) 기준으로 옮김
                 block.rect.x -= rect.xMin;
                 block.rect.y -= rect.yMin;
-
-                { // 블록 타일의 cost를 낮춰 블록 위주로 길을 만들도록 함
-                    for (int y = (int)block.rect.yMin; y < (int)block.rect.yMax; y++)
-                    {
-                        for (int x = (int)block.rect.xMin; x < (int)block.rect.xMax; x++)
-                        {
-                            Tile tile = GetTile(x, y);
-                            tile.cost = Tile.PathCost.Floor;
-                        }
-                    }
-                }
-
-                { // 블록의 가운데에 cost를 낮춰 블록의 가운도로 길을 내도록 유도
-                    for (int x = (int)block.rect.xMin + 1; x < (int)block.rect.xMax - 1; x++)
-                    {
-                        Tile tile = GetTile(x, (int)block.rect.center.y);
-                        tile.cost = Tile.PathCost.Corridor;
-                    }
-
-                    for (int y = (int)block.rect.yMin + 1; y < (int)block.rect.yMax - 1; y++)
-                    {
-                        Tile tile = GetTile((int)block.rect.center.x, y);
-                        tile.cost = Tile.PathCost.Corridor;
-                    }
-                }
-
-                
-            }
-
-            foreach (Block block in blocks)
-            {
+            
                 // 방 블록인 경우 방에 대한 초기화
                 if (Block.Type.Room == block.type)
                 {

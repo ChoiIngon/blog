@@ -8,14 +8,15 @@ public class Dungeon : MonoBehaviour
 {
     public static class SortingOrder
     {
-        public static int Block = 0;
-        public static int CorridorGraph = 10;
-        public static int CorridorPath = 20;
-        public static int CorridorCost = 21;
+        public static int Tile          = 10;
+        public static int Gimmick       = 11;
+        public static int Actor         = 12;
 
-        public static int Tile = 100;
-        public static int Gimmick = 110;
-        public static int Actor = 120;
+        public static int BlockGizmo         = 100;
+        public static int CorridorGraphGizmo = 110;
+        public static int CorridorPathGizmo  = 120;
+        public static int CorridorCostGizmo  = 121;
+        public static int DoorGizmo          = 122;
     }
         
     public class Tile
@@ -458,7 +459,7 @@ public class Dungeon : MonoBehaviour
     public List<DungeonGizmo.Gizmo> corridorGraphGizmo = new List<DungeonGizmo.Gizmo>();
     public List<DungeonGizmo.Gizmo> astarCostGizmo = new List<DungeonGizmo.Gizmo>();
     public List<DungeonGizmo.Gizmo> astarPathGizmo = new List<DungeonGizmo.Gizmo>();
-    public List<DungeonGizmo.Gizmo> tileGizmo = new List<DungeonGizmo.Gizmo>();
+    public List<DungeonGizmo.Gizmo> doorGizmo = new List<DungeonGizmo.Gizmo>();
 
     private void Start()
     {
@@ -529,6 +530,7 @@ public class Dungeon : MonoBehaviour
         corridorGraphGizmo.Clear();
         astarPathGizmo.Clear();
         astarCostGizmo.Clear();
+        doorGizmo.Clear();
 
         DungeonGizmo.ClearAll();
     }
@@ -656,17 +658,25 @@ public class Dungeon : MonoBehaviour
             Color color;
             if (Data.Block.Type.Room == block.type)
             {
-                color = Color.red;
+                color = new Color(1.0f, 0.0f, 0.0f, 0.5f);
             }
             else
             {
-                color = Color.blue;
+                color = new Color(0.0f, 0.0f, 1.0f, 0.5f);
             }
 
             DungeonGizmo.Block gizmo = new DungeonGizmo.Block($"Block_{block.index}", color, block.rect.width, block.rect.height);
-            gizmo.sortingOrder = SortingOrder.Block;
+            gizmo.sortingOrder = SortingOrder.BlockGizmo;
             gizmo.SetPosition(new Vector3(block.rect.x, block.rect.y));
             blockGizmo.Add(gizmo);
+
+            foreach (var tile in block.doors)
+            {
+                DungeonGizmo.Point point = new DungeonGizmo.Point($"Cost_{tile.index}", Color.green, 1.0f);
+                point.SetPosition(new Vector3(tile.rect.x + 0.5f, tile.rect.y + 0.5f));
+                point.sortingOrder = SortingOrder.DoorGizmo;
+                doorGizmo.Add(point);
+            }
         }
 
         foreach (var corridor in data.corridorGraph.corridors)
@@ -674,7 +684,7 @@ public class Dungeon : MonoBehaviour
             int from = Mathf.Min(corridor.p1.index, corridor.p2.index);
             int to = Mathf.Max(corridor.p1.index, corridor.p2.index);
             DungeonGizmo.Line line = new DungeonGizmo.Line($"Connection_{from}_{to}", Color.green, corridor.p1.rect.center, corridor.p2.rect.center, 0.5f);
-            line.sortingOrder = SortingOrder.CorridorGraph;
+            line.sortingOrder = SortingOrder.CorridorGraphGizmo;
             corridorGraphGizmo.Add(line);
         }
 
@@ -683,7 +693,7 @@ public class Dungeon : MonoBehaviour
             var tile = data.tileMap.GetTile(tileIndex);
             DungeonGizmo.Point point = new DungeonGizmo.Point($"Path_{tile.index}", Color.white, 1.0f);
             point.SetPosition(new Vector3(tile.rect.x + 0.5f, tile.rect.y + 0.5f));
-            point.sortingOrder = SortingOrder.CorridorPath;
+            point.sortingOrder = SortingOrder.CorridorPathGizmo;
             astarPathGizmo.Add(point);
         }
 
@@ -694,7 +704,7 @@ public class Dungeon : MonoBehaviour
 
             DungeonGizmo.Point point = new DungeonGizmo.Point($"Cost_{tile.index}", new Color(1.0f, 1.0f - cost / Data.Tile.PathCost.MaxCost, 0.0f), 1.0f);
             point.SetPosition(new Vector3(tile.rect.x + 0.5f, tile.rect.y + 0.5f));
-            point.sortingOrder = SortingOrder.CorridorCost;
+            point.sortingOrder = SortingOrder.CorridorCostGizmo;
             astarCostGizmo.Add(point);
         }
     }
@@ -741,6 +751,11 @@ public class Dungeon : MonoBehaviour
         }
 
         foreach (var shape in astarPathGizmo)
+        {
+            shape.gameObject.SetActive(GameManager.Instance.showAstarPath);
+        }
+
+        foreach (var shape in doorGizmo)
         {
             shape.gameObject.SetActive(GameManager.Instance.showAstarPath);
         }

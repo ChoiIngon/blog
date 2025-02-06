@@ -4,6 +4,46 @@ using UnityEngine;
 
 namespace Data
 {
+    public class Door
+    {
+        public enum State {
+            Open,
+            Close,
+            Lock
+        }
+
+        public Tile tile;
+        public State state;
+
+        public Door(Tile tile, State state = State.Lock)
+        {
+            this.tile = tile;
+            this.state = state;
+        }
+
+        public bool Open()
+        {
+            if (State.Lock == state)
+            {
+                return false;
+            }
+
+            state = State.Open;
+            return true;
+        }
+
+        public bool Unlock()
+        {
+            if (State.Lock != state)
+            {
+                return false;
+            }
+
+            state = State.Close;
+            return true;
+        }
+    }
+
     public class Tile
     {
         public class PathCost
@@ -11,7 +51,7 @@ namespace Data
             public const int Default = 10;
             public const int Floor = 9;
             public const int Wall = 15;
-            public const int Corridor = 1;
+            public const int Corridor = 7;
             public const int MinCost = 1;
             public const int MaxCost = 15;
         }
@@ -27,6 +67,8 @@ namespace Data
         public Type type = Type.None;
         public Rect rect;
         public int cost = 1;
+
+        public Door door;
     }
 
     public class Block
@@ -43,7 +85,8 @@ namespace Data
         public Type type;
         public Rect rect;
         public List<Block> neighbors = new List<Block>();
-
+        public List<Tile> doors = new List<Tile>();
+        
         public Block(int index, float x, float y, float width, float height)
         {
             this.index = index;
@@ -68,6 +111,8 @@ namespace Data
         public List<Block> blocks;
         public TileMap tileMap;
         public CorridorGraph corridorGraph;
+        public Block startBlock;
+        public Block endBlock;
         public Tile start;
         public Tile end;
 
@@ -135,6 +180,7 @@ namespace Data
 
             GenerateCorridor(tileMap, corridorGraph);
             GenerateWall();
+            GenerateDoor();
         }
 
         private void CreateRooms(int roomCount, int minRoomSize, int maxRoomSize, WeightRandom<int> roomSizeWeightRandom, WeightRandom<Tuple<float, float>> ratioWeightRandom)
@@ -470,6 +516,12 @@ namespace Data
                         corridor.tiles.Add(tile);
                     }
                 }
+
+                if (0 < corridor.tiles.Count)
+                {
+                    src.doors.Add(corridor.tiles[0]);
+                    dest.doors.Add(corridor.tiles[corridor.tiles.Count - 1]);
+                }
             }
         }
 
@@ -561,8 +613,6 @@ namespace Data
             }
 
             int distance = 0;
-            Block startRoom = null;
-            Block endRoom = null;
             for (int i = 0; i < rooms.Count; i++)
             {
                 Vector3 startPos = rooms[i].rect.center;
@@ -575,28 +625,35 @@ namespace Data
                     if (distance < path.tiles.Count)
                     {
                         distance = path.tiles.Count;
-                        startRoom = rooms[i];
-                        endRoom = rooms[j];
+                        startBlock = rooms[i];
+                        endBlock = rooms[j];
                     }
                 }
             }
 
             {
-                Rect startFloorRect = startRoom.GetFloorRect();
+                Rect startFloorRect = startBlock.GetFloorRect();
 
-                int x = UnityEngine.Random.Range((int)startFloorRect.xMin, (int)startFloorRect.xMax);
-                int y = UnityEngine.Random.Range((int)startFloorRect.yMin, (int)startFloorRect.yMax);
+                int x = UnityEngine.Random.Range((int)startFloorRect.xMin+1, (int)startFloorRect.xMax-1);
+                int y = UnityEngine.Random.Range((int)startFloorRect.yMin+1, (int)startFloorRect.yMax-1);
 
                 this.start = GetTile(x, y);
             }
 
             {
-                Rect endFloorRect = endRoom.GetFloorRect();
+                Rect endFloorRect = endBlock.GetFloorRect();
 
-                int x = UnityEngine.Random.Range((int)endFloorRect.xMin, (int)endFloorRect.xMax);
-                int y = UnityEngine.Random.Range((int)endFloorRect.yMin, (int)endFloorRect.yMax);
+                int x = UnityEngine.Random.Range((int)endFloorRect.xMin+1, (int)endFloorRect.xMax-1);
+                int y = UnityEngine.Random.Range((int)endFloorRect.yMin+1, (int)endFloorRect.yMax-1);
 
                 this.end = GetTile(x, y);
+            }
+        }
+
+        private void GenerateDoor()
+        {
+            foreach (Block neighbor in startBlock.neighbors)
+            {
             }
         }
     }

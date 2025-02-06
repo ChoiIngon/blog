@@ -96,8 +96,8 @@ public static class DungeonGizmo
             this.lineRenderer.material = new Material(shader); ;
             this.lineRenderer.startWidth = width;
             this.lineRenderer.endWidth = width;
-			this.lineRenderer.startColor = color;
-			this.lineRenderer.endColor = color;
+            this.lineRenderer.startColor = color;
+			this.lineRenderer.endColor = new Color(color.r, color.g, color.b, color.a / 2);
             this.lineRenderer.useWorldSpace = false;
 
             this.lineRenderer.positionCount = 2;
@@ -197,8 +197,8 @@ public static class DungeonGizmo
         {
             set
             {
-                this.backgroundRenderer.color = new Color(value.r, value.g, value.b, 128);
-                this.gridRenderer.material.color = new Color(value.r, value.g, value.b, 200);
+                this.backgroundRenderer.color = new Color(value.r, value.g, value.b, value.a);
+                this.gridRenderer.material.color = new Color(value.r, value.g, value.b, (value.a + 1.0f) / 2.0f);
                 this.outlineRenderer.startColor = Color.white;
                 this.outlineRenderer.endColor = Color.white;
             }
