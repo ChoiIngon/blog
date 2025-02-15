@@ -41,7 +41,7 @@ public class GameManager : MonoBehaviour
     {
         private readonly List<string> spriteAtlasAssets;
         private Dictionary<string, Sprite> sprites = new Dictionary<string, Sprite>();
-        private Dictionary<string, ActorAnimation.Skin> skins = new Dictionary<string, ActorAnimation.Skin>();
+        private Dictionary<string, Actor.Skin> skins = new Dictionary<string, Actor.Skin>();
 
         public Resources()
         {
@@ -84,27 +84,37 @@ public class GameManager : MonoBehaviour
         private void BuildActorAnimationSkin()
         {
             {
-                var skin = ScriptableObject.CreateInstance<ActorAnimation.Skin>();
+                var skin = ScriptableObject.CreateInstance<Actor.Skin>();
                 
-                var idle_U = new ActorAnimation.SpriteSheet(new string[] { "Player.idle_back" }, TurnPassSpeed * 4, true);
-                var idle_D = new ActorAnimation.SpriteSheet(new string[] { "Player.idle_front" }, TurnPassSpeed * 4, true);
-                var idle_L = new ActorAnimation.SpriteSheet(new string[] { "Player.idle_left" }, TurnPassSpeed * 4, true);
-                var idle_R = new ActorAnimation.SpriteSheet(new string[] { "Player.idle_right" }, TurnPassSpeed * 4, true);
+                var idle_U = new Actor.Skin.SpriteSheet(new string[] { "Player.idle_back" }, TurnPassSpeed * 4, true);
+                var idle_D = new Actor.Skin.SpriteSheet(new string[] { "Player.idle_front" }, TurnPassSpeed * 4, true);
+                var idle_L = new Actor.Skin.SpriteSheet(new string[] { "Player.idle_left" }, TurnPassSpeed * 4, true);
+                var idle_R = new Actor.Skin.SpriteSheet(new string[] { "Player.idle_right" }, TurnPassSpeed * 4, true);
 
-                skin.SetIdleSprites(ActorAnimation.Direction.Up,    idle_U);
-                skin.SetIdleSprites(ActorAnimation.Direction.Down,  idle_D);
-                skin.SetIdleSprites(ActorAnimation.Direction.Left,  idle_L);
-                skin.SetIdleSprites(ActorAnimation.Direction.Right, idle_R);
+                skin.AddSpriteSheet(Actor.Action.Idle, Actor.Direction.Up,      idle_U);
+                skin.AddSpriteSheet(Actor.Action.Idle, Actor.Direction.Down,    idle_D);
+                skin.AddSpriteSheet(Actor.Action.Idle, Actor.Direction.Left,    idle_L);
+                skin.AddSpriteSheet(Actor.Action.Idle, Actor.Direction.Right,   idle_R);
                 
-                var walk_D = new ActorAnimation.SpriteSheet(new string[] { "Player.walk_front_1", "Player.walk_front_2" }, TurnPassSpeed * 2, true);
-                var walk_U = new ActorAnimation.SpriteSheet(new string[] { "Player.walk_back_1", "Player.walk_back_2" }, TurnPassSpeed * 2, true);
-                var walk_L = new ActorAnimation.SpriteSheet(new string[] { "Player.walk_left_1", "Player.walk_left_2" }, TurnPassSpeed * 2, true);
-                var walk_R = new ActorAnimation.SpriteSheet(new string[] { "Player.walk_right_1", "Player.walk_right_2" }, TurnPassSpeed * 2, true);
+                var walk_D = new Actor.Skin.SpriteSheet(new string[] { "Player.walk_front_1", "Player.walk_front_2" }, TurnPassSpeed * 2, true);
+                var walk_U = new Actor.Skin.SpriteSheet(new string[] { "Player.walk_back_1", "Player.walk_back_2" }, TurnPassSpeed * 2, true);
+                var walk_L = new Actor.Skin.SpriteSheet(new string[] { "Player.walk_left_1", "Player.walk_left_2" }, TurnPassSpeed * 2, true);
+                var walk_R = new Actor.Skin.SpriteSheet(new string[] { "Player.walk_right_1", "Player.walk_right_2" }, TurnPassSpeed * 2, true);
 
-                skin.SetWalkSprites(ActorAnimation.Direction.Down, walk_D);
-                skin.SetWalkSprites(ActorAnimation.Direction.Up,   walk_U);
-                skin.SetWalkSprites(ActorAnimation.Direction.Left, walk_L);
-                skin.SetWalkSprites(ActorAnimation.Direction.Right,walk_R);
+                skin.AddSpriteSheet(Actor.Action.Walk, Actor.Direction.Down,    walk_D);
+                skin.AddSpriteSheet(Actor.Action.Walk, Actor.Direction.Up,      walk_U);
+                skin.AddSpriteSheet(Actor.Action.Walk, Actor.Direction.Left,    walk_L);
+                skin.AddSpriteSheet(Actor.Action.Walk, Actor.Direction.Right,   walk_R);
+
+                var attack_D = new Actor.Skin.SpriteSheet(new string[] { "Player.attack_front" }, TurnPassSpeed * 2, false);
+                var attack_U = new Actor.Skin.SpriteSheet(new string[] { "Player.attack_back" }, TurnPassSpeed * 2, false);
+                var attack_L = new Actor.Skin.SpriteSheet(new string[] { "Player.attack_left" }, TurnPassSpeed * 2, false);
+                var attack_R = new Actor.Skin.SpriteSheet(new string[] { "Player.attack_right" }, TurnPassSpeed * 2, false);
+
+                skin.AddSpriteSheet(Actor.Action.Attack, Actor.Direction.Down,  attack_D);
+                skin.AddSpriteSheet(Actor.Action.Attack, Actor.Direction.Up,    attack_U);
+                skin.AddSpriteSheet(Actor.Action.Attack, Actor.Direction.Left,  attack_L);
+                skin.AddSpriteSheet(Actor.Action.Attack, Actor.Direction.Right, attack_R);
 
                 skins.Add("Player", skin);
             }
@@ -114,7 +124,7 @@ public class GameManager : MonoBehaviour
         {
             return sprites[name];
         }
-        public ActorAnimation.Skin GetSkin(string name)
+        public Actor.Skin GetSkin(string name)
         {
             return skins[name];
         }

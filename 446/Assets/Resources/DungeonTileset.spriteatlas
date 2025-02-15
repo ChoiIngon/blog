@@ -51,6 +51,7 @@ SpriteAtlas:
   - {fileID: 21300000, guid: fe5fae03d611f1945a682aaceb8c19bc, type: 3}
   - {fileID: 21300000, guid: 215e08831451e4d4fa33a902123ffca5, type: 3}
   - {fileID: 21300000, guid: f50a12c3542b9214bbdfff4f46d792d1, type: 3}
+  - {fileID: 21300000, guid: e95e10d341e474a488ce8a30ed3037c9, type: 3}
   - {fileID: 21300000, guid: e60d63f39d80f87418b711662dbbb7e8, type: 3}
   - {fileID: 21300000, guid: 34d7439498226454e8d6c8834a0ef4f3, type: 3}
   - {fileID: 21300000, guid: 4ae44ed4880c16043809608a0850cc4a, type: 3}
@@ -75,6 +76,7 @@ SpriteAtlas:
   - {fileID: 21300000, guid: e23e76a956c97e74f83ad0adbad3410c, type: 3}
   - {fileID: 21300000, guid: ae40401a1b8474c4f9797088061dcaf1, type: 3}
   - {fileID: 21300000, guid: 24dfde5a89340054c831f1487bbd3cc2, type: 3}
+  - {fileID: 21300000, guid: 34339a6a3112e774cacee02823fea190, type: 3}
   - {fileID: 21300000, guid: 741e119a47b23954d9f5b88d9adf3012, type: 3}
   - {fileID: 21300000, guid: 4af0906b838d8e34db24e8c3d2c08a4f, type: 3}
   - {fileID: 21300000, guid: 13abae8bf6a6f7449bf7144e5504309f, type: 3}
@@ -109,6 +111,7 @@ SpriteAtlas:
   - Wall.HorizontalBottom_2
   - Bone_1
   - CandleLight_2
+  - Door.Vertical
   - Stair.Up
   - Torch_3
   - Shackle_2
@@ -133,6 +136,7 @@ SpriteAtlas:
   - Wall.VerticalSplit_3
   - Wall.VerticalTop_3
   - Shackle_1
+  - Door.Horizontal
   - SpiderWeb_2
   - Wall.HorizontalTop_4
   - SpiderWeb_1

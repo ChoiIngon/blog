@@ -2,99 +2,78 @@ using Data;
 using System.Collections;
 using UnityEngine;
 
-public class Player : MonoBehaviour
+public class Player : Actor
 {
-    public SpriteRenderer spriteRenderer;
-    public Data.ShadowCast sight;
-    public int sightRange;
+    private Data.ShadowCast shadowcast;
+    private Coroutine move = null;
 
-    public ActorAnimation actorAnimation;
-
-    private IEnumerator Start()
+    private void Start()
     {
-        actorAnimation = gameObject.AddComponent<ActorAnimation>();
         spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
-
-        yield return new WaitForEndOfFrame();
-
         spriteRenderer.sortingOrder = Dungeon.SortingOrder.Actor;
-        actorAnimation.skin = GameManager.Instance.resources.GetSkin("Player");
-        actorAnimation.direction = ActorAnimation.Direction.Down;
-        actorAnimation.Play(ActorAnimation.Action.Idle);
 
-        sightRange = GameManager.Instance.maxRoomSize;
+        this.agility = 3;
+        this.sight = GameManager.Instance.maxRoomSize;
+        
+        this.skin = GameManager.Instance.resources.GetSkin("Player");
+        this.direction = Direction.Down;
+        this.SetAction(Action.Idle);
 
         Move((int)transform.position.x, (int)transform.position.y);
     }
 
-    public void Move(int x, int y)
+    public override void Move(int x, int y)
     {
+        base.Move(x, y);
+        
         Dungeon dungeon = GameManager.Instance.dungeon;
-
         var destTile = dungeon.data.GetTile(x, y);
         if (null == destTile)
         {
             return;
         }
-        
+
         if (Data.Tile.Type.Wall == destTile.type)
         {
             return;
         }
 
-        if (null != sight)
+        Camera.main.transform.position = new Vector3(transform.position.x, transform.position.y, Camera.main.transform.position.z);
+
+        if (null != shadowcast)
         {
-            foreach (var tileData in sight.tiles)
+            foreach (var tileData in shadowcast.tiles)
             {
                 var tile = dungeon.tiles[tileData.index];
                 tile.Visible(false);
             }
         }
 
-        if (transform.position.x < x)
+        shadowcast = dungeon.data.CastLight(x, y, sight);
         {
-            actorAnimation.direction = ActorAnimation.Direction.Right;
-        }
-
-        if (x < transform.position.x)
-        {
-            actorAnimation.direction = ActorAnimation.Direction.Left;
-        }
-
-        if (transform.position.y < y)
-        {
-            actorAnimation.direction = ActorAnimation.Direction.Up;
-        }
-
-        if (y < transform.position.y)
-        {
-            actorAnimation.direction = ActorAnimation.Direction.Down;
-        }
-
-        transform.position = new Vector3(x, y);
-        Camera.main.transform.position = new Vector3(transform.position.x, transform.position.y, Camera.main.transform.position.z);
-
-        sight = dungeon.data.CastLight(x, y, sightRange);
-        {
-            foreach (var tileData in sight.tiles)
+            foreach (var tileData in shadowcast.tiles)
             {
                 var tile = dungeon.tiles[tileData.index];
                 tile.Visible(true);
             }
         }
 
-        if (dungeon.data.end == destTile)
+        var dest = dungeon.data.GetTile(x, y);
+        
+        if (dungeon.data.end == dest)
         {
             GameManager.Instance.CreateDungeon();
+            return;
         }
+
+        MonsterManager.Instance.Update();
     }
     
     public void Clear()
     {
-        sight = null;
+        shadowcast = null;
     }
-
-    Coroutine move = null;
+    
     void Update()
     {
         if (true == Input.GetKeyDown(KeyCode.UpArrow))
@@ -147,16 +126,15 @@ public class Player : MonoBehaviour
 
     private IEnumerator MoveCoroutine(AStarPathFinder pathFinder)
     {
-        actorAnimation.Play(ActorAnimation.Action.Walk);
+        SetAction(Action.Walk);
         foreach(var tile in pathFinder.tiles)
         {
             Move((int)tile.rect.x, (int)tile.rect.y);
             yield return new WaitForSeconds(GameManager.TurnPassSpeed);
         }
 
-        actorAnimation.Play(ActorAnimation.Action.Idle);
+        SetAction(Action.Idle);
         move = null;
         yield break;
     }
-
 }

@@ -772,7 +772,7 @@ public class Dungeon : MonoBehaviour
     {
         GameObject go = new GameObject("Player");
         go.transform.parent = transform;
-        go.transform.position = data.start.rect.center;
+        go.transform.position = new Vector3((int)data.start.rect.center.x, (int)data.start.rect.center.y, 0.0f);
         var player = go.AddComponent<Player>();
         return player;
     }

@@ -1,168 +1,281 @@
 using System.Collections.Generic;
 
-namespace Data
+namespace BehaviourTree
 {
-    public class BehaviourTree
+    public enum Result
     {
-        public class Blackboard
+        Success,
+        Failure,
+        Abort,
+        InProgress
+    }
+
+    public class Blackboard
+    {
+        private Dictionary<string, object> objects = new Dictionary<string, object>();
+        public Blackboard parent;
+
+        public object Get(string name)
         {
-            private Blackboard parent;
-            private Dictionary<string, object> data = new Dictionary<string, object>();
-
-            public object Get(string name)
+            object data;
+            if (false == objects.TryGetValue(name, out data))
             {
-                if (true == data.ContainsKey(name))
-                {
-                    return data[name];
-                }
-
-                if (null != parent)
-                {
-                    return parent.Get(name);
-                }
-
-                return null;
-            }
-        }
-
-        public enum Result
-        {
-            Success,
-            Failure,
-            Abort,
-            InProgress
-        }
-
-        public class Node
-        {
-            public string name;
-
-            public Node(string name)
-            {
-                this.name = name;
-            }
-
-            public virtual Result Run()
-            {
-                return Result.Success;
-            }
-        }
-
-        // 컴포짓 노드가 실행 되는 조건 지정
-        public class Decorator : Node
-        {
-            public Node child;
-            public Decorator(string name) : base(name) { }
-
-            public void AddChild(Node child)
-            {
-                this.child = child;
-            }
-        }
-
-        public class Composite : Node
-        {
-            public Composite(string name) : base(name) { }
-
-            public List<Node> children = new List<Node>();
-            public List<Decorator> decorators = new List<Decorator>();
-
-            public void AddChild(Node child)
-            {
-                this.children.Add(child);
-            }
-
-            public void AddDecorator(Decorator decorator)
-            {
-                this.decorators.Add(decorator);
-            }
-
-            public Node GetChild(int index)
-            {
-                if (index >= children.Count)
+                if (null == parent)
                 {
                     return null;
                 }
-                return children[index];
+
+                return parent.Get(name);
             }
 
-            public List<Node> GetChildren()
-            {
-                return children;
-            }
-
-            public override Result Run()
-            {
-                foreach (Decorator decorator in decorators)
-                {
-                    if (Result.Failure == decorator.Run())
-                    {
-                        return Result.Failure;
-                    }
-                }
-
-                return Result.Success;
-            }
+            return data;
         }
 
-        public class Selector : Composite
+        public void Set(string name, object data)
         {
-            public Selector(string name) : base(name) { }
-
-            public override Result Run()
+            if (true == objects.ContainsKey(name))
             {
-                if (Result.Failure == base.Run())
-                {
-                    return Result.Failure;
-                }
-
-                foreach (Node child in GetChildren())
-                {
-                    if (Result.Success == child.Run())
-                    {
-                        return Result.Success;
-                    }
-
-                    if (Result.InProgress == child.Run())
-                    {
-                        return Result.InProgress;
-                    }
-                }
-                return Result.Failure;
+                objects[name] = data;
+                return;
             }
+
+            objects.Add(name, data);
         }
 
-        public class Sequence : Composite
+        public void Clear()
         {
-            public Sequence(string name) : base(name) { }
+            objects.Clear();
+        }
+    }
 
-            public override Result Run()
-            {
-                if (Result.Failure == base.Run())
-                {
-                    return Result.Failure;
-                }
+    public class Node
+    {
+        public readonly string name;
+        public Node parent;
+        public Blackboard blackboard = new Blackboard();
 
-                foreach (Node child in GetChildren())
-                {
-                    if (Result.Failure == child.Run())
-                    {
-                        return Result.Failure;
-                    }
-                }
-                return Result.Success;
-            }
+        public Node(string name)
+        {
+            this.name = name;
         }
 
-        public Node FindChild(string path)
+        public virtual Result Update()
+        {
+            return Result.Success;
+        }
+
+        public virtual void Abort()
+        {
+        }
+
+        public virtual Node FindChild(string name)
         {
             return null;
         }
+    }
 
-        public Node root;
+    public class Root : Node
+    {
+        private Node child;
 
-        public BehaviourTree()
+        public Root(string name) : base(name)
         {
+            this.child = null;
+        }
+
+        public void AddChild(Node child)
+        {
+            child.parent = this;
+            child.blackboard.parent = this.blackboard;
+
+            this.child = child;
+        }
+
+        public override Node FindChild(string name)
+        {
+            if (null == child)
+            {
+                return null;
+            }
+
+            int index = name.IndexOf('/');
+            string targetName = -1 != index ? name.Substring(0, index) : name;
+
+            if (targetName != child.name)
+            {
+                return null;
+            }
+
+            if (-1 != index)
+            {
+                string nextPath = name.Substring(index + 1);
+                if ("" != nextPath)
+                {
+                    return child.FindChild(nextPath);
+                }
+            }
+            return child;
+        }
+
+        public override void Abort()
+        {
+            base.Abort();
+
+            if (null == child)
+            {
+                return;
+            }
+
+            child.Abort();
+        }
+
+        public override Result Update()
+        {
+            if (null == child)
+            {
+                return Result.Failure;
+            }
+
+            var ret = child.Update();
+            if (Result.InProgress != ret)
+            {
+                Abort();
+            }
+            return ret;
+        }
+    }
+
+    public class Composite : Node
+    {
+        public Composite(string name) : base(name)
+        {
+        }
+
+        public List<Node> children = new List<Node>();
+
+        public void AddChild(Node child)
+        {
+            child.parent = this;
+            child.blackboard.parent = this.blackboard;
+
+            children.Add(child);
+        }
+
+        public override Node FindChild(string name)
+        {
+            if (0 == children.Count)
+            {
+                return null;
+            }
+
+            int index = name.IndexOf('/');
+            string targetName = -1 != index ? name.Substring(0, index) : name;
+
+            foreach (Node child in children)
+            {
+                if (targetName != child.name)
+                {
+                    continue;
+                }
+
+                if (-1 != index)
+                {
+                    string nextPath = name.Substring(index + 1);
+                    if ("" != nextPath)
+                    {
+                        return child.FindChild(nextPath);
+                    }
+                }
+
+                return child;
+            }
+
+            return null;
+        }
+
+        public override void Abort()
+        {
+            base.Abort();
+            foreach (Node child in children)
+            {
+                child.Abort();
+            }
+        }
+    }
+
+    public class Sequence : Composite
+    {
+        public Sequence(string name) : base(name)
+        {
+        }
+
+        public int currentIndex;
+
+        public override Result Update()
+        {
+            for (; currentIndex < children.Count; currentIndex++)
+            {
+                Node child = children[currentIndex];
+
+                Result result = child.Update();
+
+                if (Result.InProgress == result)
+                {
+                    return Result.InProgress;
+                }
+
+                if (Result.Failure == result)
+                {
+                    currentIndex = 0;
+                    return Result.Failure;
+                }
+            }
+
+            currentIndex = 0;
+            return Result.Success;
+        }
+
+        public override void Abort()
+        {
+            base.Abort();
+            currentIndex = 0;
+        }
+    }
+
+    public class Selector : Composite
+    {
+        public Selector(string name) : base(name)
+        {
+        }
+
+        public int currentIndex;
+
+        public override Result Update()
+        {
+            for (; currentIndex < children.Count; currentIndex++)
+            {
+                Node child = children[currentIndex];
+                Result result = child.Update();
+                if (Result.InProgress == result)
+                {
+                    return Result.InProgress;
+                }
+
+                if (Result.Success == result)
+                {
+                    currentIndex = 0;
+                    return Result.Success;
+                }
+            }
+
+            currentIndex = 0;
+            return Result.Failure;
+        }
+
+        public override void Abort()
+        {
+            base.Abort();
+            currentIndex = 0;
         }
     }
 }
