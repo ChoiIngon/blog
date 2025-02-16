@@ -1,4 +1,3 @@
-using BehaviourTree;
 using Data;
 using UnityEngine;
 
@@ -9,68 +8,51 @@ public class Monster : Actor
     public int monsterNo = 0;
     public float actionGauge = 0;
     public BehaviourTree.Root behaviour = null;
+    public BehaviourTree.Node search = null;
+    public BehaviourTree.Node approch = null;
+    public BehaviourTree.Node attack = null;
 
     private void Start()
     {
+        this.agility = 1;
+        this.sight = GameManager.Instance.maxRoomSize;
+
+        gameObject.name = $"Monster_{monsterNo}";
         spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
         spriteRenderer.sortingOrder = Dungeon.SortingOrder.Actor;
 
-        this.monsterNo = MonsterNoAllocator++;
-        this.agility = 1;
-        this.sight = GameManager.Instance.maxRoomSize;
+        this.search = null;
+        if (0 == Random.Range(0, 100) % 2)
+        {
+            this.search = new Search("Search"); // 시야에서 보이지 않으면 포기
+            spriteRenderer.color = new Color(0.0f, 0.0f, 1.0f, 1.0f);   // 파란색 몬스터
+        }
+        else
+        {
+            this.search = new Chase("Chase"); // 시야에서 사라져도 끝까지 추적
+            this.spriteRenderer.color = new Color(1.0f, 0.0f, 0.0f, 1.0f); // 빨간색 몬스터
+        }
+        this.approch = new Approch("Approch"); // 플레이어에게 접근
+        this.attack = new Attack("Attack");
 
         this.skin = GameManager.Instance.resources.GetSkin("Player");
         this.direction = Direction.Down;
         this.SetAction(Action.Idle);
+        this.Visible(false);
+
+        Move((int)transform.position.x, (int)transform.position.y);
 
         this.behaviour = new BehaviourTree.Root("Root");
+        behaviour.AddChild(new BehaviourTree.Sequence("Sequence"));
 
-        {
-            BehaviourTree.Sequence sequence = new BehaviourTree.Sequence("Sequence");
-            behaviour.AddChild(sequence);
-        }
-
-        {
-            var sequence = behaviour.FindChild("Sequence") as Sequence;
-
-            Node search = null;
-            if (0 == Random.Range(0, 100) % 2)
-            {
-                search = new Chase("Chase"); // 시야에서 사라져도 끝까지 추적
-                spriteRenderer.color = new Color(1.0f, 0.0f, 0.0f, 1.0f); // 빨간색 몬스터
-            }
-            else
-            {
-                search = new Search("Search"); // 시야에서 보이지 않으면 포기
-                spriteRenderer.color = new Color(0.0f, 0.0f, 1.0f, 1.0f);   // 파란색 몬스터
-            }
-
-            sequence.AddChild(search);
-        }
-
-        {
-            Approch approch = new Approch("Approch"); // 플레이어에게 접근
-
-            BehaviourTree.Sequence sequence = behaviour.FindChild("Sequence") as Sequence;
-            sequence.AddChild(approch);
-        }
-
-        {
-            Attack attack = new Attack("Attack"); // 플레이어에게 접근
-
-            BehaviourTree.Sequence sequence = behaviour.FindChild("Sequence") as Sequence;
-            sequence.AddChild(attack);
-        }
+        var sequence = behaviour.FindChild("Sequence") as BehaviourTree.Sequence;
+        sequence.AddChild(this.search);
+        sequence.AddChild(this.approch);
+        sequence.AddChild(this.attack);
 
         Data.MonsterManager.Instance.monsters.Add(monsterNo, this);
     }
 
-    public override void Move(int x, int y)
-    {
-        base.Move(x, y);
-        this.SetAction(Action.Walk);
-    }
-    
     public class Search : BehaviourTree.Node
     {
         public Search(string name) : base(name) { }
@@ -210,7 +192,7 @@ public class Monster : Actor
         }
     }
 
-    public class Attack : Node
+    public class Attack : BehaviourTree.Node
     {
         public Attack(string name) : base(name) {}
 

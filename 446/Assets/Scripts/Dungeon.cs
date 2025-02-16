@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Tilemaps;
-using static Dungeon;
 
 public class Dungeon : MonoBehaviour
 {
@@ -25,6 +23,7 @@ public class Dungeon : MonoBehaviour
         
         protected SpriteRenderer spriteRenderer;
         public Gimmick gimmick;
+        public Actor actor;
 
         public Tile(Data.Tile data)
         {
@@ -53,6 +52,11 @@ public class Dungeon : MonoBehaviour
             if (null != gimmick)
             {
                 gimmick.Visible(flag);
+            }
+
+            if (null != actor)
+            {
+                actor.Visible(flag);
             }
         }
 

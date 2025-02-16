@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
 
 public class Actor : MonoBehaviour
@@ -47,22 +46,9 @@ public class Actor : MonoBehaviour
 
     public SpriteRenderer spriteRenderer;
     public Action action = Action.Idle;
-    private int _direction = Direction.Down;
+    public int direction = Direction.Down;
     private Coroutine coroutine;
-
-    public int direction
-    {
-        set
-        {
-            if (_direction == value)
-            {
-                return;
-            }
-
-            _direction = value;
-            SetAction(action);
-        }
-    }
+    private Dungeon.Tile occupyTile;
 
     public class Skin : ScriptableObject
     {
@@ -151,6 +137,15 @@ public class Actor : MonoBehaviour
 
         transform.position = new Vector3(x, y);
 
+        if (null != occupyTile)
+        {
+            occupyTile.actor = null;
+        }
+
+        occupyTile = dungeon.tiles[tile.index];
+        occupyTile.actor = this;
+
+        SetAction(Action.Walk);
         return;
     }
 
@@ -161,10 +156,6 @@ public class Actor : MonoBehaviour
             return;
         }
 
-        Stop();
-
-        this.action = action;
-
         if (null == spriteRenderer)
         {
             spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
@@ -174,7 +165,10 @@ public class Actor : MonoBehaviour
             }
         }
 
-        Skin.SpriteSheet spriteSheet = skin.GetSpriteSheet(action, _direction);
+        StopAnimation();
+
+        this.action = action;
+        Skin.SpriteSheet spriteSheet = skin.GetSpriteSheet(action, direction);
         if (null == spriteSheet)
         {
             return;
@@ -183,7 +177,19 @@ public class Actor : MonoBehaviour
         coroutine = StartCoroutine(PlayAnimation(spriteSheet));
     }
 
-    public void Stop()
+    public void Visible(bool flag)
+    {
+        Color color = spriteRenderer.color;
+        float alpha = 1.0f;
+        if (false == flag)
+        {
+            alpha = 0.0f;
+        }
+        color = new Color(color.r, color.g, color.b, alpha);
+        spriteRenderer.color = color;
+    }
+
+    private void StopAnimation()
     {
         if (null == coroutine)
         {
@@ -209,6 +215,7 @@ public class Actor : MonoBehaviour
                 yield return new WaitForSeconds(spriteSheet.playTime / spriteSheet.sprites.Count);
             }
         } while (spriteSheet.loop);
-    }
 
+        SetAction(Action.Idle);
+    }
 }

@@ -96,10 +96,10 @@ public class GameManager : MonoBehaviour
                 skin.AddSpriteSheet(Actor.Action.Idle, Actor.Direction.Left,    idle_L);
                 skin.AddSpriteSheet(Actor.Action.Idle, Actor.Direction.Right,   idle_R);
                 
-                var walk_D = new Actor.Skin.SpriteSheet(new string[] { "Player.walk_front_1", "Player.walk_front_2" }, TurnPassSpeed * 2, true);
-                var walk_U = new Actor.Skin.SpriteSheet(new string[] { "Player.walk_back_1", "Player.walk_back_2" }, TurnPassSpeed * 2, true);
-                var walk_L = new Actor.Skin.SpriteSheet(new string[] { "Player.walk_left_1", "Player.walk_left_2" }, TurnPassSpeed * 2, true);
-                var walk_R = new Actor.Skin.SpriteSheet(new string[] { "Player.walk_right_1", "Player.walk_right_2" }, TurnPassSpeed * 2, true);
+                var walk_D = new Actor.Skin.SpriteSheet(new string[] { "Player.walk_front_1", "Player.walk_front_2" }, TurnPassSpeed, false);
+                var walk_U = new Actor.Skin.SpriteSheet(new string[] { "Player.walk_back_1", "Player.walk_back_2" }, TurnPassSpeed, false);
+                var walk_L = new Actor.Skin.SpriteSheet(new string[] { "Player.walk_left_1", "Player.walk_left_2" }, TurnPassSpeed, false);
+                var walk_R = new Actor.Skin.SpriteSheet(new string[] { "Player.walk_right_1", "Player.walk_right_2" }, TurnPassSpeed, false);
 
                 skin.AddSpriteSheet(Actor.Action.Walk, Actor.Direction.Down,    walk_D);
                 skin.AddSpriteSheet(Actor.Action.Walk, Actor.Direction.Up,      walk_U);

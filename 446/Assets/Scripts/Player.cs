@@ -1,5 +1,6 @@
 using Data;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Player : Actor
@@ -120,20 +121,22 @@ public class Player : Actor
             var from = dungeon.GetTile((int)transform.position.x, (int)transform.position.y);
             var to = dungeon.GetTile((int)hit.point.x, (int)hit.point.y);
             var path = dungeon.FindPath(from, to);
-            move = StartCoroutine(MoveCoroutine(path));
+            if (0 < path.tiles.Count)
+            {
+                path.tiles.RemoveAt(0);
+                move = StartCoroutine(MoveCoroutine(path.tiles));
+            }
         }
     }
 
-    private IEnumerator MoveCoroutine(AStarPathFinder pathFinder)
+    private IEnumerator MoveCoroutine(List<Tile> tiles)
     {
-        SetAction(Action.Walk);
-        foreach(var tile in pathFinder.tiles)
+        foreach(var tile in tiles)
         {
             Move((int)tile.rect.x, (int)tile.rect.y);
             yield return new WaitForSeconds(GameManager.TurnPassSpeed);
         }
 
-        SetAction(Action.Idle);
         move = null;
         yield break;
     }
