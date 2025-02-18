@@ -139,7 +139,7 @@ public class Map : MonoBehaviour
                 {
 					float centerSlope = (float)dx / (float)dy;
 
-					if (null != tile.block || (startSlope >= centerSlope && centerSlope >= endSlope))
+					if (startSlope >= centerSlope && centerSlope >= endSlope)
                     {
                         tile.SetVisible(true);
                     }
