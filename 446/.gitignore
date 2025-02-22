@@ -5,3 +5,5 @@
 /[Bb]uilds/
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
+.vs
+.vsconfig
