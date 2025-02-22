@@ -1,3 +1,4 @@
+using Data;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -39,23 +40,7 @@ public class Player : Actor
 
         Camera.main.transform.position = new Vector3(transform.position.x, transform.position.y, Camera.main.transform.position.z);
 
-        if (null != shadowcast)
-        {
-            foreach (var tileData in shadowcast.tiles)
-            {
-                var tile = dungeon.tiles[tileData.index];
-                tile.Visible(false);
-            }
-        }
-
-        shadowcast = dungeon.data.CastLight(x, y, sight);
-        {
-            foreach (var tileData in shadowcast.tiles)
-            {
-                var tile = dungeon.tiles[tileData.index];
-                tile.Visible(true);
-            }
-        }
+        FieldOfView();
 
         var dest = dungeon.data.GetTile(x, y);
 
@@ -148,6 +133,32 @@ public class Player : Actor
             {
                 path.tiles.RemoveAt(0);
                 move = StartCoroutine(MoveCoroutine(path.tiles));
+            }
+        }
+    }
+
+    public void FieldOfView()
+    {
+        Dungeon dungeon = GameManager.Instance.dungeon;
+        
+        if (null != shadowcast)
+        {
+            foreach (var tileData in shadowcast.tiles)
+            {
+                var tile = dungeon.tiles[tileData.index];
+                tile.Visible(false);
+            }
+        }
+
+        int x = (int)transform.position.x;
+        int y = (int)transform.position.y; 
+
+        shadowcast = dungeon.data.CastLight(x, y, sight);
+        {
+            foreach (var tileData in shadowcast.tiles)
+            {
+                var tile = dungeon.tiles[tileData.index];
+                tile.Visible(true);
             }
         }
     }

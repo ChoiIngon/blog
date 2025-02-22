@@ -94,5 +94,7 @@ public class TurnManager
         }
 
         current.Update();
+
+        GameManager.Instance.dungeon.player.FieldOfView();
     }
 }
