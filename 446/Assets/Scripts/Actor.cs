@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 
 public class Actor : MonoBehaviour
@@ -44,11 +45,11 @@ public class Actor : MonoBehaviour
 
     public Skin skin;
 
-    public SpriteRenderer spriteRenderer;
-    public Action action = Action.Idle;
-    public int direction = Direction.Down;
-    private Coroutine coroutine;
-    private Dungeon.Tile occupyTile;
+    public SpriteRenderer spriteRenderer { get; protected set; }
+    public Action action { get; private set; }
+    public int direction { get; protected set; } = Direction.Down;
+    public Dungeon.Tile occupyTile { get; private set; }
+    private Coroutine animationCoroutine;
 
     public class Skin : ScriptableObject
     {
@@ -100,21 +101,33 @@ public class Actor : MonoBehaviour
         }
     }
 
-    public virtual void Move(int x, int y)
+    public virtual void Attack(Actor actor)
     {
-        Dungeon dungeon = GameManager.Instance.dungeon;
-
-        var tile = dungeon.data.GetTile(x, y);
-        if (null == tile)
+        if (transform.position.x < actor.transform.position.x)
         {
-            return;
+            this.direction = Direction.Right;
         }
 
-        if (Data.Tile.Type.Wall == tile.type)
+        if (actor.transform.position.x < transform.position.x)
         {
-            return;
+            this.direction = Direction.Left;
         }
 
+        if (transform.position.y < actor.transform.position.y)
+        {
+            this.direction = Direction.Up;
+        }
+
+        if (actor.transform.position.y < transform.position.y)
+        {
+            this.direction = Direction.Down;
+        }
+
+        SetAction(Action.Attack);
+    }
+
+    public virtual bool Move(int x, int y)
+    {
         if (transform.position.x < x)
         {
             this.direction = Direction.Right;
@@ -135,6 +148,24 @@ public class Actor : MonoBehaviour
             this.direction = Direction.Down;
         }
 
+        Dungeon dungeon = GameManager.Instance.dungeon;
+
+        var tile = dungeon.GetTile(x, y);
+        if (null == tile)
+        {
+            return false;
+        }
+
+        if (Data.Tile.Type.Wall == tile.data.type)
+        {
+            return false;
+        }
+
+        if (null != tile.actor)
+        {
+            return false;
+        }
+
         transform.position = new Vector3(x, y);
 
         if (null != occupyTile)
@@ -142,11 +173,23 @@ public class Actor : MonoBehaviour
             occupyTile.actor = null;
         }
 
-        occupyTile = dungeon.tiles[tile.index];
-        occupyTile.actor = this;
+        occupyTile = tile;
+        tile.actor = this;
 
         SetAction(Action.Walk);
-        return;
+        return true;
+    }
+
+    public virtual void Destroy()
+    {
+        if (occupyTile != null)
+        {
+            occupyTile.actor = null;
+            occupyTile = null;
+        }
+
+        gameObject.transform.parent = null;
+        GameObject.DestroyImmediate(gameObject);
     }
 
     public void SetAction(Action action)
@@ -174,7 +217,7 @@ public class Actor : MonoBehaviour
             return;
         }
 
-        coroutine = StartCoroutine(PlayAnimation(spriteSheet));
+        animationCoroutine = StartCoroutine(PlayAnimation(spriteSheet));
     }
 
     public void Visible(bool flag)
@@ -191,13 +234,13 @@ public class Actor : MonoBehaviour
 
     private void StopAnimation()
     {
-        if (null == coroutine)
+        if (null == animationCoroutine)
         {
             return;
         }
 
-        StopCoroutine(coroutine);
-        coroutine = null;
+        StopCoroutine(animationCoroutine);
+        animationCoroutine = null;
     }
 
     private IEnumerator PlayAnimation(Skin.SpriteSheet spriteSheet)

@@ -1,4 +1,3 @@
-using Data;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -14,7 +13,7 @@ public class Player : Actor
         spriteRenderer.sortingOrder = Dungeon.SortingOrder.Actor;
 
         this.agility = 3;
-        this.sight = GameManager.Instance.maxRoomSize;
+        this.sight = 5;
         
         this.skin = GameManager.Instance.resources.GetSkin("Player");
         this.direction = Direction.Down;
@@ -23,20 +22,19 @@ public class Player : Actor
         Move((int)transform.position.x, (int)transform.position.y);
     }
 
-    public override void Move(int x, int y)
+    public override bool Move(int x, int y)
     {
-        base.Move(x, y);
-        
         Dungeon dungeon = GameManager.Instance.dungeon;
-        var destTile = dungeon.data.GetTile(x, y);
-        if (null == destTile)
+        if (false == base.Move(x, y))
         {
-            return;
-        }
+            var tile = dungeon.GetTile(x, y);
+            if (null == tile.actor)
+            {
+                return false;
+            }
 
-        if (Data.Tile.Type.Wall == destTile.type)
-        {
-            return;
+            Attack(tile.actor);
+            return true;
         }
 
         Camera.main.transform.position = new Vector3(transform.position.x, transform.position.y, Camera.main.transform.position.z);
@@ -60,16 +58,28 @@ public class Player : Actor
         }
 
         var dest = dungeon.data.GetTile(x, y);
-        
+
         if (dungeon.data.end == dest)
         {
             GameManager.Instance.CreateDungeon();
-            return;
+            return true;
         }
 
-        MonsterManager.Instance.Update();
+        return true;
     }
-    
+
+    public override void Attack(Actor actor)
+    {
+        base.Attack(actor);
+
+        actor.health.value -= 1;
+        if (0 >= actor.health.value)
+        {
+            Monster monster = actor as Monster;
+            GameManager.Instance.dungeon.monsterManager.Remove(monster);
+        }
+    }
+
     public void Clear()
     {
         shadowcast = null;
@@ -77,24 +87,37 @@ public class Player : Actor
     
     void Update()
     {
+        if (0 < GameManager.Instance.dungeon.turnManager.actions.Count)
+        {
+            return;
+        }
+
         if (true == Input.GetKeyDown(KeyCode.UpArrow))
         {
-            Move((int)transform.position.x, (int)transform.position.y + 1);
+            // Move((int)transform.position.x, (int)transform.position.y + 1);
+            GameManager.Instance.dungeon.turnManager.actions.Add(new TurnManager.Move(this, (int)transform.position.x, (int)transform.position.y + 1));
+            GameManager.Instance.dungeon.monsterManager.Update();
         }
 
         if (true == Input.GetKeyDown(KeyCode.DownArrow))
         {
-            Move((int)transform.position.x, (int)transform.position.y - 1);
+            // Move((int)transform.position.x, (int)transform.position.y - 1);
+            GameManager.Instance.dungeon.turnManager.actions.Add(new TurnManager.Move(this, (int)transform.position.x, (int)transform.position.y - 1));
+            GameManager.Instance.dungeon.monsterManager.Update();
         }
 
         if (true == Input.GetKeyDown(KeyCode.LeftArrow))
         {
-            Move((int)transform.position.x - 1, (int)transform.position.y);
+            // Move((int)transform.position.x - 1, (int)transform.position.y);
+            GameManager.Instance.dungeon.turnManager.actions.Add(new TurnManager.Move(this, (int)transform.position.x - 1, (int)transform.position.y));
+            GameManager.Instance.dungeon.monsterManager.Update();
         }
 
         if (true == Input.GetKeyDown(KeyCode.RightArrow))
         {
-            Move((int)transform.position.x + 1, (int)transform.position.y);
+            // Move((int)transform.position.x + 1, (int)transform.position.y);
+            GameManager.Instance.dungeon.turnManager.actions.Add(new TurnManager.Move(this, (int)transform.position.x + 1, (int)transform.position.y));
+            GameManager.Instance.dungeon.monsterManager.Update();
         }
 
         if (true == Input.GetMouseButtonDown(0))
@@ -129,7 +152,7 @@ public class Player : Actor
         }
     }
 
-    private IEnumerator MoveCoroutine(List<Tile> tiles)
+    private IEnumerator MoveCoroutine(List<Data.Tile> tiles)
     {
         foreach(var tile in tiles)
         {

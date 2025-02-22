@@ -24,9 +24,11 @@ public class Dungeon : MonoBehaviour
         protected SpriteRenderer spriteRenderer;
         public Gimmick gimmick;
         public Actor actor;
+        public Data.Tile data;
 
         public Tile(Data.Tile data)
         {
+            this.data = data;
             this.gameObject = new GameObject($"Tile_{data.index}");
             this.gameObject.transform.position = new Vector3(data.rect.x + 0.5f, data.rect.y + 0.5f);
             this.spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
@@ -72,14 +74,14 @@ public class Dungeon : MonoBehaviour
             }
         }
 
-        protected bool IsWall(Data.Tile data)
+        protected bool IsWall(Data.Tile tile)
         {
-            if (null == data)
+            if (null == tile)
             {
                 return false;
             }
 
-            if (Data.Tile.Type.Wall != data.type)
+            if (Data.Tile.Type.Wall != tile.type)
             {
                 return false;
             }
@@ -87,14 +89,14 @@ public class Dungeon : MonoBehaviour
             return true;
         }
 
-        protected bool IsFloor(Data.Tile data)
+        protected bool IsFloor(Data.Tile tile)
         {
-            if (null == data)
+            if (null == tile)
             {
                 return false;
             }
 
-            if (Data.Tile.Type.Floor != data.type)
+            if (Data.Tile.Type.Floor != tile.type)
             {
                 return false;
             }
@@ -125,14 +127,14 @@ public class Dungeon : MonoBehaviour
             int x = (int)tile.rect.x;
             int y = (int)tile.rect.y;
 
-            var leftTop = GetTile(x - 1, y + 1);
-            var top = GetTile(x, y + 1);
-            var rightTop = GetTile(x + 1, y + 1);
-            var left = GetTile(x - 1, y);
-            var right = GetTile(x + 1, y);
-            var leftBottom = GetTile(x - 1, y - 1);
-            var bottom = GetTile(x, y - 1);
-            var rightBottom = GetTile(x + 1, y - 1);
+            var leftTop     = GameManager.Instance.dungeon.data.GetTile(x - 1, y + 1);
+            var top         = GameManager.Instance.dungeon.data.GetTile(x, y + 1);
+            var rightTop    = GameManager.Instance.dungeon.data.GetTile(x + 1, y + 1);
+            var left        = GameManager.Instance.dungeon.data.GetTile(x - 1, y);
+            var right       = GameManager.Instance.dungeon.data.GetTile(x + 1, y);
+            var leftBottom  = GameManager.Instance.dungeon.data.GetTile(x - 1, y - 1);
+            var bottom      = GameManager.Instance.dungeon.data.GetTile(x, y - 1);
+            var rightBottom = GameManager.Instance.dungeon.data.GetTile(x + 1, y - 1);
 
             if (true == IsWall(top) && true == IsWall(left))
             {
@@ -203,14 +205,14 @@ public class Dungeon : MonoBehaviour
             int x = (int)tile.rect.x;
             int y = (int)tile.rect.y;
 
-            var leftTop = GetTile(x - 1, y + 1);
-            var top = GetTile(x, y + 1);
-            var rightTop = GetTile(x + 1, y + 1);
-            var left = GetTile(x - 1, y);
-            var right = GetTile(x + 1, y);
-            var leftBottom = GetTile(x - 1, y - 1);
-            var bottom = GetTile(x, y - 1);
-            var rightBottom = GetTile(x + 1, y - 1);
+            var leftTop     = GameManager.Instance.dungeon.data.GetTile(x - 1, y + 1);
+            var top         = GameManager.Instance.dungeon.data.GetTile(x, y + 1);
+            var rightTop    = GameManager.Instance.dungeon.data.GetTile(x + 1, y + 1);
+            var left        = GameManager.Instance.dungeon.data.GetTile(x - 1, y);
+            var right       = GameManager.Instance.dungeon.data.GetTile(x + 1, y);
+            var leftBottom  = GameManager.Instance.dungeon.data.GetTile(x - 1, y - 1);
+            var bottom      = GameManager.Instance.dungeon.data.GetTile(x, y - 1);
+            var rightBottom = GameManager.Instance.dungeon.data.GetTile(x + 1, y - 1);
 
             bool[] floorsAroundWall = new bool[9] {
                 IsFloor(leftTop),
@@ -449,9 +451,10 @@ public class Dungeon : MonoBehaviour
     }
 
     public Data.Dungeon data;
-    
+    public TurnManager turnManager;
+    public MonsterManager monsterManager;
+
     public Player player;
-    public Dictionary<int, Monster> monsters = new Dictionary<int, Monster>();
 
     public Transform tileRoot;
     public Transform gimmickRoot;
@@ -496,6 +499,7 @@ public class Dungeon : MonoBehaviour
         IniitGimmick();
         InitGizmo();
         InitMonster();
+                
         player = CreatePlayer();
     }
 
@@ -537,6 +541,17 @@ public class Dungeon : MonoBehaviour
         doorGizmo.Clear();
 
         DungeonGizmo.ClearAll();
+    }
+
+    public Tile GetTile(int x, int y)
+    {
+        var tile = this.data.GetTile(x, y);
+        if (null == tile)
+        {
+            return null;
+        }
+
+        return tiles[tile.index];
     }
 
     private void InitTile()
@@ -714,17 +729,13 @@ public class Dungeon : MonoBehaviour
     }
     private void InitMonster()
     {
-        while (0 < monsters.Count)
+        if (null != monsterManager)
         {
-            var pair = monsters.First();
-            var key = pair.Key;
-            var monster = pair.Value;
-
-            monster.gameObject.transform.parent = null;
-            GameObject.DestroyImmediate(monster.gameObject);
-
-            monsters.Remove(key);
+            monsterManager.Clear();
         }
+        
+        monsterManager = new MonsterManager(transform);
+        turnManager = new TurnManager();
 
         foreach (var room in data.rooms)
         {
@@ -733,12 +744,7 @@ public class Dungeon : MonoBehaviour
                 continue;
             }
 
-            GameObject go = new GameObject("Monster");
-            go.transform.parent = transform;
-            go.transform.position = room.rect.center;
-            Monster monster = go.AddComponent<Monster>();
-            monster.monsterNo = Monster.MonsterNoAllocator++;
-            monsters.Add(monster.monsterNo, monster);
+            monsterManager.Create(0, room.rect.center);
         }
     }
 
@@ -848,16 +854,6 @@ public class Dungeon : MonoBehaviour
         return sprites[UnityEngine.Random.Range(0, sprites.Count)];
     }
 
-    private static Data.Tile GetTile(int x, int y)
-    {
-        return GameManager.Instance.dungeon.data.GetTile(x, y);
-    }
-
-    private static Data.Tile GetTile(int index)
-    {
-        return GameManager.Instance.dungeon.data.GetTile(index);
-    }
-
     public class CameraScale : MonoBehaviour
     {
         private const float mouseWheelSpeed = 10.0f;
@@ -904,6 +900,14 @@ public class Dungeon : MonoBehaviour
             Vector3 move = new Vector3(pos.x * dragSpeed, pos.y * dragSpeed, 0.0f);
 
             Camera.main.transform.Translate(-move, Space.World);
+        }
+    }
+
+    private void Update()
+    {
+        if (null != turnManager)
+        {
+            turnManager.Update();
         }
     }
 }
