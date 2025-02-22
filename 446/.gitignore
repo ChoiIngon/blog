@@ -7,3 +7,7 @@
 /[Uu]ser[Ss]ettings/
 .vs
 .vsconfig
+*.sln
+*.csproj
+UnityCommon.props
+/UnityPlayerStub/
