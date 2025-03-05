@@ -308,54 +308,39 @@ public class GameManager : MonoBehaviour
             // 방을 벽들로 막아 버림
             for (int x = (int)room.rect.xMin; x < (int)room.rect.xMax; x++)
             {
-                var top = GameManager.Instance.tileMap.GetTile(x, (int)room.rect.yMax - 1);
-                {
-                    DungeonGizmo.Rect rect = new DungeonGizmo.Rect($"Tile_{top.index}", Color.white, 1.0f, 1.0f);
-                    rect.sortingOrder = GameManager.SortingOrder.Floor;
-                    rect.position = new Vector3(top.rect.x, top.rect.y);
-                    rect.parent = GameManager.Instance.tileGizmoRoot.transform;
-                    GameManager.Instance.tileGizmos[top.index] = rect;
-                    yield return new WaitForSeconds(interval);
-                }
+                BuildWallOnTile(x, (int)room.rect.yMax - 1);
+                yield return new WaitForSeconds(interval);
             }
 
             for (int y = (int)room.rect.yMax - 2;  y >= (int)room.rect.yMin + 1; y--)
             {
-                var right = GameManager.Instance.tileMap.GetTile((int)room.rect.xMax - 1, y);
-                {
-                    DungeonGizmo.Rect rect = new DungeonGizmo.Rect($"Tile_{right.index}", Color.white, 1.0f, 1.0f);
-                    rect.sortingOrder = GameManager.SortingOrder.Floor;
-                    rect.position = new Vector3(right.rect.x, right.rect.y);
-                    rect.parent = GameManager.Instance.tileGizmoRoot.transform;
-                    GameManager.Instance.tileGizmos[right.index] = rect;
-                    yield return new WaitForSeconds(interval);
-                }
+                BuildWallOnTile((int)room.rect.xMax - 1, y);
+                yield return new WaitForSeconds(interval);
             }
 
             for (int x = (int)room.rect.xMax - 1; x >= (int)room.rect.xMin; x--)
             {
-                var bottom = GameManager.Instance.tileMap.GetTile(x, (int)room.rect.yMin);
-                {
-                    DungeonGizmo.Rect rect = new DungeonGizmo.Rect($"Tile_{bottom.index}", Color.white, 1.0f, 1.0f);
-                    rect.sortingOrder = GameManager.SortingOrder.Floor;
-                    rect.position = new Vector3(bottom.rect.x, bottom.rect.y);
-                    rect.parent = GameManager.Instance.tileGizmoRoot.transform;
-                    GameManager.Instance.tileGizmos[bottom.index] = rect;
-                    yield return new WaitForSeconds(interval);
-                }
+                BuildWallOnTile(x, (int)room.rect.yMin);
+                yield return new WaitForSeconds(interval);
             }
 
             for (int y = (int)room.rect.yMin + 1; y < (int)room.rect.yMax - 1; y++)
             {
-                var left = GameManager.Instance.tileMap.GetTile((int)room.rect.xMin, y);
-                {
-                    DungeonGizmo.Rect rect = new DungeonGizmo.Rect($"Tile_{left.index}", Color.white, 1.0f, 1.0f);
-                    rect.sortingOrder = GameManager.SortingOrder.Floor;
-                    rect.position = new Vector3(left.rect.x, left.rect.y);
-                    rect.parent = GameManager.Instance.tileGizmoRoot.transform;
-                    GameManager.Instance.tileGizmos[left.index] = rect;
-                    yield return new WaitForSeconds(interval);
-                }
+                BuildWallOnTile((int)room.rect.xMin, y);
+                yield return new WaitForSeconds(interval);
+            }
+        }
+
+        private void BuildWallOnTile(int x, int y)
+        {
+            var tile = GameManager.Instance.tileMap.GetTile(x, y);
+            if (Tile.Type.Wall == tile.type)
+            {
+                DungeonGizmo.Rect rect = new DungeonGizmo.Rect($"Tile_{tile.index}", Color.white, 1.0f, 1.0f);
+                rect.sortingOrder = GameManager.SortingOrder.Floor;
+                rect.position = new Vector3(x, y);
+                rect.parent = GameManager.Instance.tileGizmoRoot.transform;
+                GameManager.Instance.tileGizmos[tile.index] = rect;
             }
         }
     }
@@ -378,7 +363,6 @@ public class GameManager : MonoBehaviour
                 {
                     return;
                 }
-
                 
                 if (Tile.Type.Wall != tile.type)
                 {
@@ -397,7 +381,6 @@ public class GameManager : MonoBehaviour
 
                 rect.color = Color.white;
             };
-
             
             foreach (var corridor in corridors)
             {
