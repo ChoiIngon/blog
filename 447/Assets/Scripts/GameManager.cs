@@ -1,8 +1,6 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -11,6 +9,7 @@ public class GameManager : MonoBehaviour
     public int minRoomSize;
     public int maxRoomSize;
 
+    public int randomSeed = 0;
     public float displayStepInterval = 0.05f;
 
     private GameObject tileGizmoRoot;
@@ -371,7 +370,7 @@ public class GameManager : MonoBehaviour
 
         public IEnumerator OnEvent()
         {
-            Action<int, int> IfWallChangeColor = (int x, int y) =>
+            System.Action<int, int> IfWallChangeColor = (int x, int y) =>
             {
                 Tile tile = GameManager.Instance.tileMap.GetTile(x, y);
                 if (null == tile)
