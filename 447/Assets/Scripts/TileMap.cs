@@ -37,35 +37,46 @@ public class TileMap
             room.rect.x -= rect.xMin;
             room.rect.y -= rect.yMin;
 
-            // 방을 벽들로 막아 버림
-            for (int x = (int)room.rect.xMin; x < (int)room.rect.xMax; x++)
+			for (int x = (int)room.rect.xMin; x < (int)room.rect.xMax; x++)
             {
                 Tile top = GetTile(x, (int)room.rect.yMax - 1);
-                top.type = Tile.Type.Wall;
+                top.type = Tile.Type.Floor;
                 top.cost = Tile.PathCost.Wall;
                 top.room = room;
 
                 Tile bottom = GetTile(x, (int)room.rect.yMin);
-                bottom.type = Tile.Type.Wall;
+                bottom.type = Tile.Type.Floor;
                 bottom.cost = Tile.PathCost.Wall;
                 bottom.room = room;
             }
 
+
             for (int y = (int)room.rect.yMin; y < (int)room.rect.yMax; y++)
             {
                 Tile left = GetTile((int)room.rect.xMin, y);
-                left.type = Tile.Type.Wall;
+                left.type = Tile.Type.Floor;
                 left.cost = Tile.PathCost.Wall;
                 left.room = room;
 
                 Tile right = GetTile((int)room.rect.xMax - 1, y);
-                right.type = Tile.Type.Wall;
+                right.type = Tile.Type.Floor;
                 right.cost = Tile.PathCost.Wall;
                 right.room = room;
             }
 
-            // 방 내부 바닥 부분을 floor 타입으로 변경
-            Rect floorRect = room.GetFloorRect();
+			{
+				Tile lt = GetTile((int)room.rect.xMin, (int)room.rect.yMax - 1);
+				lt.type = Tile.Type.Wall;
+				Tile rt = GetTile((int)room.rect.xMax - 1, (int)room.rect.yMax - 1);
+				rt.type = Tile.Type.Wall;
+				Tile lb = GetTile((int)room.rect.xMin, (int)room.rect.yMin);
+                lb.type = Tile.Type.Wall;
+				Tile rb = GetTile((int)room.rect.xMax - 1, (int)room.rect.yMin);
+                rb.type = Tile.Type.Wall;
+			}
+
+			// 방 내부 바닥 부분을 floor 타입으로 변경
+			Rect floorRect = room.GetFloorRect();
             for (int y = (int)floorRect.yMin; y < (int)floorRect.yMax -1; y++)
             {
                 for (int x = (int)floorRect.xMin; x < (int)floorRect.xMax - 1; x++)

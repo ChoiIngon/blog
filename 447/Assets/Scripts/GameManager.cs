@@ -27,6 +27,8 @@ public class GameManager : MonoBehaviour
     private DungeonGenerator generator = new DungeonGenerator();
     public TileMap tileMap;
 
+    private Coroutine coroutine;
+
     private void Start()
     {
         gameObject.AddComponent<CameraDrag>();
@@ -47,11 +49,17 @@ public class GameManager : MonoBehaviour
 
     public void CreateDungeon()
     {
-        InitTileGizmo();
+		events.Clear();
+		if (null != coroutine)
+		{
+			StopCoroutine(coroutine);
+			coroutine = null;
+		}
+
+		InitTileGizmo();
         InitRoomGizmo();
         InitMinimumSpanningTreeGizmo();
         InitCorridorGizmo();
-        
         DungeonGizmo.ClearAll();
 
         Stopwatch stopWatch = new Stopwatch();
@@ -60,7 +68,7 @@ public class GameManager : MonoBehaviour
         stopWatch.Stop();
         UnityEngine.Debug.Log($"elapsed time:{stopWatch.Elapsed}");
 
-        StartCoroutine(ExecuteEvent());
+		coroutine = StartCoroutine(ExecuteEvent());
     }
 
     private void InitTileGizmo()
@@ -468,14 +476,16 @@ public class GameManager : MonoBehaviour
         private Vector3 position;
         private Color color;
         private float width;
+        private float height;
         private int sortingOrder;
 
-        public CreateTileGizmoEvent(Tile tile, Color color, float width, int sortingOrder)
+        public CreateTileGizmoEvent(Tile tile, Color color, int sortingOrder)
         {
             this.tile = tile;
             this.position = new Vector3(tile.rect.x, tile.rect.y);
             this.color = color;
-            this.width = width;
+            this.width = tile.rect.width;
+            this.height = tile.rect.height;
             this.sortingOrder = sortingOrder;
         }
 
@@ -484,7 +494,7 @@ public class GameManager : MonoBehaviour
             DungeonGizmo.Rect rect = null;
             if (false == GameManager.Instance.tileGizmos.TryGetValue(tile.index, out rect))
             {
-                rect = new DungeonGizmo.Rect($"Tile_{tile.index}", color, width, width);
+                rect = new DungeonGizmo.Rect($"Tile_{tile.index}", color, width, height);
             }
 
             rect.parent = GameManager.Instance.tileGizmoRoot.transform;

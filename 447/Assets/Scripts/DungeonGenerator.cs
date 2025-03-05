@@ -1,5 +1,9 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Assertions;
+using UnityEngine.Assertions.Must;
+using static UnityEditor.Recorder.OutputPath;
 
 public class DungeonGenerator
 {
@@ -92,9 +96,6 @@ public class DungeonGenerator
         tileMap = new TileMap(rooms);
 
 #if UNITY_EDITOR
-        GameManager.Instance.EnqueueEvent(new GameManager.CreateGridGizmoEvent(tileMap.rect));
-        GameManager.Instance.EnqueueEvent(new GameManager.MoveCameraEvent(tileMap.rect.center, tileMap.rect));
-
         foreach (Room room in existRooms)
         {
             if (true == rooms.Contains(room))
@@ -105,13 +106,20 @@ public class DungeonGenerator
             GameManager.Instance.EnqueueEvent(new GameManager.DestroyRoomEvent(room));
         }
 
-        foreach (Room room in rooms)
+		GameManager.Instance.EnqueueEvent(new GameManager.CreateGridGizmoEvent(tileMap.rect));
+		GameManager.Instance.EnqueueEvent(new GameManager.MoveCameraEvent(tileMap.rect.center, tileMap.rect));
+
+		foreach (Room room in rooms)
         {
             GameManager.Instance.EnqueueEvent(new GameManager.MoveRoomEvent(room, tileMap.rect));
+        }
+
+        foreach (Room room in rooms)
+        {
             GameManager.Instance.EnqueueEvent(new GameManager.BuildRoomWallEvent(room));
         }
 #endif
-        ConnectRoom();
+		ConnectRoom();
 
         System.Action<int, int> IfNotNullBuildWall = (int x, int y) =>
         {
@@ -157,8 +165,8 @@ public class DungeonGenerator
         }
 
 #if UNITY_EDITOR
-        GameManager.Instance.EnqueueEvent(new GameManager.CreateMinimumSpanningTreeEvent(null, Color.white));
-        GameManager.Instance.EnqueueEvent(new GameManager.ClearCorridorGizmoEvent());
+        //GameManager.Instance.EnqueueEvent(new GameManager.CreateMinimumSpanningTreeEvent(null, Color.white));
+        //GameManager.Instance.EnqueueEvent(new GameManager.ClearCorridorGizmoEvent());
         GameManager.Instance.EnqueueEvent(new GameManager.BuildCorridorWallEvent(corridors));
 #endif
         return tileMap;
@@ -431,7 +439,7 @@ public class DungeonGenerator
             tile.type = Tile.Type.Floor;
             tile.cost = Tile.PathCost.MinCost;
 #if UNITY_EDITOR
-            GameManager.Instance.EnqueueEvent(new GameManager.CreateTileGizmoEvent(tile, Color.blue, 1.0f, GameManager.SortingOrder.Floor));
+            GameManager.Instance.EnqueueEvent(new GameManager.CreateTileGizmoEvent(tile, Color.blue, GameManager.SortingOrder.Floor));
 #endif
         }
     }
@@ -483,7 +491,7 @@ public class DungeonGenerator
             tile.type = Tile.Type.Floor;
             tile.cost = Tile.PathCost.MinCost;
 #if UNITY_EDITOR
-            GameManager.Instance.EnqueueEvent(new GameManager.CreateTileGizmoEvent(tile, Color.blue, 1.0f, GameManager.SortingOrder.Floor));
+            GameManager.Instance.EnqueueEvent(new GameManager.CreateTileGizmoEvent(tile, Color.blue, GameManager.SortingOrder.Floor));
 #endif
         }
     }
@@ -549,7 +557,6 @@ public class DungeonGenerator
                 Tile middleTile = tileMap.GetTile((int)middle.x, (int)middle.y);
                 Tile endTile = tileMap.GetTile((int)end.x, (int)end.y);
                 path_BL = CreateCorridor(startTile, middleTile, endTile);
-                Debug.Assert(0 < path_BL.path.Count);
 #if UNITY_EDITOR
                 //GameManager.Instance.EnqueueEvent(new GameManager.CreateTileGizmoEvent(startTile, Color.yellow, 1.0f, GameManager.SortingOrder.Door));
                 //GameManager.Instance.EnqueueEvent(new GameManager.CreateTileGizmoEvent(endTile, Color.yellow, 1.0f, GameManager.SortingOrder.Door));
@@ -584,7 +591,6 @@ public class DungeonGenerator
                 Tile middleTile = tileMap.GetTile((int)middle.x, (int)middle.y);
                 Tile endTile = tileMap.GetTile((int)end.x, (int)end.y);
                 path_RT = CreateCorridor(startTile, middleTile, endTile);
-                Debug.Assert(0 < path_RT.path.Count);
 #if UNITY_EDITOR
                 //GameManager.Instance.EnqueueEvent(new GameManager.CreateTileGizmoEvent(startTile, Color.yellow, 1.0f, GameManager.SortingOrder.Door));
                 //GameManager.Instance.EnqueueEvent(new GameManager.CreateTileGizmoEvent(endTile, Color.yellow, 1.0f, GameManager.SortingOrder.Door));
@@ -611,19 +617,34 @@ public class DungeonGenerator
 #endif
             }
 
-            Corridor corridor = path_BL;
-            if (path_RT.path.Count < corridor.path.Count)
+			Debug.Assert(null != path_BL || null != path_RT);
+
+			int path_BL_count = null != path_BL ? path_BL.path.Count : int.MaxValue;
+			int path_RT_count = null != path_RT ? path_RT.path.Count : int.MaxValue;
+
+			Corridor corridor = path_BL;
+			if (path_RT_count < path_BL_count)
+			{
+				corridor = path_RT;
+			}
+
+            if (null == corridor)
             {
-                corridor = path_RT;
+                corridor = new Corridor();
+				Rect searchBoundary = DungeonGenerator.GetBoundaryRect(new List<Room>() { a, b});
+				AStarPathFinder pathFinder = new AStarPathFinder(tileMap, searchBoundary, new AStarPathFinder.RandomLookup());
+                var startTile = tileMap.GetTile((int)a.center.x, (int)a.center.y);
+                var endTile = tileMap.GetTile((int)b.center.x, (int)b.center.y);
+				corridor.path = pathFinder.FindPath(startTile, endTile);
             }
-            corridors.Add(corridor);
+			corridors.Add(corridor);
 
             foreach (var tile in corridor.path)
             {
                 tile.type = Tile.Type.Floor;
                 tile.cost = Tile.PathCost.MinCost;
 #if UNITY_EDITOR
-                GameManager.Instance.EnqueueEvent(new GameManager.CreateTileGizmoEvent(tile, Color.blue, 1.0f, GameManager.SortingOrder.Floor));
+                GameManager.Instance.EnqueueEvent(new GameManager.CreateTileGizmoEvent(tile, Color.blue, GameManager.SortingOrder.Floor));
 #endif
             }
         }
@@ -641,7 +662,6 @@ public class DungeonGenerator
                 Tile middleTile = tileMap.GetTile((int)middle.x, (int)middle.y);
                 Tile endTile = tileMap.GetTile((int)end.x, (int)end.y);
                 path_TL = CreateCorridor(startTile, middleTile, endTile);
-                Debug.Assert(0 < path_TL.path.Count);
 #if UNITY_EDITOR
                 //GameManager.Instance.EnqueueEvent(new GameManager.CreateTileGizmoEvent(startTile, Color.yellow, 1.0f, GameManager.SortingOrder.Door));
                 //GameManager.Instance.EnqueueEvent(new GameManager.CreateTileGizmoEvent(endTile, Color.yellow, 1.0f, GameManager.SortingOrder.Door));
@@ -676,7 +696,6 @@ public class DungeonGenerator
                 Tile middleTile = tileMap.GetTile((int)middle.x, (int)middle.y);
                 Tile endTile = tileMap.GetTile((int)end.x, (int)end.y);
                 path_RB = CreateCorridor(startTile, middleTile, endTile);
-                Debug.Assert(0 < path_RB.path.Count);
 #if UNITY_EDITOR
                 //GameManager.Instance.EnqueueEvent(new GameManager.CreateTileGizmoEvent(startTile, Color.yellow, 1.0f, GameManager.SortingOrder.Door));
                 //GameManager.Instance.EnqueueEvent(new GameManager.CreateTileGizmoEvent(endTile, Color.yellow, 1.0f, GameManager.SortingOrder.Door));
@@ -703,19 +722,35 @@ public class DungeonGenerator
 #endif
             }
 
-            Corridor corridor = path_TL;
-            if (path_RB.path.Count < corridor.path.Count)
-            {
-                corridor = path_RB;
-            }
-            corridors.Add(corridor);
+			Debug.Assert(null != path_TL || null != path_RB);
 
-            foreach (var tile in corridor.path)
+			int path_TL_count = null != path_TL ? path_TL.path.Count : int.MaxValue;
+			int path_RB_count = null != path_RB ? path_RB.path.Count : int.MaxValue;
+
+			Corridor corridor = path_TL;
+			if (path_RB_count < path_TL_count)
+			{
+				corridor = path_RB;
+			}
+
+			if (null == corridor)
+			{
+				corridor = new Corridor();
+				Rect searchBoundary = DungeonGenerator.GetBoundaryRect(new List<Room>() { a, b });
+				AStarPathFinder pathFinder = new AStarPathFinder(tileMap, searchBoundary, new AStarPathFinder.RandomLookup());
+				var startTile = tileMap.GetTile((int)a.center.x, (int)a.center.y);
+				var endTile = tileMap.GetTile((int)b.center.x, (int)b.center.y);
+				corridor.path = pathFinder.FindPath(startTile, endTile);
+			}
+
+			corridors.Add(corridor);
+
+			foreach (var tile in corridor.path)
             {
                 tile.type = Tile.Type.Floor;
                 tile.cost = Tile.PathCost.MinCost;
 #if UNITY_EDITOR
-                GameManager.Instance.EnqueueEvent(new GameManager.CreateTileGizmoEvent(tile, Color.blue, 1.0f, GameManager.SortingOrder.Floor));
+                GameManager.Instance.EnqueueEvent(new GameManager.CreateTileGizmoEvent(tile, Color.blue, GameManager.SortingOrder.Floor));
 #endif
             }
         }
@@ -726,11 +761,11 @@ public class DungeonGenerator
 
         rollback.Push(start);
         start.type = Tile.Type.Floor;
-        start.cost = Tile.PathCost.Corridor;
+        start.cost = Tile.PathCost.Floor;
         
         rollback.Push(end);
         end.type = Tile.Type.Floor;
-        end.cost = Tile.PathCost.Corridor;
+        end.cost = Tile.PathCost.Floor;
 
         Rect searchBoundary = DungeonGenerator.GetBoundaryRect(new List<Room>() { start.room, end.room });
         var startTile = tileMap.GetTile((int)start.room.center.x, (int)start.room.center.y);
@@ -751,25 +786,20 @@ public class DungeonGenerator
                     var tile = tileMap.GetTile(x, y);
                     if (null == tile)
                     {
-                        Debug.Log($"fail to create path at tile_index:{tile.index}, x:{x}, y:{y}");
-                        AStarPathFinder failPathFinder = new AStarPathFinder(tileMap, searchBoundary, new AStarPathFinder.RandomLookup());
-                        corridor.path = failPathFinder.FindPath(startTile, endTile);
                         rollback.Execute();
-                        return corridor;
+                        return null;
                     }
 
                     if (Tile.Type.Wall == tile.type)
                     {
-                        Debug.Log($"fail to create path at tile_index:{tile.index}, x:{x}, y:{y}");
-                        AStarPathFinder failPathFinder = new AStarPathFinder(tileMap, searchBoundary, new AStarPathFinder.RandomLookup());
-                        corridor.path = failPathFinder.FindPath(startTile, endTile);
-                        rollback.Execute();
-                        return corridor;
+						Debug.Log($"fail to create path at tile_index:{tile.index}, x:{x}, y:{y}");
+						rollback.Execute();
+                        return null;
                     }
 
                     rollback.Push(tile);
                     tile.type = Tile.Type.Floor;
-                    tile.cost = Tile.PathCost.Corridor;
+                    tile.cost = Tile.PathCost.Floor;
                 }
             }
         }
@@ -787,25 +817,20 @@ public class DungeonGenerator
                     var tile = tileMap.GetTile(x, y);
                     if (null == tile)
                     {
-                        Debug.Log($"fail to create path at tile_index:{tile.index}, x:{x}, y:{y}");
-                        AStarPathFinder failPathFinder = new AStarPathFinder(tileMap, searchBoundary, new AStarPathFinder.RandomLookup());
-                        corridor.path = failPathFinder.FindPath(startTile, endTile);
                         rollback.Execute();
-                        return corridor;
+                        return null;
                     }
 
                     if (Tile.Type.Wall == tile.type)
                     {
                         Debug.Log($"fail to create path at tile_index:{tile.index}, x:{x}, y:{y}");
-                        AStarPathFinder failPathFinder = new AStarPathFinder(tileMap, searchBoundary, new AStarPathFinder.RandomLookup());
-                        corridor.path = failPathFinder.FindPath(startTile, endTile);
                         rollback.Execute();
-                        return corridor;
+                        return null;
                     }
 
                     rollback.Push(tile);
                     tile.type = Tile.Type.Floor;
-                    tile.cost = Tile.PathCost.Corridor;
+                    tile.cost = Tile.PathCost.Floor;
                 }
             }
         }
