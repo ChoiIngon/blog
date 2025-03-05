@@ -50,12 +50,10 @@ public class DungeonGenerator
         this.rooms = new List<Room>();
         this.corridors = new List<Corridor>();
 
-        {
-            this.depthRandom = new WeightRandom<int>();
-            this.depthRandom.AddElement(10, 3);
-            this.depthRandom.AddElement(40, 2);
-            this.depthRandom.AddElement(50, 1);
-        }
+        this.depthRandom = new WeightRandom<int>();
+        this.depthRandom.AddElement(10, 3);
+        this.depthRandom.AddElement(30, 2);
+        this.depthRandom.AddElement(60, 1);
 
         int roomIndex = 1;
         List<Room> existRooms = new List<Room>();
@@ -604,11 +602,19 @@ public class DungeonGenerator
                 {
                     top.type = Tile.Type.Wall;
                 }
+                else
+                {
+                    room.doors.Add(top);
+                }
 
                 Tile bottom = tileMap.GetTile(x, (int)room.rect.yMin);
                 if (Tile.PathCost.MinCost < bottom.cost)
                 {
                     bottom.type = Tile.Type.Wall;
+                }
+                else
+                {
+                    room.doors.Add(bottom);
                 }
             }
 
@@ -619,11 +625,19 @@ public class DungeonGenerator
                 {
                     left.type = Tile.Type.Wall;
                 }
+                else
+                {
+                    room.doors.Add(left);
+                }
 
                 Tile right = tileMap.GetTile((int)room.rect.xMax - 1, y);
                 if (Tile.PathCost.MinCost < right.cost)
                 {
                     right.type = Tile.Type.Wall;
+                }
+                else
+                {
+                    room.doors.Add(right);
                 }
             }
         }
@@ -654,7 +668,6 @@ public class DungeonGenerator
             }
         }
     }
-
     private void BuildWallOnTile(int x, int y)
     {
         Tile tile = tileMap.GetTile(x, y);
@@ -815,7 +828,6 @@ public class DungeonGenerator
         }
 #endif
     }
-    
     private void ResolveOverlap(Vector3 center, Rect boundary, Room room1, Room room2)
     {
         if (boundary.width < boundary.height) // 블록 배치가 세로로 길게 되어 있음. 그래서 가로로 이동함

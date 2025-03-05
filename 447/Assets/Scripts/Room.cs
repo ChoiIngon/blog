@@ -6,6 +6,7 @@ public class Room
     public readonly int index;
     public Rect rect;
     public List<Room> neighbors = new List<Room>();
+    public List<Tile> doors = new List<Tile>();
 
     public Room(int index, float x, float y, float width, float height)
     {
@@ -20,11 +21,6 @@ public class Room
 
     public Vector3 position
     {
-        set
-        {
-            this.rect.x = value.x; this.rect.y = value.y;
-        }
-
         get
         {
             return new Vector3(this.rect.x, this.rect.y, 0.0f);

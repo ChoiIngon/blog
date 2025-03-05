@@ -24,4 +24,9 @@ public class Tile
     public Rect rect;
     public int cost = 1;
     public Room room;
+
+    public Vector3 position
+    {
+        get { return new Vector3(rect.x, rect.y); }
+    }
 }
