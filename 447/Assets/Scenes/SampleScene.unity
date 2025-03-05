@@ -155,7 +155,7 @@ MonoBehaviour:
   roomCount: 5
   minRoomSize: 7
   maxRoomSize: 10
-  randomSeed: 1
+  randomSeed: 10
   displayStepInterval: 0.05
 --- !u!4 &303084601
 Transform:

@@ -63,7 +63,8 @@ public class GameManager : MonoBehaviour
 
         Stopwatch stopWatch = new Stopwatch();
         stopWatch.Start();
-        tileMap = generator.Generate(roomCount, minRoomSize, maxRoomSize);
+        UnityEngine.Debug.Log($"Create Dungeon(random_seed:{randomSeed})");
+        tileMap = generator.Generate(roomCount, minRoomSize, maxRoomSize, randomSeed);
         stopWatch.Stop();
         UnityEngine.Debug.Log($"elapsed time:{stopWatch.Elapsed}");
 
