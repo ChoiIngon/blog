@@ -801,7 +801,6 @@ public class DungeonGenerator
         {
             bool overlap = false;
 
-
             for (int i = 0; i < rooms.Count; i++)
             {
                 for (int j = i + 1; j < rooms.Count; j++)
@@ -832,9 +831,9 @@ public class DungeonGenerator
     {
         if (boundary.width < boundary.height) // 블록 배치가 세로로 길게 되어 있음. 그래서 가로로 이동함
         {
-            if (room1.x < room2.x) // 두 블록 중 block2가 오른쪽 있는 경우
+            if (room1.center.x < room2.center.x) // 두 블록 중 block2가 오른쪽 있는 경우
             {
-                if (center.x < room2.x)
+                if (center.x < room2.center.x)
                 {
                     room2.x += 1; // block2가 중앙 보다 오른쪽에 있으면 block2를 오른쪽으로 1칸 이동
                 }
@@ -845,7 +844,7 @@ public class DungeonGenerator
             }
             else // 두 블록 중 block1이 오른쪽 있는 경우
             {
-                if (center.x < room1.x)
+                if (center.x < room1.center.x)
                 {
                     room1.x += 1; // block1이 중앙 보다 오른쪽에 있으면 block1를 오른쪽으로 1칸 이동
                 }
@@ -857,9 +856,9 @@ public class DungeonGenerator
         }
         else // 블록 배치가 가로로 길게 되어 있음. 그래서 세로로 이동함
         {
-            if (room1.y < room2.y)
+            if (room1.center.y < room2.center.y)
             {
-                if (center.y < room2.y)
+                if (center.y < room2.center.y)
                 {
                     room2.y += 1; // block2가 중앙 보다 위에 있으면 block2를 윗쪽으로 1칸 이동
                 }
@@ -870,7 +869,7 @@ public class DungeonGenerator
             }
             else
             {
-                if (center.y < room1.y)
+                if (center.y < room1.center.y)
                 {
                     room1.y += 1; // block1이 중앙 보다 위에 있으면 block1을 위로 1칸 이동
                 }
