@@ -55,41 +55,7 @@ public class DungeonGenerator
         this.depthRandom.AddElement(30, 2);
         this.depthRandom.AddElement(60, 1);
 
-        int roomIndex = 1;
-        List<Room> existRooms = new List<Room>();
-
-        Room baseRoom1 = CreateRoom(roomIndex++, 0, 0);
-        existRooms.Add(baseRoom1);
-#if UNITY_EDITOR
-        GameManager.Instance.EnqueueEvent(new GameManager.CreateRoomEvent(baseRoom1, GetBoundaryRect(existRooms), Color.blue));
-#endif
-
-        Room baseRoom2 = CreateRoom(roomIndex++, maxRoomSize * 2, 0);
-        existRooms.Add(baseRoom2);
-#if UNITY_EDITOR
-        GameManager.Instance.EnqueueEvent(new GameManager.CreateRoomEvent(baseRoom2, GetBoundaryRect(existRooms), Color.blue));
-#endif
-
-        Room baseRoom3 = CreateRoom(roomIndex++, maxRoomSize / 2, maxRoomSize * 2);
-        existRooms.Add(baseRoom3);
-#if UNITY_EDITOR
-        GameManager.Instance.EnqueueEvent(new GameManager.CreateRoomEvent(baseRoom3, GetBoundaryRect(existRooms), Color.blue));
-#endif
-
-        for (int i = 0; i < roomCount * 2; i++)
-        {
-            Room room = AddRoom(roomIndex++, existRooms);
-            existRooms.Add(room);
-#if UNITY_EDITOR
-            GameManager.Instance.EnqueueEvent(new GameManager.CreateRoomEvent(room, GetBoundaryRect(existRooms), Color.red));
-#endif
-            RepositionBlocks(room.center, existRooms);
-
-#if UNITY_EDITOR
-            GameManager.Instance.EnqueueEvent(new GameManager.ChangeRoomColorEvent(room, Color.blue));
-#endif
-        }
-
+        List<Room> existRooms = CreateRooms(roomCount, minRoomSize, maxRoomSize);
         SelectRoom(existRooms);
         tileMap = new TileMap(rooms);
 
@@ -124,6 +90,45 @@ public class DungeonGenerator
         GameManager.Instance.EnqueueEvent(new GameManager.BuildCorridorWallEvent(corridors));
 #endif
         return tileMap;
+    }
+
+    private List<Room> CreateRooms(int roomCount, int minRoomSize, int maxRoomSize)
+    {
+        int roomIndex = 1;
+        var rooms = new List<Room>();
+        Room baseRoom1 = CreateRoom(roomIndex++, 0, 0);
+        rooms.Add(baseRoom1);
+#if UNITY_EDITOR
+        GameManager.Instance.EnqueueEvent(new GameManager.CreateRoomEvent(baseRoom1, GetBoundaryRect(rooms), Color.blue));
+#endif
+
+        Room baseRoom2 = CreateRoom(roomIndex++, maxRoomSize * 2, 0);
+        rooms.Add(baseRoom2);
+#if UNITY_EDITOR
+        GameManager.Instance.EnqueueEvent(new GameManager.CreateRoomEvent(baseRoom2, GetBoundaryRect(rooms), Color.blue));
+#endif
+
+        Room baseRoom3 = CreateRoom(roomIndex++, maxRoomSize / 2, maxRoomSize * 2);
+        rooms.Add(baseRoom3);
+#if UNITY_EDITOR
+        GameManager.Instance.EnqueueEvent(new GameManager.CreateRoomEvent(baseRoom3, GetBoundaryRect(rooms), Color.blue));
+#endif
+
+        for (int i = 0; i < roomCount * 2; i++)
+        {
+            Room room = AddRoom(roomIndex++, rooms);
+            rooms.Add(room);
+#if UNITY_EDITOR
+            GameManager.Instance.EnqueueEvent(new GameManager.CreateRoomEvent(room, GetBoundaryRect(rooms), Color.red));
+#endif
+            RepositionBlocks(room.center, rooms);
+
+#if UNITY_EDITOR
+            GameManager.Instance.EnqueueEvent(new GameManager.ChangeRoomColorEvent(room, Color.blue));
+#endif
+        }
+
+        return rooms;
     }
 
     private Room CreateRoom(int roomIndex, int x, int y)
@@ -353,19 +358,14 @@ public class DungeonGenerator
 
         Vector3 start = new Vector3(x, upperY);
         Vector3 end = new Vector3(x, bottomY);
-        Corridor corridor = AdjustTileCostOnCorridor(new List<Vector3>() { start, end });
+        AdjustTileCostOnCorridor(new List<Vector3>() { start, end });
 #if UNITY_EDITOR
-        Color color = Color.white;
-        if (null == corridor)
-        {
-            color = Color.blue;
-        }
         GameManager.Instance.EnqueueEvent(
             new GameManager.CreateCorridorGizmoEvent(
                 $"Corridor_Vertical_{a.index}_{b.index}",
                 new Vector3(x + 0.5f, upperRoom.rect.yMin + 1, 0.0f),
                 new Vector3(x + 0.5f, bottomRoom.rect.yMax - 1, 0.0f),
-                color, 0.5f, GameManager.SortingOrder.Corridor
+                Color.white, 0.5f, GameManager.SortingOrder.Corridor
             )
         );
 #endif
@@ -395,19 +395,14 @@ public class DungeonGenerator
 
         Vector3 start = new Vector3(leftX, y);
         Vector3 end = new Vector3(rightX, y);
-		Corridor corridor = AdjustTileCostOnCorridor(new List<Vector3>() { start, end });
+		AdjustTileCostOnCorridor(new List<Vector3>() { start, end });
 #if UNITY_EDITOR
-		Color color = Color.white;
-		if (null == corridor)
-		{
-			color = Color.blue;
-		}
 		GameManager.Instance.EnqueueEvent(
             new GameManager.CreateCorridorGizmoEvent(
                 $"Corridor_Horizontal_{a.index}_{b.index}",
                 new Vector3(leftX, y + 0.5f),
                 new Vector3(rightX + 1, y + 0.5f),
-                color, 0.5f, GameManager.SortingOrder.Corridor
+                Color.white, 0.5f, GameManager.SortingOrder.Corridor
             )
         );
 #endif
@@ -462,132 +457,140 @@ public class DungeonGenerator
 
         if (upperRoom == leftRoom)
         {
+            var corridorBL = new List<Vector3>() {
+                new Vector3(leftRoomX, leftRoom.rect.yMin, 0.0f),
+                new Vector3(leftRoomX, bottomRoomY),
+                new Vector3(rightRoom.rect.xMin, bottomRoomY)
+            };
+
+            var corridorLT = new List<Vector3>()
             {
-                Vector3 start   = new Vector3(leftRoomX, leftRoom.rect.yMin, 0.0f);
-                Vector3 middle  = new Vector3(leftRoomX, bottomRoomY);
-                Vector3 end     = new Vector3(rightRoom.rect.xMin, bottomRoomY);
+                new Vector3(leftRoom.rect.xMax - 1, upperRoomY, 0.0f),
+                new Vector3(rightRoomX, upperRoomY),
+                new Vector3(rightRoomX, rightRoom.rect.yMax - 1)
+            };
 
-                Corridor corridor = AdjustTileCostOnCorridor(new List<Vector3>() { start, middle, end });
+            if (0 == Random.Range(0, 2))
+            {
+                bool result = AdjustTileCostOnCorridor(corridorBL);
+                if (false == result)
+                {
+                    AdjustTileCostOnCorridor(corridorLT);
+                }
+            }
+            else
+            {
+                bool result = AdjustTileCostOnCorridor(corridorLT);
+                if (false == result)
+                {
+                    AdjustTileCostOnCorridor(corridorBL);
+                }
+            }
+
 #if UNITY_EDITOR
-				Color color = Color.white;
-				if (null == corridor)
-				{
-					color = Color.blue;
-				}
-
-				GameManager.Instance.EnqueueEvent(
-                    new GameManager.CreateCorridorGizmoEvent(
-                        $"Corridor_{a.index}_{b.index}_BL_세로",
-                        new Vector3(start.x + 0.5f, start.y),
-                        new Vector3(middle.x + 0.5f, middle.y),
-                        color, 0.5f, GameManager.SortingOrder.Corridor
-                    )
-                );
-                GameManager.Instance.EnqueueEvent(
-                    new GameManager.CreateCorridorGizmoEvent(
-                        $"Corridor_{a.index}_{b.index}_BL_가로",
-                        new Vector3(middle.x, middle.y + 0.5f),
-                        new Vector3(end.x, end.y + 0.5f),
-                        color, 0.5f, GameManager.SortingOrder.Corridor
-                    )
-                );
+            GameManager.Instance.EnqueueEvent(
+                new GameManager.CreateCorridorGizmoEvent(
+                    $"Corridor_{a.index}_{b.index}_BL_세로",
+                    new Vector3(corridorBL[0].x + 0.5f, corridorBL[0].y),
+                    new Vector3(corridorBL[1].x + 0.5f, corridorBL[1].y),
+                    Color.white, 0.5f, GameManager.SortingOrder.Corridor
+                )
+            );
+            GameManager.Instance.EnqueueEvent(
+                new GameManager.CreateCorridorGizmoEvent(
+                    $"Corridor_{a.index}_{b.index}_BL_가로",
+                    new Vector3(corridorBL[1].x, corridorBL[1].y + 0.5f),
+                    new Vector3(corridorBL[2].x, corridorBL[2].y + 0.5f),
+                    Color.white, 0.5f, GameManager.SortingOrder.Corridor
+                )
+            );
+            GameManager.Instance.EnqueueEvent(
+                new GameManager.CreateCorridorGizmoEvent(
+                    $"Corridor_{a.index}_{b.index}_RT_가로",
+                    new Vector3(corridorLT[0].x + 1, corridorLT[0].y + 0.5f),
+                    new Vector3(corridorLT[1].x + 1, corridorLT[1].y + 0.5f),
+                    Color.white, 0.5f, GameManager.SortingOrder.Corridor
+                )
+            );
+            GameManager.Instance.EnqueueEvent(
+                new GameManager.CreateCorridorGizmoEvent(
+                    $"Corridor_{a.index}_{b.index}_RT_세로",
+                    new Vector3(corridorLT[1].x + 0.5f, corridorLT[1].y + 1),
+                    new Vector3(corridorLT[2].x + 0.5f, corridorLT[2].y + 1),
+                    Color.white, 0.5f, GameManager.SortingOrder.Corridor
+                )
+            );
 #endif
-			}
-
-			{
-                Vector3 start   = new Vector3(leftRoom.rect.xMax - 1, upperRoomY, 0.0f);
-                Vector3 middle  = new Vector3(rightRoomX, upperRoomY);
-                Vector3 end     = new Vector3(rightRoomX, rightRoom.rect.yMax - 1);
-                
-                Corridor corridor = AdjustTileCostOnCorridor(new List<Vector3>() { start, middle, end });
-#if UNITY_EDITOR
-				Color color = Color.white;
-				if (null == corridor)
-				{
-					color = Color.blue;
-				}
-				GameManager.Instance.EnqueueEvent(
-                    new GameManager.CreateCorridorGizmoEvent(
-                        $"Corridor_{a.index}_{b.index}_RT_가로",
-                        new Vector3(start.x + 1, start.y + 0.5f),
-                        new Vector3(middle.x + 1, middle.y + 0.5f),
-                        color, 0.5f, GameManager.SortingOrder.Corridor
-                    )
-                );
-                GameManager.Instance.EnqueueEvent(
-                    new GameManager.CreateCorridorGizmoEvent(
-                        $"Corridor_{a.index}_{b.index}_RT_세로",
-                        new Vector3(middle.x + 0.5f, middle.y + 1),
-                        new Vector3(end.x + 0.5f, end.y + 1),
-                        color, 0.5f, GameManager.SortingOrder.Corridor
-                    )
-                );
-#endif
-			}
+            return;
         }
 
         if (bottomRoom == leftRoom)
         {
+            var corridorTL = new List<Vector3>()
             {
-                Vector3 start = new Vector3(leftRoomX, bottomRoom.rect.yMax - 1, 0.0f);
-                Vector3 middle = new Vector3(leftRoomX, upperRoomY);
-                Vector3 end = new Vector3(rightRoom.rect.xMin, upperRoomY);
-                
-                Corridor corridor = AdjustTileCostOnCorridor(new List<Vector3>() { start, middle, end });
-#if UNITY_EDITOR
-				Color color = Color.white;
-				if (null == corridor)
-				{
-					color = Color.blue;
-				}
-				GameManager.Instance.EnqueueEvent(
-                    new GameManager.CreateCorridorGizmoEvent(
-                        $"Corridor_{a.index}_{b.index}_TL_세로",
-                        new Vector3(start.x + 0.5f, start.y + 1),
-                        new Vector3(middle.x + 0.5f, middle.y + 1),
-                        color, 0.5f, GameManager.SortingOrder.Corridor
-                    )
-                );
-                GameManager.Instance.EnqueueEvent(
-                    new GameManager.CreateCorridorGizmoEvent(
-                        $"Corridor_{a.index}_{b.index}_TL_가로",
-                        new Vector3(middle.x, middle.y + 0.5f),
-                        new Vector3(end.x, end.y + 0.5f),
-                        color, 0.5f, GameManager.SortingOrder.Corridor
-                    )
-                );
-#endif
-			}
+                new Vector3(leftRoomX, bottomRoom.rect.yMax - 1, 0.0f),
+                new Vector3(leftRoomX, upperRoomY),
+                new Vector3(rightRoom.rect.xMin, upperRoomY)
+            };
 
-			{
-                Vector3 start = new Vector3(leftRoom.rect.xMax - 1, bottomRoomY, 0.0f);
-                Vector3 middle = new Vector3(rightRoomX, bottomRoomY);
-                Vector3 end = new Vector3(rightRoomX, upperRoom.rect.yMin);
-                Corridor corridor = AdjustTileCostOnCorridor(new List<Vector3>() { start, middle, end });
+            var corridorRB = new List<Vector3>()
+            {
+                new Vector3(leftRoom.rect.xMax - 1, bottomRoomY, 0.0f),
+                new Vector3(rightRoomX, bottomRoomY),
+                new Vector3(rightRoomX, upperRoom.rect.yMin)
+            };
+
+            if (0 == Random.Range(0, 2))
+            {
+                bool result = AdjustTileCostOnCorridor(corridorTL);
+                if (false == result)
+                {
+                    AdjustTileCostOnCorridor(corridorRB);
+                }
+            }
+            else
+            {
+                bool result = AdjustTileCostOnCorridor(corridorRB);
+                if (false == result)
+                {
+                    AdjustTileCostOnCorridor(corridorTL);
+                }
+            }
 #if UNITY_EDITOR
-				Color color = Color.white;
-				if (null == corridor)
-				{
-					color = Color.blue;
-				}
-				GameManager.Instance.EnqueueEvent(
-                    new GameManager.CreateCorridorGizmoEvent(
-                        $"Corridor_{a.index}_{b.index}_RB_가로",
-                        new Vector3(start.x + 1, start.y + 0.5f),
-                        new Vector3(middle.x + 1, middle.y + 0.5f),
-                        color, 0.5f, GameManager.SortingOrder.Corridor
-                    )
-                );
-                GameManager.Instance.EnqueueEvent(
-                    new GameManager.CreateCorridorGizmoEvent(
-                        $"Corridor_{a.index}_{b.index}_RB_세로",
-                        new Vector3(middle.x + 0.5f, middle.y),
-                        new Vector3(end.x + 0.5f, end.y),
-                        color, 0.5f, GameManager.SortingOrder.Corridor
-                    )
-                );
+			GameManager.Instance.EnqueueEvent(
+                new GameManager.CreateCorridorGizmoEvent(
+                    $"Corridor_{a.index}_{b.index}_TL_세로",
+                    new Vector3(corridorRB[0].x + 0.5f, corridorRB[0].y + 1),
+                    new Vector3(corridorRB[1].x + 0.5f, corridorRB[1].y + 1),
+                    Color.white, 0.5f, GameManager.SortingOrder.Corridor
+                )
+            );
+            GameManager.Instance.EnqueueEvent(
+                new GameManager.CreateCorridorGizmoEvent(
+                    $"Corridor_{a.index}_{b.index}_TL_가로",
+                    new Vector3(corridorRB[1].x, corridorRB[1].y + 0.5f),
+                    new Vector3(corridorRB[2].x, corridorRB[2].y + 0.5f),
+                    Color.white, 0.5f, GameManager.SortingOrder.Corridor
+                )
+            );
+            GameManager.Instance.EnqueueEvent(
+                new GameManager.CreateCorridorGizmoEvent(
+                    $"Corridor_{a.index}_{b.index}_RB_가로",
+                    new Vector3(corridorTL[0].x + 1, corridorTL[0].y + 0.5f),
+                    new Vector3(corridorTL[1].x + 1, corridorTL[1].y + 0.5f),
+                    Color.white, 0.5f, GameManager.SortingOrder.Corridor
+                )
+            );
+            GameManager.Instance.EnqueueEvent(
+                new GameManager.CreateCorridorGizmoEvent(
+                    $"Corridor_{a.index}_{b.index}_RB_세로",
+                    new Vector3(corridorTL[1].x + 0.5f, corridorTL[1].y),
+                    new Vector3(corridorTL[2].x + 0.5f, corridorTL[2].y),
+                    Color.white, 0.5f, GameManager.SortingOrder.Corridor
+                )
+            );
 #endif
-			}
+            return;
         }
     }
 
@@ -647,6 +650,7 @@ public class DungeonGenerator
             foreach (Tile tile in corridor.path)
             {
                 tile.type = Tile.Type.Floor;
+                tile.cost = Tile.PathCost.Floor;
             }
         }
 
@@ -665,6 +669,20 @@ public class DungeonGenerator
                 BuildWallOnTile(x + 1, y - 1);
                 BuildWallOnTile(x + 1, y);
                 BuildWallOnTile(x + 1, y + 1);
+            }
+        }
+
+        foreach (Room room in rooms)
+        {
+            Rect floorRect = room.GetFloorRect();
+            for (int y = (int)floorRect.yMin; y < (int)floorRect.yMax - 1; y++)
+            {
+                for (int x = (int)floorRect.xMin; x < (int)floorRect.xMax - 1; x++)
+                {
+                    Tile floor = tileMap.GetTile(x, y);
+                    floor.type = Tile.Type.Floor;
+                    floor.cost = Tile.PathCost.Floor;
+                }
             }
         }
     }
@@ -736,17 +754,14 @@ public class DungeonGenerator
         }
     }
 
-    private Corridor AdjustTileCostOnCorridor(List<Vector3> positions)
+    private bool AdjustTileCostOnCorridor(List<Vector3> positions)
     {
         if (2 > positions.Count)
         {
-            return null;
+            return false;
         }
 
-        Corridor corridor = new Corridor();
-        corridor.path = new List<Tile>();
-
-		Rollback rollback = new Rollback();
+        Rollback rollback = new Rollback();
 		for (int start = 0; start < positions.Count - 1; start++)
         {
             Vector3 startPosition = positions[start];
@@ -766,24 +781,23 @@ public class DungeonGenerator
                     {
                         Debug.Log($"can not find tile(x:{x}, y:{y})");
                         rollback.Execute();
-                        return null;
+                        return false;
                     }
 
 					if (Tile.Type.Wall == tile.type)
 					{
 						Debug.Log($"fail to create path at tile_index:{tile.index}, x:{x}, y:{y}");
 						rollback.Execute();
-						return null;
+						return false;
 					}
 
 					rollback.Push(tile);
 					tile.cost = Tile.PathCost.Floor;
-                    corridor.path.Add(tile);
 				}
             }
 		}
 
-        return corridor;
+        return true;
 	}
     
     private int GetRandomSize()
