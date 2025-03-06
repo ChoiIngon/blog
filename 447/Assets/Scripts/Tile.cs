@@ -19,11 +19,20 @@ public class Tile
         Wall
     }
 
+    public enum Direction
+    {
+        LeftTop,     Top,    RightTop,
+        Left,                Right,
+        RightBottom, Bottom, LeftBottom,
+        Max
+    }
+
     public int index = 0;
     public Type type = Type.None;
     public Rect rect;
     public int cost = 1;
     public Room room;
+    public Tile[] neighbors = new Tile[(int)Direction.Max];
 
     public Vector3 position
     {

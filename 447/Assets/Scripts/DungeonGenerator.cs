@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
+using UnityEditorInternal;
 using UnityEngine;
 
 public class DungeonGenerator
@@ -683,6 +685,39 @@ public class DungeonGenerator
                     floor.type = Tile.Type.Floor;
                     floor.cost = Tile.PathCost.Floor;
                 }
+            }
+        }
+
+        Vector3[] offsets = new Vector3[(int)Tile.Direction.Max];
+        offsets[(int)Tile.Direction.LeftTop]     = new Vector3(-1, +1);
+        offsets[(int)Tile.Direction.Top]         = new Vector3( 0, +1);
+        offsets[(int)Tile.Direction.RightTop]    = new Vector3(+1, +1);
+        offsets[(int)Tile.Direction.Left]        = new Vector3(-1,  0);
+        offsets[(int)Tile.Direction.Right]       = new Vector3(+1,  0);
+        offsets[(int)Tile.Direction.LeftBottom]  = new Vector3(-1, -1);
+        offsets[(int)Tile.Direction.Bottom]      = new Vector3( 0, -1);
+        offsets[(int)Tile.Direction.RightBottom] = new Vector3(+1, -1);
+
+        for (int i = 0; i < tileMap.width * tileMap.height; i++)
+        {
+            Tile tile = tileMap.GetTile(i);
+            for (int j = 0; j < (int)Tile.Direction.Max; j++)
+            {
+                tile.neighbors[j] = null;
+
+                var offset = offsets[j];
+                Tile neighbor = tileMap.GetTile((int)(tile.rect.x + offset.x), (int)(tile.rect.y + offset.y));
+                if (null == neighbor)
+                {
+                    continue;
+                }
+
+                if (Tile.Type.None == neighbor.type)
+                {
+                    continue;
+                }
+
+                tile.neighbors[j] = neighbor;
             }
         }
     }

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
+using static Dungeon;
 
 public class GameManager : MonoBehaviour
 {
@@ -25,7 +26,7 @@ public class GameManager : MonoBehaviour
 
     private DungeonGenerator generator = new DungeonGenerator();
     public TileMap tileMap;
-
+    public Dungeon dungeon;
     private Coroutine coroutine;
 
     private void Start()
@@ -68,7 +69,12 @@ public class GameManager : MonoBehaviour
         stopWatch.Stop();
         UnityEngine.Debug.Log($"elapsed time:{stopWatch.Elapsed}");
 
-		coroutine = StartCoroutine(ExecuteEvent());
+        GameObject go = new GameObject("Dungeon");
+        go.transform.parent = transform;
+        this.dungeon = go.AddComponent<Dungeon>();
+        dungeon.AttachTile(tileMap);
+
+        coroutine = StartCoroutine(ExecuteEvent());
     }
 
     private void InitTileGizmo()
@@ -134,6 +140,35 @@ public class GameManager : MonoBehaviour
         public static int TriangleLine = 30;
         public static int TriangleInnerCircle = 30;
         public static int BiggestCircle = 31;
+    }
+
+    public class AttachTileSprite : Event
+    {
+        private Tile tile;
+
+        public AttachTileSprite(Tile tile)
+        {
+            this.tile = tile;
+        }
+
+        public IEnumerator OnEvent()
+        {
+            if (Tile.Type.Floor == tile.type)
+            {
+                var tileSprite = new FloorSprite(tile);
+                tileSprite.SetParent(GameManager.Instance.transform);
+                GameManager.Instance.dungeon.tileSprites[tile.index] = tileSprite;
+            }
+
+            if (Tile.Type.Wall == tile.type)
+            {
+                var tileSprite = new WallSprite(tile);
+                tileSprite.SetParent(GameManager.Instance.transform);
+                GameManager.Instance.dungeon.tileSprites[tile.index] = tileSprite;
+            }
+
+            yield return new WaitForSeconds(GameManager.Instance.displayStepInterval/10);
+        }
     }
 
     public class CreateRoomEvent : Event
