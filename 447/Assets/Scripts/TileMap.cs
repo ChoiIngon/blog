@@ -41,12 +41,12 @@ public class TileMap
             {
                 Tile top = GetTile(x, (int)room.rect.yMax - 1);
                 top.type = Tile.Type.Floor;
-                top.cost = Tile.PathCost.Wall;
+                top.cost = Tile.PathCost.MaxCost;
                 top.room = room;
 
                 Tile bottom = GetTile(x, (int)room.rect.yMin);
                 bottom.type = Tile.Type.Floor;
-                bottom.cost = Tile.PathCost.Wall;
+                bottom.cost = Tile.PathCost.MaxCost;
                 bottom.room = room;
             }
 
@@ -55,12 +55,12 @@ public class TileMap
             {
                 Tile left = GetTile((int)room.rect.xMin, y);
                 left.type = Tile.Type.Floor;
-                left.cost = Tile.PathCost.Wall;
+                left.cost = Tile.PathCost.MaxCost;
                 left.room = room;
 
                 Tile right = GetTile((int)room.rect.xMax - 1, y);
                 right.type = Tile.Type.Floor;
-                right.cost = Tile.PathCost.Wall;
+                right.cost = Tile.PathCost.MaxCost;
                 right.room = room;
             }
 

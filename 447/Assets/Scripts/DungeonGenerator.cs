@@ -19,12 +19,9 @@ public class DungeonGenerator
     List<Corridor> corridors;
     TileMap tileMap;
 
-    public TileMap Generate(int roomCount, int minRoomSize, int maxRoomSize, int randomSeed = 0)
+    public TileMap Generate(int roomCount, int minRoomSize, int maxRoomSize, int randomSeed)
     {
-        if (0 < randomSeed)
-        {
-			Random.InitState(randomSeed);
-		}
+		Random.InitState(randomSeed);
 		
 		if (maxRoomSize < minRoomSize)
         {
@@ -465,7 +462,7 @@ public class DungeonGenerator
                 new Vector3(rightRoom.rect.xMin, bottomRoomY)
             };
 
-            var corridorLT = new List<Vector3>()
+            var corridorRT = new List<Vector3>()
             {
                 new Vector3(leftRoom.rect.xMax - 1, upperRoomY, 0.0f),
                 new Vector3(rightRoomX, upperRoomY),
@@ -477,12 +474,12 @@ public class DungeonGenerator
                 bool result = AdjustTileCostOnCorridor(corridorBL);
                 if (false == result)
                 {
-                    AdjustTileCostOnCorridor(corridorLT);
+                    AdjustTileCostOnCorridor(corridorRT);
                 }
             }
             else
             {
-                bool result = AdjustTileCostOnCorridor(corridorLT);
+                bool result = AdjustTileCostOnCorridor(corridorRT);
                 if (false == result)
                 {
                     AdjustTileCostOnCorridor(corridorBL);
@@ -509,16 +506,16 @@ public class DungeonGenerator
             GameManager.Instance.EnqueueEvent(
                 new GameManager.CreateCorridorGizmoEvent(
                     $"Corridor_{a.index}_{b.index}_RT_가로",
-                    new Vector3(corridorLT[0].x + 1, corridorLT[0].y + 0.5f),
-                    new Vector3(corridorLT[1].x + 1, corridorLT[1].y + 0.5f),
+                    new Vector3(corridorRT[0].x + 1, corridorRT[0].y + 0.5f),
+                    new Vector3(corridorRT[1].x + 1, corridorRT[1].y + 0.5f),
                     Color.white, 0.5f, GameManager.SortingOrder.Corridor
                 )
             );
             GameManager.Instance.EnqueueEvent(
                 new GameManager.CreateCorridorGizmoEvent(
                     $"Corridor_{a.index}_{b.index}_RT_세로",
-                    new Vector3(corridorLT[1].x + 0.5f, corridorLT[1].y + 1),
-                    new Vector3(corridorLT[2].x + 0.5f, corridorLT[2].y + 1),
+                    new Vector3(corridorRT[1].x + 0.5f, corridorRT[1].y + 1),
+                    new Vector3(corridorRT[2].x + 0.5f, corridorRT[2].y + 1),
                     Color.white, 0.5f, GameManager.SortingOrder.Corridor
                 )
             );

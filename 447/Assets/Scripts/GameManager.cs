@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -63,15 +64,24 @@ public class GameManager : MonoBehaviour
         DungeonGizmo.ClearAll();
 
         Stopwatch stopWatch = new Stopwatch();
+        if (0 == randomSeed)
+        {
+            randomSeed = (int)DateTime.Now.Ticks;
+        }
+        DungeonLog.Write($"던전을 생성 프로세스가 시작 됩니다(random_seed:{randomSeed})");
         stopWatch.Start();
-        UnityEngine.Debug.Log($"Create Dungeon(random_seed:{randomSeed})");
         tileMap = generator.Generate(roomCount, minRoomSize, maxRoomSize, randomSeed);
         stopWatch.Stop();
-        UnityEngine.Debug.Log($"elapsed time:{stopWatch.Elapsed}");
+        DungeonLog.Write($"던전 생성이 완료 되었습니다(elapsed_time:{stopWatch.Elapsed})");
+        DungeonLog.Write($"던전 생성 과정을 재생합니다");
 
-        GameObject go = new GameObject("Dungeon");
-        go.transform.parent = transform;
-        this.dungeon = go.AddComponent<Dungeon>();
+        if (null == this.dungeon)
+        {
+            GameObject dungeonObject = new GameObject("Dungeon");
+            dungeonObject.transform.parent = transform;
+            this.dungeon = dungeonObject.AddComponent<Dungeon>();
+        }
+
         dungeon.AttachTile(tileMap);
 
         coroutine = StartCoroutine(ExecuteEvent());
@@ -156,14 +166,14 @@ public class GameManager : MonoBehaviour
             if (Tile.Type.Floor == tile.type)
             {
                 var tileSprite = new FloorSprite(tile);
-                tileSprite.SetParent(GameManager.Instance.transform);
+                tileSprite.SetParent(GameManager.Instance.dungeon.transform);
                 GameManager.Instance.dungeon.tileSprites[tile.index] = tileSprite;
             }
 
             if (Tile.Type.Wall == tile.type)
             {
                 var tileSprite = new WallSprite(tile);
-                tileSprite.SetParent(GameManager.Instance.transform);
+                tileSprite.SetParent(GameManager.Instance.dungeon.transform);
                 GameManager.Instance.dungeon.tileSprites[tile.index] = tileSprite;
             }
 
@@ -200,6 +210,8 @@ public class GameManager : MonoBehaviour
             GameManager.Instance.roomGizmos.Add(room.index, roomGizmo);
             GameManager.AdjustOrthographicCamera(cameraBoundary);
             Camera.main.transform.position = new Vector3(cameraBoundary.center.x, cameraBoundary.center.y, Camera.main.transform.position.z);
+
+            DungeonLog.Write($"create room(index:{room.index}) at x:{room.x}, y:{room.y}");
         }
     }
 

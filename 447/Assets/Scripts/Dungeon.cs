@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.U2D;
 
@@ -363,6 +364,8 @@ public class Dungeon : MonoBehaviour
     // Start is called before the first frame update
     public void AttachTile(TileMap tileMap)
     {
+        Clear();
+
         SpriteAtlas spriteAtlas = Resources.Load<SpriteAtlas>("SpriteAtlas/TileSet");
         if (0 == spriteAtlas.spriteCount)
         {
@@ -447,9 +450,20 @@ public class Dungeon : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
-    void Update()
+    public void Clear()
     {
-        
+        sprites.Clear();
+        if (null != tileSprites)
+        {
+            foreach (var tileSprite in tileSprites)
+            {
+                if (null == tileSprite)
+                {
+                    continue;
+                }
+                tileSprite.gameObject.transform.SetParent(null, false);
+                GameObject.DestroyImmediate(tileSprite.gameObject);
+            }
+        }
     }
 }

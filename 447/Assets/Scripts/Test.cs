@@ -1,19 +1,19 @@
-using TMPro;
+using System.Collections;
 using UnityEngine;
 
 public class Test : MonoBehaviour
 {
-    public RectTransform content;
-    public GameObject textPrefab;
     void Start()
     {
-        GameObject go = GameObject.Instantiate(textPrefab);
-        TextMeshPro text = go.GetComponent<TextMeshPro>();
-        text.text = "Hello world";
-        text.transform.parent = content;
+        StartCoroutine(AddLog());
     }
 
-    void Update()
+    IEnumerator AddLog()
     {
+        for (int i = 0; i < 200; i++)
+        {
+            DungeonLog.Write($"{i}:Hello worldHello worldHello worldHello worldHello worldHello worldHello worldHello worldHello worldHello world");
+            yield return new WaitForSeconds(0.1f);
+        }
     }
 }

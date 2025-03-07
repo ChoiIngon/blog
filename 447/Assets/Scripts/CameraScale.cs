@@ -19,7 +19,7 @@ public class CameraScale : MonoBehaviour
         }
         else
         {
-            Camera.main.fieldOfView -= scroll;
+            Camera.main.orthographicSize -= scroll;
         }
     }
 }
