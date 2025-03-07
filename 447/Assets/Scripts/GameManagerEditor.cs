@@ -14,15 +14,6 @@ public class GameManagerEditor : Editor
             GameManager gameManger = (GameManager)this.target;
             gameManger.CreateDungeon();
         }
-
-        if (true == GUI.changed)
-        {
-            if (null == GameManager.Instance.tileMap)
-            {
-                return;
-            }
-
-        }
     }
 }
 

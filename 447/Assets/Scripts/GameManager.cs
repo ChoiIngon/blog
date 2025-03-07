@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
-using static Dungeon;
 
 public class GameManager : MonoBehaviour
 {
@@ -14,38 +13,24 @@ public class GameManager : MonoBehaviour
     public int randomSeed = 0;
     public float displayStepInterval = 0.05f;
 
-    private GameObject tileGizmoRoot;
-    private Dictionary<int, DungeonGizmo.Rect> tileGizmos = new Dictionary<int, DungeonGizmo.Rect>();
-    
-    private GameObject roomGizmoRoot;
-    private Dictionary<int, DungeonGizmo.Block> roomGizmos = new Dictionary<int, DungeonGizmo.Block>();
-
-    private GameObject corridorGizmoRoot;
-    private GameObject mstGizmoRoot;
-
-    private DungeonGizmo.Grid backgroundGridGizmo;
+    public Dictionary<string, GameObject>       gizmos = new Dictionary<string, GameObject>();
+    public Dictionary<int, DungeonGizmo.Block>  roomGizmos = new Dictionary<int, DungeonGizmo.Block>();
+    public Dictionary<int, DungeonGizmo.Rect>   tileGizmos = new Dictionary<int, DungeonGizmo.Rect>();
 
     private DungeonGenerator generator = new DungeonGenerator();
-    public TileMap tileMap;
-    public Dungeon dungeon;
+    private TileMap          tileMap;
+    private Dungeon          dungeon;
+
     private Coroutine coroutine;
 
     private void Start()
     {
         gameObject.AddComponent<CameraDrag>();
         gameObject.AddComponent<CameraScale>();
-
-        tileGizmoRoot = new GameObject("TileGiamoRoot");
-        tileGizmoRoot.transform.parent = gameObject.transform;
-
-        roomGizmoRoot = new GameObject("RoomGizmoRoot");
-        roomGizmoRoot.transform.parent = gameObject.transform;
-
-        corridorGizmoRoot = new GameObject("CorridorGizmoRoot");
-        corridorGizmoRoot.transform.parent = gameObject.transform;
-
-        mstGizmoRoot = new GameObject("MinimumSpanningTreeRoot");
-        mstGizmoRoot.transform.parent = gameObject.transform;
+        
+        GameObject dungeonObject = new GameObject("Dungeon");
+        dungeonObject.transform.parent = transform;
+        this.dungeon = dungeonObject.AddComponent<Dungeon>();
     }
 
     public void CreateDungeon()
@@ -57,30 +42,39 @@ public class GameManager : MonoBehaviour
 			coroutine = null;
 		}
 
-		InitTileGizmo();
         InitRoomGizmo();
-        InitMinimumSpanningTreeGizmo();
-        InitCorridorGizmo();
+		InitTileGizmo();
+
+        foreach (var pair in gizmos)
+        {
+            GameObject gizmoRoot = pair.Value;
+            while (0 < gizmoRoot.transform.childCount)
+            {
+                Transform gizmoTransform = gizmoRoot.transform.GetChild(0);
+                gizmoTransform.parent = null;
+                GameObject gizmoGameObject = gizmoTransform.gameObject;
+                GameObject.DestroyImmediate(gizmoGameObject);
+            }
+            gizmoRoot.transform.parent = null;
+            GameObject.DestroyImmediate(gizmoRoot);
+        }
+        gizmos.Clear();
+
         DungeonGizmo.ClearAll();
 
         Stopwatch stopWatch = new Stopwatch();
         if (0 == randomSeed)
         {
-            randomSeed = (int)DateTime.Now.Ticks;
+            randomSeed = (int)System.DateTime.Now.Ticks;
         }
-        DungeonLog.Write($"던전을 생성 프로세스가 시작 됩니다(random_seed:{randomSeed})");
-        stopWatch.Start();
-        tileMap = generator.Generate(roomCount, minRoomSize, maxRoomSize, randomSeed);
-        stopWatch.Stop();
-        DungeonLog.Write($"던전 생성이 완료 되었습니다(elapsed_time:{stopWatch.Elapsed})");
-        DungeonLog.Write($"던전 생성 과정을 재생합니다");
 
-        if (null == this.dungeon)
-        {
-            GameObject dungeonObject = new GameObject("Dungeon");
-            dungeonObject.transform.parent = transform;
-            this.dungeon = dungeonObject.AddComponent<Dungeon>();
-        }
+        DungeonLog.Write($"Dungeon data generation process starts(random_seed:{randomSeed})");
+        stopWatch.Start();
+
+        tileMap = generator.Generate(roomCount, minRoomSize, maxRoomSize, randomSeed);
+
+        stopWatch.Stop();
+        DungeonLog.Write($"Dungeon data generation is complete(elapsed_time:{stopWatch.Elapsed})");
 
         dungeon.AttachTile(tileMap);
 
@@ -111,28 +105,6 @@ public class GameManager : MonoBehaviour
         roomGizmos.Clear();
     }
 
-    private void InitMinimumSpanningTreeGizmo()
-    {
-        while (0 < mstGizmoRoot.transform.childCount)
-        {
-            Transform child = mstGizmoRoot.transform.GetChild(0);
-            child.parent = null;
-            GameObject gameObject = child.gameObject;
-            GameObject.DestroyImmediate(gameObject);
-        }
-    }
-
-    private void InitCorridorGizmo()
-    {
-        while (0 < corridorGizmoRoot.transform.childCount)
-        {
-            Transform child = corridorGizmoRoot.transform.GetChild(0);
-            child.parent = null;
-            GameObject gameObject = child.gameObject;
-            GameObject.DestroyImmediate(gameObject);
-        }
-    }
-
     public interface Event
     {
         public IEnumerator OnEvent();
@@ -152,6 +124,15 @@ public class GameManager : MonoBehaviour
         public static int BiggestCircle = 31;
     }
 
+    public static class EventName
+    {
+        public const string RoomGizmo = "RoomGizmo";
+        public const string MiniumSpanningTreeGizmo = "MiniumSpanningTreeGizmo";
+        public const string TileCostGizmo = "TileCostGizmo";
+        public const string BackgroundGridGizmo = "BackgroundGridGizmo";
+        public const string TileGizmo = "TileGizmo";
+    }
+
     public class AttachTileSprite : Event
     {
         private Tile tile;
@@ -165,14 +146,14 @@ public class GameManager : MonoBehaviour
         {
             if (Tile.Type.Floor == tile.type)
             {
-                var tileSprite = new FloorSprite(tile);
+                var tileSprite = new Dungeon.FloorSprite(tile);
                 tileSprite.SetParent(GameManager.Instance.dungeon.transform);
                 GameManager.Instance.dungeon.tileSprites[tile.index] = tileSprite;
             }
 
             if (Tile.Type.Wall == tile.type)
             {
-                var tileSprite = new WallSprite(tile);
+                var tileSprite = new Dungeon.WallSprite(tile);
                 tileSprite.SetParent(GameManager.Instance.dungeon.transform);
                 GameManager.Instance.dungeon.tileSprites[tile.index] = tileSprite;
             }
@@ -181,14 +162,14 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public class CreateRoomEvent : Event
+    public class CreateRoomGizmoEvent : Event
     {
         public Room room;
         public Vector3 position;
         public Rect cameraBoundary;
         public Color color;
 
-        public CreateRoomEvent(Room room, Rect cameraBoundary, Color color)
+        public CreateRoomGizmoEvent(Room room, Rect cameraBoundary, Color color)
         {
             this.room = room;
             this.position = room.position;
@@ -203,56 +184,84 @@ public class GameManager : MonoBehaviour
                 yield break;
             }
 
-            var roomGizmo = new DungeonGizmo.Block($"Room_{room.index}", color, room.rect.width, room.rect.height);
-            roomGizmo.sortingOrder = SortingOrder.Room;
-            roomGizmo.parent = GameManager.Instance.roomGizmoRoot.transform;
+            GameObject gizmoRoot = null;
+            if (false == GameManager.Instance.gizmos.TryGetValue(EventName.RoomGizmo, out gizmoRoot))
+            {
+                gizmoRoot = new GameObject(EventName.RoomGizmo);
+                gizmoRoot.transform.parent = GameManager.Instance.transform;
+
+                GameManager.Instance.gizmos.Add(EventName.RoomGizmo, gizmoRoot);
+            }
+
+            var roomGizmo = new DungeonGizmo.Block($"{EventName.RoomGizmo}_{room.index}", color, room.rect.width, room.rect.height);
+            roomGizmo.parent = gizmoRoot.transform;
             roomGizmo.position = new Vector3(position.x, position.y, 0.0f);
+            roomGizmo.sortingOrder = SortingOrder.Room;
+
             GameManager.Instance.roomGizmos.Add(room.index, roomGizmo);
+
             GameManager.AdjustOrthographicCamera(cameraBoundary);
             Camera.main.transform.position = new Vector3(cameraBoundary.center.x, cameraBoundary.center.y, Camera.main.transform.position.z);
 
-            DungeonLog.Write($"create room(index:{room.index}) at x:{room.x}, y:{room.y}");
+            DungeonLog.Write($"The room {room.index} has been created");
         }
     }
 
-    public class MoveRoomEvent : Event
+    public class MoveRoomGizmoEvent : Event
     {
-        public Room room;
-        public Vector3 position;
-        public Rect cameraBoundary;
-
-        public MoveRoomEvent(Room room, Rect cameraBoundary)
+        private struct Data
         {
-            this.room = room;
-            this.position = room.position;
-            this.cameraBoundary = cameraBoundary;
+            public int index;
+            public Vector3 position;
+        }
+
+        private List<Data> datas = new List<Data>();
+        private Rect cameraBoundary;
+        
+        public MoveRoomGizmoEvent(List<Room> rooms)
+        {
+            this.datas = new List<Data>();
+            foreach (Room room in rooms)
+            {
+                this.datas.Add(new Data() { index = room.index, position = room.position });
+            }
+
+            this.cameraBoundary = DungeonGenerator.GetBoundaryRect(rooms);
         }
 
         public IEnumerator OnEvent()
         {
-            DungeonGizmo.Block gizmo;
-
-            if (false == GameManager.Instance.roomGizmos.TryGetValue(room.index, out gizmo))
+            GameObject gizmoRoot = null;
+            if (false == GameManager.Instance.gizmos.TryGetValue(EventName.RoomGizmo, out gizmoRoot))
             {
                 yield break;
             }
 
-            if (gizmo.position == position)
+            foreach (Data data in this.datas)
             {
-                yield break;
+                DungeonGizmo.Block gizmo;
+                if (false == GameManager.Instance.roomGizmos.TryGetValue(data.index, out gizmo))
+                {
+                    continue;
+                }
+
+                if (gizmo.position == data.position)
+                {
+                    continue;
+                }
+
+                float interpolation = 0.0f;
+                Vector3 start = gizmo.position;
+                while (1.0f > interpolation)
+                {
+                    interpolation += Time.deltaTime / GameManager.Instance.displayStepInterval;
+                    gizmo.position = Vector3.Lerp(start, data.position, interpolation);
+                    yield return null;
+                }
+
+                gizmo.position = data.position;
             }
 
-            float interpolation = 0.0f;
-            Vector3 start = gizmo.position;
-            while (1.0f > interpolation)
-            {
-                interpolation += Time.deltaTime / GameManager.Instance.displayStepInterval;
-
-                gizmo.position = Vector3.Lerp(start, this.position, interpolation);
-                yield return null;
-            }
-
-            gizmo.position = this.position;
             GameManager.AdjustOrthographicCamera(cameraBoundary);
             Camera.main.transform.position = new Vector3(cameraBoundary.center.x, cameraBoundary.center.y, Camera.main.transform.position.z);
         }
@@ -282,11 +291,11 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public class DestroyRoomEvent : Event
+    public class DestroyRoomGizmoEvent : Event
     {
         public Room room;
 
-        public DestroyRoomEvent(Room room)
+        public DestroyRoomGizmoEvent(Room room)
         {
             this.room = room;
         }
@@ -381,13 +390,24 @@ public class GameManager : MonoBehaviour
         private void BuildWallOnTile(int x, int y)
         {
             var tile = GameManager.Instance.tileMap.GetTile(x, y);
+            if (null == tile)
+            {
+                return;
+            }
+
             if (Tile.Type.Wall == tile.type)
             {
-                DungeonGizmo.Rect rect = new DungeonGizmo.Rect($"Tile_{tile.index}", Color.white, 1.0f, 1.0f);
-                rect.sortingOrder = GameManager.SortingOrder.Floor;
-                rect.position = new Vector3(x, y);
-                rect.parent = GameManager.Instance.tileGizmoRoot.transform;
-                GameManager.Instance.tileGizmos[tile.index] = rect;
+                GameObject gizmoRoot = null;
+                if (false == GameManager.Instance.gizmos.TryGetValue(EventName.TileGizmo, out gizmoRoot))
+                {
+                    return;
+                }
+
+                DungeonGizmo.Rect gizmo = new DungeonGizmo.Rect($"Tile_{tile.index}", Color.white, 1.0f, 1.0f);
+                gizmo.sortingOrder = GameManager.SortingOrder.Floor;
+                gizmo.position = new Vector3(x, y);
+                gizmo.parent = gizmoRoot.transform;
+                GameManager.Instance.tileGizmos[tile.index] = gizmo;
             }
         }
     }
@@ -416,17 +436,23 @@ public class GameManager : MonoBehaviour
                     return;
                 }
 
-                DungeonGizmo.Rect rect = null;
-                if (false == GameManager.Instance.tileGizmos.TryGetValue(tile.index, out rect))
+                GameObject gizmoRoot = null;
+                if (false == GameManager.Instance.gizmos.TryGetValue(EventName.TileGizmo, out gizmoRoot))
                 {
-                    rect = new DungeonGizmo.Rect($"Tile_{tile.index}", Color.white, 1.0f, 1.0f);
-                    rect.position = new Vector3(tile.rect.x, tile.rect.y);
-                    rect.parent = GameManager.Instance.tileGizmoRoot.transform;
-                    GameManager.Instance.tileGizmos.Add(tile.index, rect);
                     return;
                 }
 
-                rect.color = Color.white;
+                DungeonGizmo.Rect gizmo = null;
+                if (false == GameManager.Instance.tileGizmos.TryGetValue(tile.index, out gizmo))
+                {
+                    gizmo = new DungeonGizmo.Rect($"Tile_{tile.index}", Color.white, 1.0f, 1.0f);
+                    gizmo.position = new Vector3(tile.rect.x, tile.rect.y);
+                    gizmo.parent = gizmoRoot.transform;
+                    GameManager.Instance.tileGizmos.Add(tile.index, gizmo);
+                    return;
+                }
+
+                gizmo.color = Color.white;
             };
             
             foreach (var corridor in corridors)
@@ -434,13 +460,13 @@ public class GameManager : MonoBehaviour
                 float interval = GameManager.Instance.displayStepInterval / corridor.path.Count;
                 foreach (Tile tile in corridor.path)
                 {
-                    DungeonGizmo.Rect rect = null;
-                    if (false == GameManager.Instance.tileGizmos.TryGetValue(tile.index, out rect))
+                    DungeonGizmo.Rect gizmo = null;
+                    if (false == GameManager.Instance.tileGizmos.TryGetValue(tile.index, out gizmo))
                     {
                         yield break;
                     }
 
-                    rect.color = Color.red;
+                    gizmo.color = Color.red;
 
                     int x = (int)tile.rect.x;
                     int y = (int)tile.rect.y;
@@ -457,46 +483,109 @@ public class GameManager : MonoBehaviour
                     yield return new WaitForSeconds(interval);
                 }
             }
-
-            GameManager.Instance.backgroundGridGizmo.parent = null;
-            DungeonGizmo.Destroy(GameManager.Instance.backgroundGridGizmo);
         }
     }
 
-    public class CreateMinimumSpanningTreeEvent : Event
+    public class CreateLineGizmoEvent : Event
     {
-        public MinimumSpanningTree mst;
-        public Color color;
-
-        public CreateMinimumSpanningTreeEvent(MinimumSpanningTree mst, Color color)
+        public struct Line
         {
-            this.mst = mst;
+            public Vector3 start;
+            public Vector3 end;
+        }
+
+        private string name;
+        private List<Line> lines;
+        private Color color;
+        private int sortingOrder;
+        private float width;
+
+        public CreateLineGizmoEvent(string name, List<Line> lines, Color color, int sortingOrder, float width)
+        {
+            this.name = name;
+            this.lines = lines;
             this.color = color;
+            this.sortingOrder = sortingOrder;
+            this.width = width;
         }
 
         public IEnumerator OnEvent()
         {
-            while (0 < GameManager.Instance.mstGizmoRoot.transform.childCount)
-            {
-                Transform child = GameManager.Instance.mstGizmoRoot.transform.GetChild(0);
-                child.parent = null;
-                GameObject gameObject = child.gameObject;
-                GameObject.DestroyImmediate(gameObject);
-            }
-
-            if (null == mst)
+            if (null == lines)
             {
                 yield break;
             }
 
-            float interval = GameManager.Instance.displayStepInterval / mst.connections.Count;
-            foreach (var connection in mst.connections)
+            GameObject giizmoRoot = new GameObject(name);
+            giizmoRoot.transform.parent = GameManager.Instance.transform;
+
+            GameManager.Instance.gizmos.Add(name, giizmoRoot);
+
+            float interval = GameManager.Instance.displayStepInterval / lines.Count;
+            for(int i=0; i<lines.Count; i++)
             {
-                DungeonGizmo.Line line = new DungeonGizmo.Line($"Edge_Mst_{connection.p1.index}_{connection.p2.index}", color, connection.p1.rect.center, connection.p2.rect.center, 0.5f);
-                line.parent = GameManager.Instance.mstGizmoRoot.transform;
-                line.sortingOrder = SortingOrder.SpanningTreeEdge;
-                yield return new WaitForSeconds(GameManager.Instance.displayStepInterval);
+                Line line = lines[i];
+                string gizmoName = $"{name}_{i}_({line.start.x},{line.start.y}) -> ({line.end.x},{line.end.y})";
+                DungeonGizmo.Line gizmo = new DungeonGizmo.Line(gizmoName, color, line.start, line.end, width);
+                gizmo.parent = giizmoRoot.transform;
+                gizmo.sortingOrder = sortingOrder;
+                yield return new WaitForSeconds(interval);
             }
+        }
+    }
+
+    public class DestroyGizmoEvent : Event
+    {
+        private string name;
+
+        public DestroyGizmoEvent(string name)
+        {
+            this.name = name;
+        }
+
+        public IEnumerator OnEvent()
+        {
+            GameObject gizmoRoot = null;
+            if (false == GameManager.Instance.gizmos.TryGetValue(name, out gizmoRoot))
+            {
+                yield break;
+            }
+
+            while (0 < gizmoRoot.transform.childCount)
+            {
+                Transform gizmoTransform = gizmoRoot.transform.GetChild(0);
+                gizmoTransform.parent = null;
+                GameObject gizmoGameObject = gizmoTransform.gameObject;
+                GameObject.DestroyImmediate(gizmoGameObject);
+            }
+            
+            gizmoRoot.transform.parent = null;
+            GameObject.DestroyImmediate(gizmoRoot);
+
+            GameManager.Instance.gizmos.Remove(name);
+        }
+    }
+
+    public class EnableGizmoEvent : Event
+    {
+        private string name;
+        private bool enable;
+
+        public EnableGizmoEvent(string name, bool enable)
+        {
+            this.name = name;
+            this.enable = enable;
+        }
+
+        public IEnumerator OnEvent()
+        {
+            GameObject gizmoRoot = null;
+            if (false == GameManager.Instance.gizmos.TryGetValue(name, out gizmoRoot))
+            {
+                yield break;
+            }
+
+            gizmoRoot.SetActive(enable);
         }
     }
 
@@ -521,17 +610,27 @@ public class GameManager : MonoBehaviour
 
         public IEnumerator OnEvent()
         {
-            DungeonGizmo.Rect rect = null;
-            if (false == GameManager.Instance.tileGizmos.TryGetValue(tile.index, out rect))
+            GameObject gizmoRoot = null;
+            if (false == GameManager.Instance.gizmos.TryGetValue(EventName.TileGizmo, out gizmoRoot))
             {
-                rect = new DungeonGizmo.Rect($"Tile_{tile.index}", color, width, height);
+                gizmoRoot = new GameObject(EventName.TileGizmo);
+                gizmoRoot.transform.parent = GameManager.Instance.transform;
+
+                GameManager.Instance.gizmos.Add(EventName.TileGizmo, gizmoRoot);
             }
 
-            rect.parent = GameManager.Instance.tileGizmoRoot.transform;
-            rect.position = position;
-            rect.color = color;
-            rect.sortingOrder = sortingOrder;
-            GameManager.Instance.tileGizmos[tile.index] = rect;
+            DungeonGizmo.Rect gizmo = null;
+            if (false == GameManager.Instance.tileGizmos.TryGetValue(tile.index, out gizmo))
+            {
+                gizmo = new DungeonGizmo.Rect($"Tile_{tile.index}", color, width, height);
+                GameManager.Instance.tileGizmos.Add(tile.index, gizmo);
+            }
+
+            gizmo.parent = gizmoRoot.transform;
+            gizmo.position = position;
+            gizmo.color = color;
+            gizmo.sortingOrder = sortingOrder;
+            
             yield return new WaitForSeconds(GameManager.Instance.displayStepInterval/10);
         }
     }
@@ -560,59 +659,63 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public class CreateCorridorGizmoEvent : Event
+    public class CreateTileCostGizmoEvent : Event
     {
-        private string name;
-        private Vector3 start;
-        private Vector3 end;
-        private Color color;
-        private float width = 0.08f;
-        private int sortingOrder = 0;
+        private List<Tile> tiles;
 
-        public CreateCorridorGizmoEvent(string name, Vector3 start, Vector3 end, Color color, float width, int sortingOrder)
+        public CreateTileCostGizmoEvent(List<Tile> tiles)
         {
-            this.name = name;
-            this.start = start;
-            this.end = end;
-            this.color = color;
-            this.width = width;
-            this.sortingOrder = sortingOrder;
+            this.tiles = tiles;
         }
 
         public IEnumerator OnEvent()
         {
-            DungeonGizmo.Line line = new DungeonGizmo.Line(name, color, start, end, width);
-            line.sortingOrder = sortingOrder;
-            line.parent = GameManager.Instance.corridorGizmoRoot.transform;
-            yield return new WaitForSeconds(GameManager.Instance.displayStepInterval);
-        }
-    }
+            if (null == tiles)
+            {
+                yield break;
+            }
 
-    public class ClearCorridorGizmoEvent : Event
-    {
-        public ClearCorridorGizmoEvent()
-        {
-        }
+            GameObject gizmoRoot = null;
+            if (false == GameManager.Instance.gizmos.TryGetValue(EventName.TileCostGizmo, out gizmoRoot))
+            {
+                gizmoRoot = new GameObject(EventName.TileCostGizmo);
+                gizmoRoot.transform.parent = GameManager.Instance.transform;
 
-        public IEnumerator OnEvent()
-        {
-            GameManager.Instance.InitCorridorGizmo();
-            yield break;
+                GameManager.Instance.gizmos.Add(EventName.TileCostGizmo, gizmoRoot);
+            }
+            
+            float interval = GameManager.Instance.displayStepInterval / tiles.Count;
+            for (int i = 0; i < tiles.Count; i++)
+            {
+                Tile tile = tiles[i];
+
+                DungeonGizmo.Rect gizmo = new DungeonGizmo.Rect($"TileCost_{tile.index}", Color.white, tile.rect.width, tile.rect.height);
+                gizmo.parent = gizmoRoot.transform;
+                gizmo.sortingOrder = GameManager.SortingOrder.Corridor;
+                gizmo.position = new Vector3(tile.rect.x, tile.rect.y);
+                yield return new WaitForSeconds(interval);
+            }
         }
     }
 
     public class CreateGridGizmoEvent : Event
     {
-        public Rect rect;
-        public CreateGridGizmoEvent(Rect rect)
+        private string name;
+        private Rect rect;
+        public CreateGridGizmoEvent(string name, Rect rect)
         {
+            this.name = name;
             this.rect = rect;
         }
 
         public IEnumerator OnEvent()
         {
-            GameManager.Instance.backgroundGridGizmo = new DungeonGizmo.Grid("BackgroundGridGizmo", (int)rect.width, (int)rect.height);
-            GameManager.Instance.backgroundGridGizmo.parent = GameManager.Instance.transform;
+            GameObject gizmoRoot = new GameObject(name);
+            gizmoRoot.transform.parent = GameManager.Instance.transform;
+            GameManager.Instance.gizmos.Add(name, gizmoRoot);
+            
+            DungeonGizmo.Grid gizmo = new DungeonGizmo.Grid(name, (int)rect.width, (int)rect.height);
+            gizmo.gameObject.transform.parent = gizmoRoot.transform;
             yield break;
         }
     }
