@@ -1,7 +1,4 @@
 using System.Collections.Generic;
-using System.Diagnostics.Tracing;
-using Unity.VisualScripting;
-using UnityEditorInternal;
 using UnityEngine;
 
 public class DungeonGenerator
@@ -51,9 +48,10 @@ public class DungeonGenerator
         this.corridors = new List<Corridor>();
 
         this.depthRandom = new WeightRandom<int>();
-        this.depthRandom.AddElement(10, 3);
+        this.depthRandom.AddElement(10, 4);
+        this.depthRandom.AddElement(20, 3);
         this.depthRandom.AddElement(30, 2);
-        this.depthRandom.AddElement(60, 1);
+        this.depthRandom.AddElement(40, 1);
 
         List<Room> existRooms = CreateRooms(roomCount, minRoomSize, maxRoomSize);
         SelectRoom(existRooms);
@@ -74,7 +72,7 @@ public class DungeonGenerator
 		GameManager.Instance.EnqueueEvent(new GameManager.MoveCameraEvent(tileMap.rect.center, tileMap.rect));
         GameManager.Instance.EnqueueEvent(new GameManager.MoveRoomGizmoEvent(rooms));
 #endif
-		ConnectRoom();
+		ConnectRoom(tileMap);
         BuildWall();
 
 #if UNITY_EDITOR
@@ -86,14 +84,18 @@ public class DungeonGenerator
             GameManager.Instance.EnqueueEvent(new GameManager.BuildRoomWallEvent(room));
         }
         GameManager.Instance.EnqueueEvent(new GameManager.BuildCorridorWallEvent(corridors));
-        GameManager.Instance.EnqueueEvent(new GameManager.EnableGizmoEvent(GameManager.EventName.RoomGizmo, false));
-        GameManager.Instance.EnqueueEvent(new GameManager.EnableGizmoEvent(GameManager.EventName.TileGizmo, false));
 #endif
+        var levelGenerator = new DungeonLevelGenerator(tileMap);
+        Debug.Log($"start_room:{levelGenerator.start.index}, end_room:{levelGenerator.end.index}");
         return tileMap;
     }
 
     private List<Room> CreateRooms(int roomCount, int minRoomSize, int maxRoomSize)
     {
+#if UNITY_EDITOR
+        GameManager.Instance.EnqueueEvent(new GameManager.WriteLog("Room data generation process starts", Color.white));
+#endif
+
         int roomIndex = 1;
         var rooms = new List<Room>();
         Room baseRoom1 = CreateRoom(roomIndex++, 0, 0);
@@ -122,7 +124,6 @@ public class DungeonGenerator
             GameManager.Instance.EnqueueEvent(new GameManager.CreateRoomGizmoEvent(room, GetBoundaryRect(rooms), Color.red));
 #endif
             RepositionBlocks(room.center, rooms);
-
 #if UNITY_EDITOR
             GameManager.Instance.EnqueueEvent(new GameManager.ChangeRoomColorEvent(room, Color.blue));
 #endif
@@ -180,6 +181,9 @@ public class DungeonGenerator
 
     private void SelectRoom(List<Room> exists)
     {
+#if UNITY_EDITOR
+        GameManager.Instance.EnqueueEvent(new GameManager.WriteLog("Select room process starts", Color.white));
+#endif
         var triangulation = new DelaunayTriangulation(exists);
         var mst = new MinimumSpanningTree(exists);
         foreach (var triangle in triangulation.triangles)
@@ -222,6 +226,7 @@ public class DungeonGenerator
 
         if (0 == depth)
         {
+            GameManager.Instance.EnqueueEvent(new GameManager.WriteLog($"Room {room.index} is selected", Color.white));
             GameManager.Instance.EnqueueEvent(new GameManager.ChangeRoomColorEvent(room, Color.red));
         }
         else
@@ -248,10 +253,11 @@ public class DungeonGenerator
         }
     }
 
-    private void ConnectRoom()
+    private void ConnectRoom(TileMap tileMap)
     {
-        foreach (Room room in rooms)
+        foreach (var pair in tileMap.rooms)
         {
+            Room room = pair.Value;
             room.neighbors.Clear();
         }
 
@@ -773,7 +779,6 @@ public class DungeonGenerator
         while (true)
         {
             bool overlap = false;
-
             for (int i = 0; i < rooms.Count; i++)
             {
                 for (int j = i + 1; j < rooms.Count; j++)

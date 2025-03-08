@@ -11,7 +11,7 @@ public class GameManager : MonoBehaviour
     public int maxRoomSize;
 
     public int randomSeed = 0;
-    public float displayStepInterval = 0.05f;
+    public float tickTime = 0.05f;
 
     public Dictionary<string, GameObject>       gizmos = new Dictionary<string, GameObject>();
     public Dictionary<int, DungeonGizmo.Block>  roomGizmos = new Dictionary<int, DungeonGizmo.Block>();
@@ -76,7 +76,10 @@ public class GameManager : MonoBehaviour
         stopWatch.Stop();
         DungeonLog.Write($"Dungeon data generation is complete(elapsed_time:{stopWatch.Elapsed})");
 
-        dungeon.AttachTile(tileMap);
+        dungeon.GenerateTileSprite(tileMap);
+
+        GameManager.Instance.EnqueueEvent(new GameManager.EnableGizmoEvent(GameManager.EventName.RoomGizmo, false));
+        GameManager.Instance.EnqueueEvent(new GameManager.EnableGizmoEvent(GameManager.EventName.TileGizmo, false));
 
         coroutine = StartCoroutine(ExecuteEvent());
     }
@@ -158,7 +161,7 @@ public class GameManager : MonoBehaviour
                 GameManager.Instance.dungeon.tileSprites[tile.index] = tileSprite;
             }
 
-            yield return new WaitForSeconds(GameManager.Instance.displayStepInterval/10);
+            yield return new WaitForSeconds(GameManager.Instance.tickTime/10);
         }
     }
 
@@ -254,7 +257,7 @@ public class GameManager : MonoBehaviour
                 Vector3 start = gizmo.position;
                 while (1.0f > interpolation)
                 {
-                    interpolation += Time.deltaTime / GameManager.Instance.displayStepInterval;
+                    interpolation += Time.deltaTime / GameManager.Instance.tickTime;
                     gizmo.position = Vector3.Lerp(start, data.position, interpolation);
                     yield return null;
                 }
@@ -287,7 +290,7 @@ public class GameManager : MonoBehaviour
             }
 
             gizmo.color = color;
-            yield return new WaitForSeconds(GameManager.Instance.displayStepInterval);
+            yield return new WaitForSeconds(GameManager.Instance.tickTime);
         }
     }
 
@@ -311,7 +314,7 @@ public class GameManager : MonoBehaviour
             gizmo.parent = null;
             DungeonGizmo.Destroy(gizmo);
             GameManager.Instance.roomGizmos.Remove(room.index);
-            yield return new WaitForSeconds(GameManager.Instance.displayStepInterval);
+            yield return new WaitForSeconds(GameManager.Instance.tickTime);
         }
     }
 
@@ -322,7 +325,7 @@ public class GameManager : MonoBehaviour
         public IEnumerator OnEvent()
         {
             int index = 1;
-            float interval = GameManager.Instance.displayStepInterval / triangulation.triangles.Count;
+            float interval = GameManager.Instance.tickTime / triangulation.triangles.Count;
             foreach (var triangle in triangulation.triangles)
             {
                 DungeonGizmo.Line line_ab = new DungeonGizmo.Line($"Triangle_{index}_ab", Color.green, triangle.a, triangle.b, 0.1f);
@@ -343,7 +346,7 @@ public class GameManager : MonoBehaviour
             DungeonGizmo.Circle circle = new DungeonGizmo.Circle($"Biggest_{index}_InnerCircle", Color.red, biggestCircle.radius, 0.5f);
             circle.position = biggestCircle.center;
             circle.sortingOrder = SortingOrder.BiggestCircle;
-            yield return new WaitForSeconds(GameManager.Instance.displayStepInterval);
+            yield return new WaitForSeconds(GameManager.Instance.tickTime);
 
             DungeonGizmo.ClearAll();
         }
@@ -360,7 +363,7 @@ public class GameManager : MonoBehaviour
         public IEnumerator OnEvent()
         {
             int tileCount = (int)room.rect.width * 2 + (int)room.rect.height * 2;
-            float interval = GameManager.Instance.displayStepInterval / tileCount;
+            float interval = GameManager.Instance.tickTime / tileCount;
             // 방을 벽들로 막아 버림
             for (int x = (int)room.rect.xMin; x < (int)room.rect.xMax; x++)
             {
@@ -457,7 +460,7 @@ public class GameManager : MonoBehaviour
             
             foreach (var corridor in corridors)
             {
-                float interval = GameManager.Instance.displayStepInterval / corridor.path.Count;
+                float interval = GameManager.Instance.tickTime / corridor.path.Count;
                 foreach (Tile tile in corridor.path)
                 {
                     DungeonGizmo.Rect gizmo = null;
@@ -521,7 +524,7 @@ public class GameManager : MonoBehaviour
 
             GameManager.Instance.gizmos.Add(name, giizmoRoot);
 
-            float interval = GameManager.Instance.displayStepInterval / lines.Count;
+            float interval = GameManager.Instance.tickTime / lines.Count;
             for(int i=0; i<lines.Count; i++)
             {
                 Line line = lines[i];
@@ -631,7 +634,7 @@ public class GameManager : MonoBehaviour
             gizmo.color = color;
             gizmo.sortingOrder = sortingOrder;
             
-            yield return new WaitForSeconds(GameManager.Instance.displayStepInterval/10);
+            yield return new WaitForSeconds(GameManager.Instance.tickTime/10);
         }
     }
 
@@ -655,7 +658,7 @@ public class GameManager : MonoBehaviour
             }
 
             rect.color = color;
-            yield return new WaitForSeconds(GameManager.Instance.displayStepInterval);
+            yield return new WaitForSeconds(GameManager.Instance.tickTime);
         }
     }
 
@@ -684,7 +687,7 @@ public class GameManager : MonoBehaviour
                 GameManager.Instance.gizmos.Add(EventName.TileCostGizmo, gizmoRoot);
             }
             
-            float interval = GameManager.Instance.displayStepInterval / tiles.Count;
+            float interval = GameManager.Instance.tickTime / tiles.Count;
             for (int i = 0; i < tiles.Count; i++)
             {
                 Tile tile = tiles[i];
@@ -738,7 +741,7 @@ public class GameManager : MonoBehaviour
             position.z = Camera.main.transform.position.z;
             while (1.0f > interpolation)
             {
-                interpolation += Time.deltaTime / GameManager.Instance.displayStepInterval;
+                interpolation += Time.deltaTime / GameManager.Instance.tickTime;
 
                 Camera.main.transform.position = Vector3.Lerp(start, this.position, interpolation);
                 yield return null;
@@ -746,6 +749,35 @@ public class GameManager : MonoBehaviour
 
             Camera.main.transform.position = this.position;
             GameManager.AdjustOrthographicCamera(cameraBoundary);
+        }
+    }
+
+    public class WriteLog : Event
+    {
+        private string text;
+        private Color color;
+        private int fontSize;
+
+        public WriteLog(string text, Color color, int fontSize = 12)
+        {
+            this.text = text;
+            this.color = color;
+            this.fontSize = fontSize;
+        }
+
+        public IEnumerator OnEvent()
+        {
+            string hexColor = ColorToHex(color);
+            DungeonLog.Write($"<size={fontSize}><color={hexColor}>{text}");
+            yield break; ;
+        }
+
+        private string ColorToHex(Color color)
+        {
+            int r = Mathf.RoundToInt(color.r * 255);
+            int g = Mathf.RoundToInt(color.g * 255);
+            int b = Mathf.RoundToInt(color.b * 255);
+            return $"#{r:X2}{g:X2}{b:X2}"; // 2자리 HEX 문자열 변환
         }
     }
 

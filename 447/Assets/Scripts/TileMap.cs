@@ -1,11 +1,15 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+using static DungeonGenerator;
+using UnityEngine.Tilemaps;
+using static UnityEngine.GraphicsBuffer;
 
 public class TileMap
 {
     private Tile[] tiles;
     public Rect rect;
-
+    public Dictionary<int, Room> rooms = new Dictionary<int, Room>();
     public int width
     {
         get { return (int)rect.width; }
@@ -18,6 +22,10 @@ public class TileMap
 
     public TileMap(List<Room> rooms)
     {
+        foreach (Room room in rooms)
+        {
+            this.rooms.Add(room.index, room);
+        }
         rect = DungeonGenerator.GetBoundaryRect(rooms);
         tiles = new Tile[width * height];
         // 전체 타일 초기화
@@ -116,5 +124,77 @@ public class TileMap
         }
 
         return tiles[y * width + x];
+    }
+
+    public Room GetRoom(int index)
+    {
+        Room room = null;
+        if (false == rooms.TryGetValue(index, out room))
+        {
+            return null;
+        }
+        return room;
+    }
+
+    public List<Tile> FindPath(Tile from, Tile to)
+    {
+        AStarPathFinder pathFinder = new AStarPathFinder(this, rect, new AStarPathFinder.RandomLookup());
+        List<Tile> path = pathFinder.FindPath(from, to);
+        if (null == path || 0 == path.Count)
+        {
+            return null;
+        }
+
+        return path;
+    }
+
+    public List<Room> FindPath(Room from, Room to)
+    {
+        if (null == to)
+        {
+            return null;
+        }
+
+        Dictionary<Room, Room> parents = new Dictionary<Room, Room>(); // 부모 노드 저장
+        Queue<Room> queue = new Queue<Room>();
+        queue.Enqueue(from);
+        parents[from] = null;  // 시작점의 부모는 없음
+
+        while (queue.Count > 0)
+        {
+            Room room = queue.Dequeue();
+            if (room == to) // 목표 노드 도착
+            {
+                break;
+            }
+
+            foreach (Room neighbor in room.neighbors)
+            {
+                if (false == parents.ContainsKey(neighbor)) // 방문하지 않은 노드
+                {
+                    parents[neighbor] = room; // 부모 노드 기록
+                    queue.Enqueue(neighbor);
+                }
+            }
+        }
+
+        // 목표 노드까지 경로 추적
+        if (false == parents.ContainsKey(to))
+        {
+            return null; // 도달 불가
+        }
+
+        List<Room> path = new List<Room>();
+
+        Room parent = parents[to];
+        while (null != parent)
+        {
+            path.Add(parent);
+            parent = parents[parent];
+        }
+
+        path.Reverse(); // 시작점부터 출력하도록 뒤집기
+
+        return path;
     }
 }

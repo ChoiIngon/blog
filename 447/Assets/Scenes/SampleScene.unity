@@ -155,9 +155,8 @@ MonoBehaviour:
   roomCount: 15
   minRoomSize: 7
   maxRoomSize: 10
-  randomSeed: 0
-  displayStepInterval: 0.05
-  dungeon: {fileID: 0}
+  randomSeed: 10
+  tickTime: 0.05
 --- !u!4 &303084601
 Transform:
   m_ObjectHideFlags: 0
@@ -208,7 +207,7 @@ RectTransform:
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0.4}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 300, y: 0}
+  m_SizeDelta: {x: 400, y: 0}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!114 &518537537
 MonoBehaviour:

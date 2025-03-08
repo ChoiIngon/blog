@@ -45,7 +45,7 @@ public class Dungeon : MonoBehaviour
             }
         }
 
-        protected static Sprite GetRandomSprite(List<Sprite> sprites)
+        protected Sprite GetRandomSprite(List<Sprite> sprites)
         {
             if (0 == sprites.Count)
             {
@@ -361,7 +361,7 @@ public class Dungeon : MonoBehaviour
 
     public TileSprite[] tileSprites;
     // Start is called before the first frame update
-    public void AttachTile(TileMap tileMap)
+    public void GenerateTileSprite(TileMap tileMap)
     {
         Clear();
 
