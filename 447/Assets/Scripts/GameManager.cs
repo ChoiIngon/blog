@@ -161,16 +161,26 @@ public class GameManager : MonoBehaviour
 
             if (GameManager.Instance.tileMap.start == tile)
             {
-                var tileSprite = new DungeonSpriteGenerator.DownStairSprite(tile);
+                var tileSprite = new DungeonSpriteGenerator.UpStairSprite(tile);
                 tileSprite.SetParent(tile.gameObject.transform);
             }
 
             if (GameManager.Instance.tileMap.end == tile)
             {
-                var tileSprite = new DungeonSpriteGenerator.UpStairSprite(tile);
+                var tileSprite = new DungeonSpriteGenerator.DownStairSprite(tile);
+                tileSprite.SetParent(tile.gameObject.transform);
+            }
+            
+            if (null != tile.dungeonObject as Door)
+            {
+                var tileSprite = new DungeonSpriteGenerator.DoorSprite(tile);
                 tileSprite.SetParent(tile.gameObject.transform);
             }
 
+            if (null != tile.dungeonObject as Item)
+            {
+            }
+            
             yield return new WaitForSeconds(GameManager.Instance.tickTime/10);
         }
     }

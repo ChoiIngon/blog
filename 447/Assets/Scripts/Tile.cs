@@ -33,6 +33,7 @@ public class Tile : MonoBehaviour
     public int cost = 1;
     public Room room;
     public Tile[] neighbors = new Tile[(int)Direction.Max];
+    public DungeonObject dungeonObject;
 
     public Vector3 position
     {

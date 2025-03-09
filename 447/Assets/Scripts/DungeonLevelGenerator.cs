@@ -1,5 +1,8 @@
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using Unity.VisualScripting;
 using UnityEngine;
+using static UnityEditor.Recorder.OutputPath;
 
 public class DungeonLevelGenerator
 {
@@ -10,6 +13,13 @@ public class DungeonLevelGenerator
     public int minItemCount;
     public int maxitemCount;
 
+    public struct Level
+    {
+        public Tile start;
+        public Tile end;
+    }
+
+    public int endRoomLockProbabity = 100;
     public struct RoomPathKey
     {
         public RoomPathKey(Room start, Room end)
@@ -30,6 +40,7 @@ public class DungeonLevelGenerator
 
     public TileMap Generate(TileMap tileMap)
     {
+        this.tileMap = tileMap;
         List<Room> rooms = new List<Room>(tileMap.rooms.Values);
         for (int i = 0; i < rooms.Count; i++) 
         {
@@ -80,6 +91,58 @@ public class DungeonLevelGenerator
         this.minItemCount = 1;
         this.maxitemCount = 2;
 
+        if (endRoomLockProbabity > Random.Range(0, 100))
+        {
+            LockEndRoom();
+        }
+
         return tileMap;
+    }
+
+    // 마지막 방을 잠그는 기능
+    private void LockEndRoom()
+    {
+        var path = FindPath(end, start);
+        if (null == path)
+        {
+            return;
+        }
+
+        if (3 > path.Count)
+        {
+            return;
+        }
+
+        foreach (Tile door in end.doors)
+        {
+            door.dungeonObject = new Door();
+        }
+
+        path.RemoveAt(0);
+
+        Room room = path[Random.Range(0, path.Count)];
+        Rect floorRect = room.GetFloorRect();
+
+        int x = (int)Random.Range(floorRect.xMin, floorRect.xMax - 1);
+        int y = (int)Random.Range(floorRect.yMin, floorRect.yMax - 1);
+
+        Tile tile = tileMap.GetTile(x, y);
+
+    }
+
+    private List<Room> FindPath(Room from, Room to)
+    {
+        RoomPathKey key = new RoomPathKey(from, to);
+        List<Room> path = null;
+        if (false == paths.TryGetValue(key, out path)) 
+        {
+            return null;
+        }
+
+        return path;
+    }
+
+    private void CreateItem(Tile tile, string itmeCode)
+    {
     }
 }

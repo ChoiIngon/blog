@@ -85,6 +85,30 @@ public class DungeonSpriteGenerator
 
         UpStairSprite.Sprites.Add(sprites["Stair.Up"]);
         DownStairSprite.Sprites.Add(sprites["Stair.Down"]);
+
+        DoorSprite.Vertical.Add(sprites["Door.Vertical"]);
+        DoorSprite.Horizontal.Add(sprites["Door.Horizontal"]);
+    }
+
+    public TileMap Generate(TileMap tileMap)
+    {
+        for (int i = 0; i < tileMap.width * tileMap.height; i++)
+        {
+            var tile = tileMap.GetTile(i);
+            if (null == tile)
+            {
+                continue;
+            }
+
+            if (Tile.Type.None == tile.type)
+            {
+                continue;
+            }
+
+            GameManager.Instance.EnqueueEvent(new GameManager.AttachTileSprite(tile));
+        }
+
+        return tileMap;
     }
 
     public class TileSprite
@@ -93,12 +117,12 @@ public class DungeonSpriteGenerator
         protected SpriteRenderer spriteRenderer;
         public Tile tile;
 
-        public TileSprite(Tile tile)
+        public TileSprite(Tile tile, int sortingOrder)
         {
             this.tile = tile;
             this.gameObject = new GameObject($"TileSprite_{tile.index}");
             this.spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
-            this.spriteRenderer.sortingOrder = SortingOrder.Tile;
+            this.spriteRenderer.sortingOrder = sortingOrder;
             this.spriteRenderer.color = Color.white;
         }
 
@@ -141,7 +165,7 @@ public class DungeonSpriteGenerator
         public static List<Sprite> VerticalRight = new List<Sprite>();
         public static List<Sprite> VerticalLeft = new List<Sprite>();
 
-        public FloorSprite(Tile tile) : base(tile)
+        public FloorSprite(Tile tile) : base(tile, SortingOrder.Tile)
         {
             this.spriteRenderer.sprite = GetSprite(tile);
         }
@@ -231,7 +255,7 @@ public class DungeonSpriteGenerator
         public static List<Sprite> CornerOuterLeftTop = new List<Sprite>();
         public static List<Sprite> CornerOuterRightTop = new List<Sprite>();
 
-        public WallSprite(Tile tile) : base(tile)
+        public WallSprite(Tile tile) : base(tile, SortingOrder.Tile)
         {
             this.spriteRenderer.sprite = GetSprite(tile);
         }
@@ -432,102 +456,71 @@ public class DungeonSpriteGenerator
         }
     }
 
-    public class GimmickSprite
-    {
-        public readonly GameObject gameObject;
-        protected SpriteRenderer spriteRenderer;
-
-        public GimmickSprite(Tile tile)
-        {
-            this.gameObject = new GameObject($"Gimmick_{tile.index}");
-            this.gameObject.transform.position = new Vector3(tile.rect.x + 0.5f, tile.rect.y + 0.5f);
-
-            this.spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
-            this.spriteRenderer.sortingOrder = SortingOrder.Gimmick;
-            this.spriteRenderer.color = Color.white;
-        }
-
-        public void SetParent(Transform transform)
-        {
-            this.gameObject.transform.parent = transform;
-        }
-
-        public Color color
-        {
-            get
-            {
-                return this.spriteRenderer.color;
-            }
-            set
-            {
-                this.spriteRenderer.color = value;
-            }
-        }
-
-        public void Visible(bool flag)
-        {
-            float alpha = 1.0f;
-            if (false == flag)
-            {
-                alpha = 0.5f;
-            }
-
-            color = new Color(color.r, color.g, color.b, alpha);
-        }
-
-        protected Sprite GetRandomSprite(List<Sprite> sprites)
-        {
-            if (0 == sprites.Count)
-            {
-                return null;
-            }
-
-            return sprites[Random.Range(0, sprites.Count)];
-        }
-    }
-
-    public class UpStairSprite : GimmickSprite
+    public class UpStairSprite : TileSprite
     {
         public static List<Sprite> Sprites = new List<Sprite>();
-        public UpStairSprite(Tile tile) : base(tile)
+        public UpStairSprite(Tile tile) : base(tile, SortingOrder.Gimmick)
         {
             gameObject.name = $"UpStair_{tile.index}";
             spriteRenderer.sprite = GetRandomSprite(Sprites);
         }
     }
 
-    public class DownStairSprite : GimmickSprite
+    public class DownStairSprite : TileSprite
     {
         public static List<Sprite> Sprites = new List<Sprite>();
-        public DownStairSprite(Tile tile) : base(tile)
+        public DownStairSprite(Tile tile) : base(tile, SortingOrder.Gimmick)
         {
             gameObject.name = $"DownStair_{tile.index}";
             spriteRenderer.sprite = GetRandomSprite(Sprites);
         }
     }
 
-    // Start is called before the first frame update
-    public TileMap Generate(TileMap tileMap)
+    public class DoorSprite : TileSprite
     {
-        for (int i = 0; i < tileMap.width * tileMap.height; i++)
+        public static List<Sprite> Horizontal = new List<Sprite>();
+        public static List<Sprite> Vertical = new List<Sprite>();
+
+        public DoorSprite(Tile tile) : base(tile, SortingOrder.Gimmick)
         {
-            var tile = tileMap.GetTile(i);
-            if (null == tile)
+            gameObject.name = $"Door_{tile.index}";
+
+            DungeonObject door = tile.dungeonObject as Door;
+            if (null == door)
             {
-                continue;
+                return;
             }
 
-            if (Tile.Type.None == tile.type)
+            Tile top = tile.neighbors[(int)Tile.Direction.Top];
+            Tile bottom = tile.neighbors[(int)Tile.Direction.Bottom];
+
+            if (null != top && Tile.Type.Floor == top.type && null != bottom && Tile.Type.Floor == bottom.type)
             {
-                continue;
+                // 위 아래로로 난 문
+                spriteRenderer.sprite = GetRandomSprite(Horizontal);
             }
 
-            GameManager.Instance.EnqueueEvent(new GameManager.AttachTileSprite(tile));
+            Tile left = tile.neighbors[(int)Tile.Direction.Left];
+            Tile right = tile.neighbors[(int)Tile.Direction.Right];
+
+            if (null != left && Tile.Type.Floor == left.type && null != right && Tile.Type.Floor == right.type)
+            {
+                spriteRenderer.sprite = GetRandomSprite(Vertical);
+            }
         }
-
-        return tileMap;
     }
 
+    public class Item : TileSprite
+    {
+        public static List<Sprite> Sprites = new List<Sprite>();
+
+        public Item(Tile tile) : base(tile, SortingOrder.Gimmick)
+        {
+            gameObject.name = $"Key_{tile.index}";
+            spriteRenderer.sprite = GetRandomSprite(Sprites);
+        }
+    }
+    
     public void Clear()
     {
         sprites.Clear();
