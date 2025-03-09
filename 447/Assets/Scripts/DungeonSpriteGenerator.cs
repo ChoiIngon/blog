@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.U2D;
 
-public class Dungeon : MonoBehaviour
+public class DungeonSpriteGenerator : MonoBehaviour
 {
     public static class SortingOrder
     {
@@ -12,6 +12,7 @@ public class Dungeon : MonoBehaviour
     }
 
     Dictionary<string, Sprite> sprites = new Dictionary<string, Sprite>();
+
     public class TileSprite
     {
         public readonly GameObject gameObject;
@@ -22,7 +23,6 @@ public class Dungeon : MonoBehaviour
         {
             this.tile = tile;
             this.gameObject = new GameObject($"TileSprite_{tile.index}");
-            this.gameObject.transform.position = new Vector3(tile.rect.x + tile.rect.width / 2, tile.rect.y + tile.rect.height/2);
             this.spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
             this.spriteRenderer.sortingOrder = SortingOrder.Tile;
             this.spriteRenderer.color = Color.white;
@@ -30,7 +30,7 @@ public class Dungeon : MonoBehaviour
 
         public void SetParent(Transform transform)
         {
-            gameObject.transform.parent = transform;
+            gameObject.transform.SetParent(transform, false);
         }
 
         public Color color
@@ -359,7 +359,6 @@ public class Dungeon : MonoBehaviour
         }
     }
 
-    public TileSprite[] tileSprites;
     // Start is called before the first frame update
     public void GenerateTileSprite(TileMap tileMap)
     {
@@ -431,8 +430,7 @@ public class Dungeon : MonoBehaviour
 
         WallSprite.VerticalTop.Add(sprites["Wall.VerticalTop_1"]);
 
-        tileSprites = new TileSprite[tileMap.width * tileMap.height];
-        for (int i = 0; i < tileSprites.Length; i++)
+        for (int i = 0; i < tileMap.width * tileMap.height; i++)
         {
             var tile = tileMap.GetTile(i);
             if (null == tile)
@@ -452,17 +450,5 @@ public class Dungeon : MonoBehaviour
     public void Clear()
     {
         sprites.Clear();
-        if (null != tileSprites)
-        {
-            foreach (var tileSprite in tileSprites)
-            {
-                if (null == tileSprite)
-                {
-                    continue;
-                }
-                tileSprite.gameObject.transform.SetParent(null, false);
-                GameObject.DestroyImmediate(tileSprite.gameObject);
-            }
-        }
     }
 }

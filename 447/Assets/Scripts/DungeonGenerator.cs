@@ -7,13 +7,13 @@ public class DungeonGenerator
     {
         public List<Tile> path;
     }
-
+    private DungeonSpriteGenerator spriteGenerator = new DungeonSpriteGenerator();
     const int MinRoomSize = 5;
+
     int roomCount = 0;
     int minRoomSize = 0;
     int maxRoomSize = 0;
     WeightRandom<int> depthRandom;
-    List<Room> rooms;
     List<Corridor> corridors;
     TileMap tileMap;
 
@@ -32,20 +32,8 @@ public class DungeonGenerator
         }
 
         this.roomCount = roomCount;  
-        this.minRoomSize = minRoomSize;
-        this.maxRoomSize = maxRoomSize;
-        if (MinRoomSize > this.minRoomSize)
-        {
-            this.minRoomSize = MinRoomSize;
-        }
-
-        if (MinRoomSize > this.maxRoomSize)
-        {
-            this.maxRoomSize = MinRoomSize;
-        }
-
-        this.rooms = new List<Room>();
-        this.corridors = new List<Corridor>();
+        this.minRoomSize = Mathf.Max(MinRoomSize, minRoomSize);
+        this.maxRoomSize = Mathf.Max(MinRoomSize, maxRoomSize);
 
         this.depthRandom = new WeightRandom<int>();
         this.depthRandom.AddElement(10, 4);
@@ -53,93 +41,76 @@ public class DungeonGenerator
         this.depthRandom.AddElement(30, 2);
         this.depthRandom.AddElement(40, 1);
 
-        List<Room> existRooms = CreateRooms(roomCount, minRoomSize, maxRoomSize);
-        SelectRoom(existRooms);
-        tileMap = new TileMap(rooms);
+        this.corridors = new List<Corridor>();
 
-#if UNITY_EDITOR
-        foreach (Room room in existRooms)
+        List<Room> mockupRooms      = CreateRooms(roomCount, minRoomSize, maxRoomSize);
+        List<Room> selectedRooms    = SelectRooms(mockupRooms);
+
+        if (null != tileMap)
         {
-            if (true == rooms.Contains(room))
-            {
-                continue;
-            }
-
-            GameManager.Instance.EnqueueEvent(new GameManager.DestroyRoomGizmoEvent(room));
+            tileMap.Clear();
         }
 
-		GameManager.Instance.EnqueueEvent(new GameManager.CreateGridGizmoEvent(GameManager.EventName.BackgroundGridGizmo, tileMap.rect));
-		GameManager.Instance.EnqueueEvent(new GameManager.MoveCameraEvent(tileMap.rect.center, tileMap.rect));
-        GameManager.Instance.EnqueueEvent(new GameManager.MoveRoomGizmoEvent(rooms));
-#endif
-		ConnectRoom(tileMap);
-        BuildWall();
+        tileMap = new TileMap(selectedRooms);
 
-#if UNITY_EDITOR
-        GameManager.Instance.EnqueueEvent(new GameManager.EnableGizmoEvent(GameManager.EventName.MiniumSpanningTreeGizmo, false));
+        GameManager.Instance.EnqueueEvent(new GameManager.CreateGridGizmoEvent(GameManager.EventName.BackgroundGridGizmo, tileMap.rect));
+        GameManager.Instance.EnqueueEvent(new GameManager.MoveCameraEvent(tileMap.rect.center, tileMap.rect));
+        GameManager.Instance.EnqueueEvent(new GameManager.MoveRoomGizmoEvent(selectedRooms));
+
+        ConnectRooms(tileMap);
+
         GameManager.Instance.EnqueueEvent(new GameManager.EnableGizmoEvent(GameManager.EventName.TileCostGizmo, false));
+
+        BuildWall(tileMap);
+
         GameManager.Instance.EnqueueEvent(new GameManager.EnableGizmoEvent(GameManager.EventName.BackgroundGridGizmo, false));
-        foreach (Room room in rooms)
-        {
-            GameManager.Instance.EnqueueEvent(new GameManager.BuildRoomWallEvent(room));
-        }
-        GameManager.Instance.EnqueueEvent(new GameManager.BuildCorridorWallEvent(corridors));
-#endif
+
         var levelGenerator = new DungeonLevelGenerator(tileMap);
         Debug.Log($"start_room:{levelGenerator.start.index}, end_room:{levelGenerator.end.index}");
         return tileMap;
     }
 
+    #region CreateRooms
     private List<Room> CreateRooms(int roomCount, int minRoomSize, int maxRoomSize)
     {
-#if UNITY_EDITOR
-        GameManager.Instance.EnqueueEvent(new GameManager.WriteLog("Room data generation process starts", Color.white));
-#endif
-
         int roomIndex = 1;
         var rooms = new List<Room>();
+
         Room baseRoom1 = CreateRoom(roomIndex++, 0, 0);
         rooms.Add(baseRoom1);
-#if UNITY_EDITOR
-        GameManager.Instance.EnqueueEvent(new GameManager.CreateRoomGizmoEvent(baseRoom1, GetBoundaryRect(rooms), Color.blue));
-#endif
 
         Room baseRoom2 = CreateRoom(roomIndex++, maxRoomSize * 2, 0);
         rooms.Add(baseRoom2);
-#if UNITY_EDITOR
-        GameManager.Instance.EnqueueEvent(new GameManager.CreateRoomGizmoEvent(baseRoom2, GetBoundaryRect(rooms), Color.blue));
-#endif
 
         Room baseRoom3 = CreateRoom(roomIndex++, maxRoomSize / 2, maxRoomSize * 2);
         rooms.Add(baseRoom3);
-#if UNITY_EDITOR
+
+        GameManager.Instance.EnqueueEvent(new GameManager.WriteLog("Room data generation process starts", Color.white));
+        GameManager.Instance.EnqueueEvent(new GameManager.CreateRoomGizmoEvent(baseRoom1, GetBoundaryRect(rooms), Color.blue));
+        GameManager.Instance.EnqueueEvent(new GameManager.CreateRoomGizmoEvent(baseRoom2, GetBoundaryRect(rooms), Color.blue));
         GameManager.Instance.EnqueueEvent(new GameManager.CreateRoomGizmoEvent(baseRoom3, GetBoundaryRect(rooms), Color.blue));
-#endif
 
         for (int i = 0; i < roomCount * 2; i++)
         {
-            Room room = AddRoom(roomIndex++, rooms);
+            Room room = CreateRoom(roomIndex++, rooms);
             rooms.Add(room);
-#if UNITY_EDITOR
             GameManager.Instance.EnqueueEvent(new GameManager.CreateRoomGizmoEvent(room, GetBoundaryRect(rooms), Color.red));
-#endif
+
             RepositionBlocks(room.center, rooms);
-#if UNITY_EDITOR
+
+            GameManager.Instance.EnqueueEvent(new GameManager.MoveRoomGizmoEvent(rooms));
             GameManager.Instance.EnqueueEvent(new GameManager.ChangeRoomColorEvent(room, Color.blue));
-#endif
         }
 
         return rooms;
     }
-
     private Room CreateRoom(int roomIndex, int x, int y)
     {
         int width = GetRandomSize();
         int height = GetRandomSize();
         return new Room(roomIndex, x, y, width, height);
     }
-
-    private Room AddRoom(int roomIndex, List<Room> exists)
+    private Room CreateRoom(int roomIndex, List<Room> exists)
     {
         var triangulation = new DelaunayTriangulation(exists);
         if (null == triangulation)
@@ -162,14 +133,7 @@ public class DungeonGenerator
             }
         }
 
-#if UNITY_EDITOR
-        {
-            GameManager.FindRoomPositionEvent evt = new GameManager.FindRoomPositionEvent();
-            evt.triangulation = triangulation;
-            evt.biggestCircle = biggestCircle;
-            GameManager.Instance.EnqueueEvent(evt);
-        }
-#endif
+        GameManager.Instance.EnqueueEvent(new GameManager.FindRoomPositionEvent(triangulation, biggestCircle));
 
         int width   = GetRandomSize();
         int height  = GetRandomSize();
@@ -178,14 +142,15 @@ public class DungeonGenerator
 
         return new Room(roomIndex++, (int)x, (int)y, width, height);
     }
+    #endregion
 
-    private void SelectRoom(List<Room> exists)
+    #region SelectRooms
+    private List<Room> SelectRooms(List<Room> mockupRooms)
     {
-#if UNITY_EDITOR
         GameManager.Instance.EnqueueEvent(new GameManager.WriteLog("Select room process starts", Color.white));
-#endif
-        var triangulation = new DelaunayTriangulation(exists);
-        var mst = new MinimumSpanningTree(exists);
+
+        var triangulation = new DelaunayTriangulation(mockupRooms);
+        var mst = new MinimumSpanningTree(mockupRooms);
         foreach (var triangle in triangulation.triangles)
         {
             foreach (var edge in triangle.edges)
@@ -202,23 +167,35 @@ public class DungeonGenerator
             connection.p2.neighbors.Add(connection.p1);
         }
 
-        Room room = exists[Random.Range(0, exists.Count)];
-        SelectRoom(room, 1);
+        List<Room> selectedRooms = new List<Room>();
 
-        while (this.roomCount > this.rooms.Count)
+        Room startRoom = mockupRooms[Random.Range(0, mockupRooms.Count)];
+        SelectRoom(startRoom, 1, selectedRooms);
+
+        while (this.roomCount > selectedRooms.Count)
         {
-            Room block = exists[0];
-            if (false == this.rooms.Contains(block))
+            Room room = mockupRooms[0];
+            if (false == selectedRooms.Contains(room))
             {
-                this.rooms.Add(block);
-#if UNITY_EDITOR
-                GameManager.Instance.EnqueueEvent(new GameManager.ChangeRoomColorEvent(block, Color.red));
-#endif
+                selectedRooms.Add(room);
+                GameManager.Instance.EnqueueEvent(new GameManager.ChangeRoomColorEvent(room, Color.red));
             }
-            exists.RemoveAt(0);
+            mockupRooms.RemoveAt(0);
         }
+
+        foreach (Room room in mockupRooms)
+        {
+            if (true == selectedRooms.Contains(room))
+            {
+                continue;
+            }
+
+            GameManager.Instance.EnqueueEvent(new GameManager.DestroyRoomGizmoEvent(room));
+        }
+
+        return selectedRooms;
     }
-    private void SelectRoom(Room room, int depth)
+    private void SelectRoom(Room room, int depth, List<Room> selectedRooms)
     {
         depth--;
 #if UNITY_EDITOR
@@ -238,10 +215,10 @@ public class DungeonGenerator
         if (0 == depth)
         {
             depth = GetRandomDepth();
-            rooms.Add(room);
+            selectedRooms.Add(room);
         }
         
-        while (0 < room.neighbors.Count && this.roomCount > rooms.Count)
+        while (0 < room.neighbors.Count && this.roomCount > selectedRooms.Count)
         {
             int index = Random.Range(0, room.neighbors.Count);
             Room neighbor = room.neighbors[index];
@@ -249,11 +226,13 @@ public class DungeonGenerator
             neighbor.neighbors.Remove(room);
             room.neighbors.RemoveAt(index);
 
-            SelectRoom(neighbor, depth);
+            SelectRoom(neighbor, depth, selectedRooms);
         }
     }
+    #endregion
 
-    private void ConnectRoom(TileMap tileMap)
+    #region ConnectRooms
+    private void ConnectRooms(TileMap tileMap)
     {
         foreach (var pair in tileMap.rooms)
         {
@@ -261,6 +240,7 @@ public class DungeonGenerator
             room.neighbors.Clear();
         }
 
+        List<Room> rooms = new List<Room>(tileMap.rooms.Values);
         var triangulation = new DelaunayTriangulation(rooms);
         var mst = new MinimumSpanningTree(rooms);
         foreach (var triangle in triangulation.triangles)
@@ -287,14 +267,15 @@ public class DungeonGenerator
             mst.connections.Add(edge);
         }
 
-#if UNITY_EDITOR
-        var lines = new List<GameManager.CreateLineGizmoEvent.Line>();
-        foreach (var connection in mst.connections)
         {
-            lines.Add(new GameManager.CreateLineGizmoEvent.Line() { start = connection.p1.center, end = connection.p2.center });
+            var lines = new List<GameManager.CreateLineGizmoEvent.Line>();
+            foreach (var connection in mst.connections)
+            {
+                lines.Add(new GameManager.CreateLineGizmoEvent.Line() { start = connection.p1.center, end = connection.p2.center });
+            }
+            GameManager.Instance.EnqueueEvent(new GameManager.CreateLineGizmoEvent(GameManager.EventName.MiniumSpanningTreeGizmo, lines, Color.green, GameManager.SortingOrder.SpanningTreeEdge, 0.5f));
         }
-        GameManager.Instance.EnqueueEvent(new GameManager.CreateLineGizmoEvent(GameManager.EventName.MiniumSpanningTreeGizmo, lines, Color.green, GameManager.SortingOrder.SpanningTreeEdge, 0.5f));
-#endif
+
         foreach (var connection in mst.connections)
         {
             connection.p1.neighbors.Add(connection.p2);
@@ -302,6 +283,8 @@ public class DungeonGenerator
 
             ConnectRoom(connection.p1, connection.p2);
         }
+
+        GameManager.Instance.EnqueueEvent(new GameManager.EnableGizmoEvent(GameManager.EventName.MiniumSpanningTreeGizmo, false));
     }
     private void ConnectRoom(Room a, Room b)
     {
@@ -336,14 +319,11 @@ public class DungeonGenerator
 
 		foreach (var tile in corridor.path)
 		{
-			tile.type = Tile.Type.Floor;
+            tile.type = Tile.Type.Floor;
 			tile.cost = Tile.PathCost.MinCost;
-#if UNITY_EDITOR
 			GameManager.Instance.EnqueueEvent(new GameManager.CreateTileGizmoEvent(tile, Color.blue, GameManager.SortingOrder.Floor));
-#endif
 		}
 	}
-
 	private void ConnectVerticalRoom(Room a, Room b)
     {
         Room upperRoom = null;
@@ -371,7 +351,6 @@ public class DungeonGenerator
         Vector3 end = new Vector3(x, bottomY);
         AdjustTileCostOnCorridor(new List<Vector3>() { start, end });
     }
-
     private void ConnectHorizontalRoom(Room a, Room b)
     {
         Room leftRoom = null;
@@ -399,7 +378,6 @@ public class DungeonGenerator
         Vector3 end = new Vector3(rightX, y);
 		AdjustTileCostOnCorridor(new List<Vector3>() { start, end });
     }
-
     private void ConnectDiagonalRoom(Room a, Room b)
     {
         int xMin = (int)Mathf.Max(a.rect.xMin, b.rect.xMin);
@@ -517,11 +495,13 @@ public class DungeonGenerator
             return;
         }
     }
+    #endregion
 
-    private void BuildWall()
+    private void BuildWall(TileMap tileMap)
     {
-        foreach (Room room in rooms)
+        foreach (var pair in tileMap.rooms)
         {
+            Room room = pair.Value;
             for (int x = (int)room.rect.xMin; x < (int)room.rect.xMax; x++)
             {
                 Tile top = tileMap.GetTile(x, (int)room.rect.yMax - 1);
@@ -573,15 +553,6 @@ public class DungeonGenerator
         {
             foreach (Tile tile in corridor.path)
             {
-                tile.type = Tile.Type.Floor;
-                tile.cost = Tile.PathCost.Floor;
-            }
-        }
-
-        foreach (var corridor in corridors)
-        {
-            foreach (Tile tile in corridor.path)
-            {
                 int x = (int)tile.rect.x;
                 int y = (int)tile.rect.y;
 
@@ -593,20 +564,6 @@ public class DungeonGenerator
                 BuildWallOnTile(x + 1, y - 1);
                 BuildWallOnTile(x + 1, y);
                 BuildWallOnTile(x + 1, y + 1);
-            }
-        }
-
-        foreach (Room room in rooms)
-        {
-            Rect floorRect = room.GetFloorRect();
-            for (int y = (int)floorRect.yMin; y < (int)floorRect.yMax - 1; y++)
-            {
-                for (int x = (int)floorRect.xMin; x < (int)floorRect.xMax - 1; x++)
-                {
-                    Tile floor = tileMap.GetTile(x, y);
-                    floor.type = Tile.Type.Floor;
-                    floor.cost = Tile.PathCost.Floor;
-                }
             }
         }
 
@@ -623,11 +580,21 @@ public class DungeonGenerator
         for (int i = 0; i < tileMap.width * tileMap.height; i++)
         {
             Tile tile = tileMap.GetTile(i);
-            for (int j = 0; j < (int)Tile.Direction.Max; j++)
+            if (Tile.Type.None == tile.type)
             {
-                tile.neighbors[j] = null;
+                tile.gameObject.transform.SetParent(null, false);
+                GameObject.DestroyImmediate(tile.gameObject);
+                tileMap.tiles[i] = null;
+                continue;
+            }
 
-                var offset = offsets[j];
+            tile.cost = Tile.PathCost.Floor;
+
+            for (int direction = 0; direction < (int)Tile.Direction.Max; direction++)
+            {
+                tile.neighbors[direction] = null;
+
+                var offset = offsets[direction];
                 Tile neighbor = tileMap.GetTile((int)(tile.rect.x + offset.x), (int)(tile.rect.y + offset.y));
                 if (null == neighbor)
                 {
@@ -639,9 +606,16 @@ public class DungeonGenerator
                     continue;
                 }
 
-                tile.neighbors[j] = neighbor;
+                tile.neighbors[direction] = neighbor;
             }
         }
+
+        foreach (var pair in tileMap.rooms)
+        {
+            Room room = pair.Value;
+            GameManager.Instance.EnqueueEvent(new GameManager.BuildRoomWallEvent(room));
+        }
+        GameManager.Instance.EnqueueEvent(new GameManager.BuildCorridorWallEvent(corridors));
     }
     private void BuildWallOnTile(int x, int y)
     {
@@ -797,10 +771,6 @@ public class DungeonGenerator
                 break;
             }
         }
-
-#if UNITY_EDITOR
-        GameManager.Instance.EnqueueEvent(new GameManager.MoveRoomGizmoEvent(rooms));
-#endif
     }
     private void ResolveOverlap(Vector3 center, Rect boundary, Room room1, Room room2)
     {

@@ -1,20 +1,19 @@
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
-using static DungeonGenerator;
-using UnityEngine.Tilemaps;
-using static UnityEngine.GraphicsBuffer;
 
 public class TileMap
 {
-    private Tile[] tiles;
-    public Rect rect;
-    public Dictionary<int, Room> rooms = new Dictionary<int, Room>();
+    private GameObject gameObject;
+
+    public readonly Tile[] tiles;
+    public readonly Dictionary<int, Room> rooms = new Dictionary<int, Room>();
+    public readonly Rect rect;
+
     public int width
     {
         get { return (int)rect.width; }
     }
-
     public int height
     {
         get { return (int)rect.height; }
@@ -22,25 +21,26 @@ public class TileMap
 
     public TileMap(List<Room> rooms)
     {
-        foreach (Room room in rooms)
-        {
-            this.rooms.Add(room.index, room);
-        }
-        rect = DungeonGenerator.GetBoundaryRect(rooms);
-        tiles = new Tile[width * height];
+        this.gameObject = new GameObject("TileMap");
+        this.rect = DungeonGenerator.GetBoundaryRect(rooms);
+        this.tiles = new Tile[width * height];
         // 전체 타일 초기화
         for (int i = 0; i < width * height; i++)
         {
-            Tile tile = new Tile();
+            GameObject tileObject = new GameObject($"Tile_{i}");
+            Tile tile = tileObject.AddComponent<Tile>();
             tile.index = i;
             tile.rect = new Rect(i % width, i / width, 1, 1);
             tile.type = Tile.Type.None;
             tile.cost = Tile.PathCost.MaxCost;
+            tile.gameObject.transform.position = new Vector3(tile.rect.x + tile.rect.width/2, tile.rect.y + tile.rect.height / 2);
+            tile.gameObject.transform.SetParent(gameObject.transform, false);   
             tiles[i] = tile;
         }
         
         foreach (Room room in rooms)
         {
+            this.rooms.Add(room.index, room);
             // 블록들을 (0, 0) 기준으로 옮김
             room.rect.x -= rect.xMin;
             room.rect.y -= rect.yMin;
@@ -57,7 +57,6 @@ public class TileMap
                 bottom.cost = Tile.PathCost.MaxCost;
                 bottom.room = room;
             }
-
 
             for (int y = (int)room.rect.yMin; y < (int)room.rect.yMax; y++)
             {
@@ -99,6 +98,24 @@ public class TileMap
         
         rect.x = 0;
         rect.y = 0;
+    }
+
+    public void Clear()
+    {
+        if (null != gameObject)
+        {
+            /*
+            while (0 < gameObject.transform.childCount)
+            {
+                var child = gameObject.transform.GetChild(0);
+                child.transform.parent = null;
+                GameObject.DestroyImmediate(child.gameObject);
+            }
+            */
+            gameObject.transform.parent = null;
+            GameObject.DestroyImmediate(gameObject);
+            gameObject = null;
+        }
     }
 
     public Tile GetTile(int index)

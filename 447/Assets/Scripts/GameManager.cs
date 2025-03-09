@@ -19,7 +19,7 @@ public class GameManager : MonoBehaviour
 
     private DungeonGenerator generator = new DungeonGenerator();
     private TileMap          tileMap;
-    private Dungeon          dungeon;
+    private DungeonSpriteGenerator          dungeon;
 
     private Coroutine coroutine;
 
@@ -30,7 +30,7 @@ public class GameManager : MonoBehaviour
         
         GameObject dungeonObject = new GameObject("Dungeon");
         dungeonObject.transform.parent = transform;
-        this.dungeon = dungeonObject.AddComponent<Dungeon>();
+        this.dungeon = dungeonObject.AddComponent<DungeonSpriteGenerator>();
     }
 
     public void CreateDungeon()
@@ -147,20 +147,18 @@ public class GameManager : MonoBehaviour
 
         public IEnumerator OnEvent()
         {
+            DungeonSpriteGenerator.TileSprite tileSprite = null;
             if (Tile.Type.Floor == tile.type)
             {
-                var tileSprite = new Dungeon.FloorSprite(tile);
-                tileSprite.SetParent(GameManager.Instance.dungeon.transform);
-                GameManager.Instance.dungeon.tileSprites[tile.index] = tileSprite;
+                tileSprite = new DungeonSpriteGenerator.FloorSprite(tile);
             }
 
             if (Tile.Type.Wall == tile.type)
             {
-                var tileSprite = new Dungeon.WallSprite(tile);
-                tileSprite.SetParent(GameManager.Instance.dungeon.transform);
-                GameManager.Instance.dungeon.tileSprites[tile.index] = tileSprite;
+                tileSprite = new DungeonSpriteGenerator.WallSprite(tile);
             }
 
+            tileSprite.SetParent(tile.gameObject.transform);
             yield return new WaitForSeconds(GameManager.Instance.tickTime/10);
         }
     }
@@ -320,8 +318,15 @@ public class GameManager : MonoBehaviour
 
     public class FindRoomPositionEvent : Event
     {
-        public DelaunayTriangulation triangulation;
-        public DelaunayTriangulation.Circle biggestCircle;
+        private DelaunayTriangulation triangulation;
+        private DelaunayTriangulation.Circle biggestCircle;
+
+        public FindRoomPositionEvent(DelaunayTriangulation triangulation, DelaunayTriangulation.Circle biggestCircle)
+        {
+            this.triangulation = triangulation;
+            this.biggestCircle = biggestCircle;
+        }
+
         public IEnumerator OnEvent()
         {
             int index = 1;

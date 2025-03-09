@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Tile
+public class Tile : MonoBehaviour
 {
     public class PathCost
     {
