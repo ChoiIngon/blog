@@ -1,6 +1,5 @@
 using System.Collections.Generic;
-using Unity.VisualScripting;
-using UnityEditor;
+using UnityEngine;
 
 public class DungeonLevelGenerator
 {
@@ -25,7 +24,11 @@ public class DungeonLevelGenerator
 
     public Dictionary<RoomPathKey, List<Room>> paths = new Dictionary<RoomPathKey, List<Room>>();
 
-    public DungeonLevelGenerator(TileMap tileMap)
+    public DungeonLevelGenerator()
+    {
+    }
+
+    public TileMap Generate(TileMap tileMap)
     {
         List<Room> rooms = new List<Room>(tileMap.rooms.Values);
         for (int i = 0; i < rooms.Count; i++) 
@@ -58,12 +61,25 @@ public class DungeonLevelGenerator
             this.end = tmp;
         }
 
+        {
+            Rect floorRect = this.start.GetFloorRect();
+            int x = (int)Random.Range(floorRect.xMin + 1, floorRect.xMax - 2);
+            int y = (int)Random.Range(floorRect.yMin + 1, floorRect.yMax - 2);
+            tileMap.start = tileMap.GetTile(x, y);
+        }
+        {
+            Rect floorRect = this.end.GetFloorRect();
+            int x = (int)Random.Range(floorRect.xMin + 1, floorRect.xMax - 2);
+            int y = (int)Random.Range(floorRect.yMin + 1, floorRect.yMax - 2);
+            tileMap.end = tileMap.GetTile(x, y);
+        }
+        
         rooms.Remove(start);
         rooms.Remove(end);
 
         this.minItemCount = 1;
         this.maxitemCount = 2;
 
-        
+        return tileMap;
     }
 }

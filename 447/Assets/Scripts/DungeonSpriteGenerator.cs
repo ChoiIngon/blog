@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.U2D;
 
-public class DungeonSpriteGenerator : MonoBehaviour
+public class DungeonSpriteGenerator
 {
     public static class SortingOrder
     {
@@ -11,7 +11,81 @@ public class DungeonSpriteGenerator : MonoBehaviour
         public static int Actor = 102;
     }
 
-    Dictionary<string, Sprite> sprites = new Dictionary<string, Sprite>();
+    private Dictionary<string, Sprite> sprites = new Dictionary<string, Sprite>();
+
+    public void LoadResoruces()
+    {
+        Clear();
+
+        SpriteAtlas spriteAtlas = Resources.Load<SpriteAtlas>("SpriteAtlas/TileSet");
+        if (0 == spriteAtlas.spriteCount)
+        {
+            return;
+        }
+
+        Sprite[] laodedSprites = new Sprite[spriteAtlas.spriteCount];
+        if (0 == spriteAtlas.GetSprites(laodedSprites))
+        {
+            return;
+        }
+
+        foreach (Sprite sprite in laodedSprites)
+        {
+            string name = sprite.name.Replace("(Clone)", "");   // GetSprites는 Clone을 리턴하기 때문에, 이름에서 (Clone) postfix를 제거해준다.
+            sprites.Add(name, sprite);
+        }
+
+        FloorSprite.CornerInnerLeftBottom.Add(sprites["Floor.CornerInnerLeftBottom_1"]);
+        FloorSprite.CornerInnerLeftTop.Add(sprites["Floor.CornerInnerLeftTop_1"]);
+        FloorSprite.CornerInnerRightBottom.Add(sprites["Floor.CornerInnerRightBottom_1"]);
+        FloorSprite.CornerInnerRightTop.Add(sprites["Floor.CornerInnerRightTop_1"]);
+        FloorSprite.HorizontalBottom.Add(sprites["Floor.HorizontalBottom_1"]);
+        FloorSprite.HorizontalBottom.Add(sprites["Floor.HorizontalBottom_2"]);
+        FloorSprite.HorizontalTop.Add(sprites["Floor.HorizontalTop_1"]);
+        FloorSprite.HorizontalTop.Add(sprites["Floor.HorizontalTop_2"]);
+        FloorSprite.InnerNormal.Add(sprites["Floor.InnerNormal_1"]);
+        FloorSprite.InnerNormal.Add(sprites["Floor.InnerNormal_2"]);
+        FloorSprite.VerticalLeft.Add(sprites["Floor.VerticalLeft_1"]);
+        FloorSprite.VerticalRight.Add(sprites["Floor.VerticalRight_1"]);
+
+        WallSprite.CornerInnerLeftBottom.Add(sprites["Wall.CornerInnerLeftBottom_1"]);
+        WallSprite.CornerInnerLeftTop.Add(sprites["Wall.CornerInnerLeftTop_1"]);
+        WallSprite.CornerInnerRightBottom.Add(sprites["Wall.CornerInnerRightBottom_1"]);
+        WallSprite.CornerInnerRightTop.Add(sprites["Wall.CornerInnerRightTop_1"]);
+
+        WallSprite.CornerOuterLeftTop.Add(sprites["Wall.CornerOuterLeftTop_1"]);
+        WallSprite.CornerOuterLeftTop.Add(sprites["Wall.CornerOuterLeftTop_2"]);
+        WallSprite.CornerOuterRightTop.Add(sprites["Wall.CornerOuterRightTop_1"]);
+        WallSprite.CornerOuterRightTop.Add(sprites["Wall.CornerOuterRightTop_2"]);
+
+        WallSprite.HorizontalBottom.Add(sprites["Wall.HorizontalBottom_1"]);
+        WallSprite.HorizontalBottom.Add(sprites["Wall.HorizontalBottom_2"]);
+        WallSprite.HorizontalBottom.Add(sprites["Wall.HorizontalBottom_3"]);
+        WallSprite.HorizontalBottom.Add(sprites["Wall.HorizontalBottom_4"]);
+
+        WallSprite.HorizontalTop.Add(sprites["Wall.HorizontalTop_1"]);
+        WallSprite.HorizontalTop.Add(sprites["Wall.HorizontalTop_2"]);
+        WallSprite.HorizontalTop.Add(sprites["Wall.HorizontalTop_3"]);
+        WallSprite.HorizontalTop.Add(sprites["Wall.HorizontalTop_4"]);
+
+        WallSprite.VerticalLeft.Add(sprites["Wall.VerticalLeft_1"]);
+        WallSprite.VerticalLeft.Add(sprites["Wall.VerticalLeft_2"]);
+        WallSprite.VerticalLeft.Add(sprites["Wall.VerticalLeft_3"]);
+
+        WallSprite.VerticalRight.Add(sprites["Wall.VerticalRight_1"]);
+        WallSprite.VerticalRight.Add(sprites["Wall.VerticalRight_2"]);
+        WallSprite.VerticalRight.Add(sprites["Wall.VerticalRight_3"]);
+
+        WallSprite.VerticalSplit.Add(sprites["Wall.VerticalSplit_1"]);
+        WallSprite.VerticalSplit.Add(sprites["Wall.VerticalSplit_2"]);
+        WallSprite.VerticalSplit.Add(sprites["Wall.VerticalSplit_3"]);
+        WallSprite.VerticalSplit.Add(sprites["Wall.VerticalSplit_4"]);
+
+        WallSprite.VerticalTop.Add(sprites["Wall.VerticalTop_1"]);
+
+        UpStairSprite.Sprites.Add(sprites["Stair.Up"]);
+        DownStairSprite.Sprites.Add(sprites["Stair.Down"]);
+    }
 
     public class TileSprite
     {
@@ -32,7 +106,6 @@ public class DungeonSpriteGenerator : MonoBehaviour
         {
             gameObject.transform.SetParent(transform, false);
         }
-
         public Color color
         {
             get
@@ -359,77 +432,83 @@ public class DungeonSpriteGenerator : MonoBehaviour
         }
     }
 
-    // Start is called before the first frame update
-    public void GenerateTileSprite(TileMap tileMap)
+    public class GimmickSprite
     {
-        Clear();
+        public readonly GameObject gameObject;
+        protected SpriteRenderer spriteRenderer;
 
-        SpriteAtlas spriteAtlas = Resources.Load<SpriteAtlas>("SpriteAtlas/TileSet");
-        if (0 == spriteAtlas.spriteCount)
+        public GimmickSprite(Tile tile)
         {
-            return;
+            this.gameObject = new GameObject($"Gimmick_{tile.index}");
+            this.gameObject.transform.position = new Vector3(tile.rect.x + 0.5f, tile.rect.y + 0.5f);
+
+            this.spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
+            this.spriteRenderer.sortingOrder = SortingOrder.Gimmick;
+            this.spriteRenderer.color = Color.white;
         }
 
-        Sprite[] laodedSprites = new Sprite[spriteAtlas.spriteCount];
-        if (0 == spriteAtlas.GetSprites(laodedSprites))
+        public void SetParent(Transform transform)
         {
-            return;
+            this.gameObject.transform.parent = transform;
         }
 
-        foreach (Sprite sprite in laodedSprites)
+        public Color color
         {
-            string name = sprite.name.Replace("(Clone)", "");   // GetSprites는 Clone을 리턴하기 때문에, 이름에서 (Clone) postfix를 제거해준다.
-            sprites.Add(name, sprite);
+            get
+            {
+                return this.spriteRenderer.color;
+            }
+            set
+            {
+                this.spriteRenderer.color = value;
+            }
         }
 
-        FloorSprite.CornerInnerLeftBottom.Add(sprites["Floor.CornerInnerLeftBottom_1"]);
-        FloorSprite.CornerInnerLeftTop.Add(sprites["Floor.CornerInnerLeftTop_1"]);
-        FloorSprite.CornerInnerRightBottom.Add(sprites["Floor.CornerInnerRightBottom_1"]);
-        FloorSprite.CornerInnerRightTop.Add(sprites["Floor.CornerInnerRightTop_1"]);
-        FloorSprite.HorizontalBottom.Add(sprites["Floor.HorizontalBottom_1"]);
-        FloorSprite.HorizontalBottom.Add(sprites["Floor.HorizontalBottom_2"]);
-        FloorSprite.HorizontalTop.Add(sprites["Floor.HorizontalTop_1"]);
-        FloorSprite.HorizontalTop.Add(sprites["Floor.HorizontalTop_2"]);
-        FloorSprite.InnerNormal.Add(sprites["Floor.InnerNormal_1"]);
-        FloorSprite.InnerNormal.Add(sprites["Floor.InnerNormal_2"]);
-        FloorSprite.VerticalLeft.Add(sprites["Floor.VerticalLeft_1"]);
-        FloorSprite.VerticalRight.Add(sprites["Floor.VerticalRight_1"]);
+        public void Visible(bool flag)
+        {
+            float alpha = 1.0f;
+            if (false == flag)
+            {
+                alpha = 0.5f;
+            }
 
-        WallSprite.CornerInnerLeftBottom.Add(sprites["Wall.CornerInnerLeftBottom_1"]);
-        WallSprite.CornerInnerLeftTop.Add(sprites["Wall.CornerInnerLeftTop_1"]);
-        WallSprite.CornerInnerRightBottom.Add(sprites["Wall.CornerInnerRightBottom_1"]);
-        WallSprite.CornerInnerRightTop.Add(sprites["Wall.CornerInnerRightTop_1"]);
+            color = new Color(color.r, color.g, color.b, alpha);
+        }
 
-        WallSprite.CornerOuterLeftTop.Add(sprites["Wall.CornerOuterLeftTop_1"]);
-        WallSprite.CornerOuterLeftTop.Add(sprites["Wall.CornerOuterLeftTop_2"]);
-        WallSprite.CornerOuterRightTop.Add(sprites["Wall.CornerOuterRightTop_1"]);
-        WallSprite.CornerOuterRightTop.Add(sprites["Wall.CornerOuterRightTop_2"]);
+        protected Sprite GetRandomSprite(List<Sprite> sprites)
+        {
+            if (0 == sprites.Count)
+            {
+                return null;
+            }
 
-        WallSprite.HorizontalBottom.Add(sprites["Wall.HorizontalBottom_1"]);
-        WallSprite.HorizontalBottom.Add(sprites["Wall.HorizontalBottom_2"]);
-        WallSprite.HorizontalBottom.Add(sprites["Wall.HorizontalBottom_3"]);
-        WallSprite.HorizontalBottom.Add(sprites["Wall.HorizontalBottom_4"]);
+            return sprites[Random.Range(0, sprites.Count)];
+        }
+    }
 
-        WallSprite.HorizontalTop.Add(sprites["Wall.HorizontalTop_1"]);
-        WallSprite.HorizontalTop.Add(sprites["Wall.HorizontalTop_2"]);
-        WallSprite.HorizontalTop.Add(sprites["Wall.HorizontalTop_3"]);
-        WallSprite.HorizontalTop.Add(sprites["Wall.HorizontalTop_4"]);
+    public class UpStairSprite : GimmickSprite
+    {
+        public static List<Sprite> Sprites = new List<Sprite>();
+        public UpStairSprite(Tile tile) : base(tile)
+        {
+            gameObject.name = $"UpStair_{tile.index}";
+            spriteRenderer.sprite = GetRandomSprite(Sprites);
+        }
+    }
 
-        WallSprite.VerticalLeft.Add(sprites["Wall.VerticalLeft_1"]);
-        WallSprite.VerticalLeft.Add(sprites["Wall.VerticalLeft_2"]);
-        WallSprite.VerticalLeft.Add(sprites["Wall.VerticalLeft_3"]);
+    public class DownStairSprite : GimmickSprite
+    {
+        public static List<Sprite> Sprites = new List<Sprite>();
+        public DownStairSprite(Tile tile) : base(tile)
+        {
+            gameObject.name = $"DownStair_{tile.index}";
+            spriteRenderer.sprite = GetRandomSprite(Sprites);
+        }
+    }
 
-        WallSprite.VerticalRight.Add(sprites["Wall.VerticalRight_1"]);
-        WallSprite.VerticalRight.Add(sprites["Wall.VerticalRight_2"]);
-        WallSprite.VerticalRight.Add(sprites["Wall.VerticalRight_3"]);
-
-        WallSprite.VerticalSplit.Add(sprites["Wall.VerticalSplit_1"]);
-        WallSprite.VerticalSplit.Add(sprites["Wall.VerticalSplit_2"]);
-        WallSprite.VerticalSplit.Add(sprites["Wall.VerticalSplit_3"]);
-        WallSprite.VerticalSplit.Add(sprites["Wall.VerticalSplit_4"]);
-
-        WallSprite.VerticalTop.Add(sprites["Wall.VerticalTop_1"]);
-
+    // Start is called before the first frame update
+    public TileMap Generate(TileMap tileMap)
+    {
         for (int i = 0; i < tileMap.width * tileMap.height; i++)
         {
             var tile = tileMap.GetTile(i);
@@ -445,6 +524,8 @@ public class DungeonSpriteGenerator : MonoBehaviour
 
             GameManager.Instance.EnqueueEvent(new GameManager.AttachTileSprite(tile));
         }
+
+        return tileMap;
     }
 
     public void Clear()

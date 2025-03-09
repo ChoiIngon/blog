@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class TileMap
 {
-    private GameObject gameObject;
+    public GameObject gameObject;
 
     public readonly Tile[] tiles;
     public readonly Dictionary<int, Room> rooms = new Dictionary<int, Room>();
@@ -19,10 +19,13 @@ public class TileMap
         get { return (int)rect.height; }
     }
 
+    public Tile start;
+    public Tile end;
+
     public TileMap(List<Room> rooms)
     {
         this.gameObject = new GameObject("TileMap");
-        this.rect = DungeonGenerator.GetBoundaryRect(rooms);
+        this.rect = DungeonTileMapGenerator.GetBoundaryRect(rooms);
         this.tiles = new Tile[width * height];
         // 전체 타일 초기화
         for (int i = 0; i < width * height; i++)
@@ -104,14 +107,6 @@ public class TileMap
     {
         if (null != gameObject)
         {
-            /*
-            while (0 < gameObject.transform.childCount)
-            {
-                var child = gameObject.transform.GetChild(0);
-                child.transform.parent = null;
-                GameObject.DestroyImmediate(child.gameObject);
-            }
-            */
             gameObject.transform.parent = null;
             GameObject.DestroyImmediate(gameObject);
             gameObject = null;

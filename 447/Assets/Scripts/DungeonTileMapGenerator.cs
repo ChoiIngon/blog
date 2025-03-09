@@ -1,13 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DungeonGenerator
+public class DungeonTileMapGenerator
 {
     public class Corridor
     {
         public List<Tile> path;
     }
-    private DungeonSpriteGenerator spriteGenerator = new DungeonSpriteGenerator();
     const int MinRoomSize = 5;
 
     int roomCount = 0;
@@ -65,8 +64,6 @@ public class DungeonGenerator
 
         GameManager.Instance.EnqueueEvent(new GameManager.EnableGizmoEvent(GameManager.EventName.BackgroundGridGizmo, false));
 
-        var levelGenerator = new DungeonLevelGenerator(tileMap);
-        Debug.Log($"start_room:{levelGenerator.start.index}, end_room:{levelGenerator.end.index}");
         return tileMap;
     }
 
@@ -309,7 +306,7 @@ public class DungeonGenerator
         var start = tileMap.GetTile((int)a.center.x, (int)a.center.y);
         var end = tileMap.GetTile((int)b.center.x, (int)b.center.y);
 
-        Rect searchBoundary = DungeonGenerator.GetBoundaryRect(new List<Room>() { a, b });
+        Rect searchBoundary = DungeonTileMapGenerator.GetBoundaryRect(new List<Room>() { a, b });
         AStarPathFinder pathFinder = new AStarPathFinder(tileMap, searchBoundary, new AStarPathFinder.RandomLookup());
 		Corridor corridor = new Corridor();
 		corridor.path = pathFinder.FindPath(start, end);

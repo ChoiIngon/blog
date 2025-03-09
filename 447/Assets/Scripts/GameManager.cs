@@ -17,9 +17,10 @@ public class GameManager : MonoBehaviour
     public Dictionary<int, DungeonGizmo.Block>  roomGizmos = new Dictionary<int, DungeonGizmo.Block>();
     public Dictionary<int, DungeonGizmo.Rect>   tileGizmos = new Dictionary<int, DungeonGizmo.Rect>();
 
-    private DungeonGenerator generator = new DungeonGenerator();
-    private TileMap          tileMap;
-    private DungeonSpriteGenerator          dungeon;
+    private DungeonTileMapGenerator tileMapGenerator    = new DungeonTileMapGenerator();
+    private DungeonLevelGenerator levelGenerator        = new DungeonLevelGenerator();
+    private DungeonSpriteGenerator spriteGenerator      = new DungeonSpriteGenerator();
+    private TileMap tileMap;
 
     private Coroutine coroutine;
 
@@ -28,9 +29,7 @@ public class GameManager : MonoBehaviour
         gameObject.AddComponent<CameraDrag>();
         gameObject.AddComponent<CameraScale>();
         
-        GameObject dungeonObject = new GameObject("Dungeon");
-        dungeonObject.transform.parent = transform;
-        this.dungeon = dungeonObject.AddComponent<DungeonSpriteGenerator>();
+        this.spriteGenerator.LoadResoruces();
     }
 
     public void CreateDungeon()
@@ -71,12 +70,13 @@ public class GameManager : MonoBehaviour
         DungeonLog.Write($"Dungeon data generation process starts(random_seed:{randomSeed})");
         stopWatch.Start();
 
-        tileMap = generator.Generate(roomCount, minRoomSize, maxRoomSize, randomSeed);
+        tileMap = tileMapGenerator.Generate(roomCount, minRoomSize, maxRoomSize, randomSeed);
+        tileMap = spriteGenerator.Generate(tileMap);
+        tileMap = levelGenerator.Generate(tileMap);
+        tileMap.gameObject.transform.parent = transform;
 
         stopWatch.Stop();
         DungeonLog.Write($"Dungeon data generation is complete(elapsed_time:{stopWatch.Elapsed})");
-
-        dungeon.GenerateTileSprite(tileMap);
 
         GameManager.Instance.EnqueueEvent(new GameManager.EnableGizmoEvent(GameManager.EventName.RoomGizmo, false));
         GameManager.Instance.EnqueueEvent(new GameManager.EnableGizmoEvent(GameManager.EventName.TileGizmo, false));
@@ -147,18 +147,30 @@ public class GameManager : MonoBehaviour
 
         public IEnumerator OnEvent()
         {
-            DungeonSpriteGenerator.TileSprite tileSprite = null;
             if (Tile.Type.Floor == tile.type)
             {
-                tileSprite = new DungeonSpriteGenerator.FloorSprite(tile);
+                var tileSprite = new DungeonSpriteGenerator.FloorSprite(tile);
+                tileSprite.SetParent(tile.gameObject.transform);
             }
 
             if (Tile.Type.Wall == tile.type)
             {
-                tileSprite = new DungeonSpriteGenerator.WallSprite(tile);
+                var tileSprite = new DungeonSpriteGenerator.WallSprite(tile);
+                tileSprite.SetParent(tile.gameObject.transform);
             }
 
-            tileSprite.SetParent(tile.gameObject.transform);
+            if (GameManager.Instance.tileMap.start == tile)
+            {
+                var tileSprite = new DungeonSpriteGenerator.DownStairSprite(tile);
+                tileSprite.SetParent(tile.gameObject.transform);
+            }
+
+            if (GameManager.Instance.tileMap.end == tile)
+            {
+                var tileSprite = new DungeonSpriteGenerator.UpStairSprite(tile);
+                tileSprite.SetParent(tile.gameObject.transform);
+            }
+
             yield return new WaitForSeconds(GameManager.Instance.tickTime/10);
         }
     }
@@ -227,7 +239,7 @@ public class GameManager : MonoBehaviour
                 this.datas.Add(new Data() { index = room.index, position = room.position });
             }
 
-            this.cameraBoundary = DungeonGenerator.GetBoundaryRect(rooms);
+            this.cameraBoundary = DungeonTileMapGenerator.GetBoundaryRect(rooms);
         }
 
         public IEnumerator OnEvent()
@@ -422,9 +434,9 @@ public class GameManager : MonoBehaviour
 
     public class BuildCorridorWallEvent : Event
     {
-        private List<DungeonGenerator.Corridor> corridors;
+        private List<DungeonTileMapGenerator.Corridor> corridors;
 
-        public BuildCorridorWallEvent(List<DungeonGenerator.Corridor> corridors)
+        public BuildCorridorWallEvent(List<DungeonTileMapGenerator.Corridor> corridors)
         {
             this.corridors = corridors;
         }
