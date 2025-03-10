@@ -58,16 +58,16 @@ public class DungeonSpriteGenerator
         WallSprite.CornerOuterRightTop.Add(sprites["Wall.CornerOuterRightTop_1"]);
         WallSprite.CornerOuterRightTop.Add(sprites["Wall.CornerOuterRightTop_2"]);
 
-        WallSprite.HorizontalBottom.Add(sprites["Wall.HorizontalBottom_1"]);
-        WallSprite.HorizontalBottom.Add(sprites["Wall.HorizontalBottom_2"]);
-        WallSprite.HorizontalBottom.Add(sprites["Wall.HorizontalBottom_3"]);
-        WallSprite.HorizontalBottom.Add(sprites["Wall.HorizontalBottom_4"]);
-
         WallSprite.HorizontalTop.Add(sprites["Wall.HorizontalTop_1"]);
         WallSprite.HorizontalTop.Add(sprites["Wall.HorizontalTop_2"]);
         WallSprite.HorizontalTop.Add(sprites["Wall.HorizontalTop_3"]);
         WallSprite.HorizontalTop.Add(sprites["Wall.HorizontalTop_4"]);
 
+        WallSprite.HorizontalBottom.Add(sprites["Wall.HorizontalBottom_1"]);
+        WallSprite.HorizontalBottom.Add(sprites["Wall.HorizontalBottom_2"]);
+        WallSprite.HorizontalBottom.Add(sprites["Wall.HorizontalBottom_3"]);
+        WallSprite.HorizontalBottom.Add(sprites["Wall.HorizontalBottom_4"]);
+        
         WallSprite.VerticalLeft.Add(sprites["Wall.VerticalLeft_1"]);
         WallSprite.VerticalLeft.Add(sprites["Wall.VerticalLeft_2"]);
         WallSprite.VerticalLeft.Add(sprites["Wall.VerticalLeft_3"]);
@@ -485,6 +485,7 @@ public class DungeonSpriteGenerator
         {
             gameObject.name = $"Door_{tile.index}";
 
+            /*
             DungeonObject door = tile.dungeonObject as Door;
             if (null == door)
             {
@@ -507,6 +508,7 @@ public class DungeonSpriteGenerator
             {
                 spriteRenderer.sprite = GetRandomSprite(Vertical);
             }
+            */
         }
     }
 

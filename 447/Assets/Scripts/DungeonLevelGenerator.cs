@@ -115,7 +115,7 @@ public class DungeonLevelGenerator
 
         foreach (Tile door in end.doors)
         {
-            door.dungeonObject = new Door();
+            door.dungeonObject = new Door(door);
         }
 
         path.RemoveAt(0);

@@ -177,10 +177,6 @@ public class GameManager : MonoBehaviour
                 tileSprite.SetParent(tile.gameObject.transform);
             }
 
-            if (null != tile.dungeonObject as Item)
-            {
-            }
-            
             yield return new WaitForSeconds(GameManager.Instance.tickTime/10);
         }
     }
