@@ -19,17 +19,19 @@ public class GameManager : MonoBehaviour
 
     private DungeonTileMapGenerator tileMapGenerator    = new DungeonTileMapGenerator();
     private DungeonLevelGenerator levelGenerator        = new DungeonLevelGenerator();
-    private DungeonSpriteGenerator spriteGenerator      = new DungeonSpriteGenerator();
     private TileMap tileMap;
 
     private Coroutine coroutine;
+
+    public ResourceManager Resources = new ResourceManager();
 
     private void Start()
     {
         gameObject.AddComponent<CameraDrag>();
         gameObject.AddComponent<CameraScale>();
-        
-        this.spriteGenerator.LoadResoruces();
+
+        Resources.Load();
+        DungeonTileMapGenerator.Init();
     }
 
     public void CreateDungeon()
@@ -71,7 +73,6 @@ public class GameManager : MonoBehaviour
         stopWatch.Start();
 
         tileMap = tileMapGenerator.Generate(roomCount, minRoomSize, maxRoomSize, randomSeed);
-        tileMap = spriteGenerator.Generate(tileMap);
         tileMap = levelGenerator.Generate(tileMap);
         tileMap.gameObject.transform.parent = transform;
 
@@ -136,46 +137,18 @@ public class GameManager : MonoBehaviour
         public const string TileGizmo = "TileGizmo";
     }
 
-    public class AttachTileSprite : Event
+    public class EnableTileSpriteEvent : Event
     {
         private Tile tile;
 
-        public AttachTileSprite(Tile tile)
+        public EnableTileSpriteEvent(Tile tile)
         {
             this.tile = tile;
         }
 
         public IEnumerator OnEvent()
         {
-            if (Tile.Type.Floor == tile.type)
-            {
-                var tileSprite = new DungeonSpriteGenerator.FloorSprite(tile);
-                tileSprite.SetParent(tile.gameObject.transform);
-            }
-
-            if (Tile.Type.Wall == tile.type)
-            {
-                var tileSprite = new DungeonSpriteGenerator.WallSprite(tile);
-                tileSprite.SetParent(tile.gameObject.transform);
-            }
-
-            if (GameManager.Instance.tileMap.start == tile)
-            {
-                var tileSprite = new DungeonSpriteGenerator.UpStairSprite(tile);
-                tileSprite.SetParent(tile.gameObject.transform);
-            }
-
-            if (GameManager.Instance.tileMap.end == tile)
-            {
-                var tileSprite = new DungeonSpriteGenerator.DownStairSprite(tile);
-                tileSprite.SetParent(tile.gameObject.transform);
-            }
-            
-            if (null != tile.dungeonObject as Door)
-            {
-                var tileSprite = new DungeonSpriteGenerator.DoorSprite(tile);
-                tileSprite.SetParent(tile.gameObject.transform);
-            }
+            tile.Visible(true);
 
             yield return new WaitForSeconds(GameManager.Instance.tickTime/10);
         }

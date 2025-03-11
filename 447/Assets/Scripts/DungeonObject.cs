@@ -38,12 +38,28 @@ public class DungeonObject
 
         return interactions[(int)interaction];
     }
-}
 
+    public void Visible(bool flag)
+    {
+        if (null == spriteRenderer)
+        {
+            return;
+        }
+
+        float alpha = 1.0f;
+        if (false == flag)
+        {
+            alpha = 0.5f;
+        }
+
+        Color color = this.spriteRenderer.color;
+        color.a = alpha;
+        this.spriteRenderer.color = color;
+    }
+}
 public class Bone : DungeonObject
 {
     static List<Sprite> Sprites = new List<Sprite>();
-    
     public Bone(Tile tile) : base(tile) 
     {
         gameObject.name = "Bone";

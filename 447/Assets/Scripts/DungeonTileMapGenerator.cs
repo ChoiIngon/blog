@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class DungeonTileMapGenerator
@@ -15,6 +16,57 @@ public class DungeonTileMapGenerator
     WeightRandom<int> depthRandom;
     List<Corridor> corridors;
     TileMap tileMap;
+
+    public static void Init()
+    {
+        Tile.FloorSprite.CornerInnerLeftBottom.Add(GameManager.Instance.Resources.GetSprite("Floor.CornerInnerLeftBottom_1"));
+        Tile.FloorSprite.CornerInnerLeftTop.Add(GameManager.Instance.Resources.GetSprite("Floor.CornerInnerLeftTop_1"));
+        Tile.FloorSprite.CornerInnerRightBottom.Add(GameManager.Instance.Resources.GetSprite("Floor.CornerInnerRightBottom_1"));
+        Tile.FloorSprite.CornerInnerRightTop.Add(GameManager.Instance.Resources.GetSprite("Floor.CornerInnerRightTop_1"));
+        Tile.FloorSprite.HorizontalBottom.Add(GameManager.Instance.Resources.GetSprite("Floor.HorizontalBottom_1"));
+        Tile.FloorSprite.HorizontalBottom.Add(GameManager.Instance.Resources.GetSprite("Floor.HorizontalBottom_2"));
+        Tile.FloorSprite.HorizontalTop.Add(GameManager.Instance.Resources.GetSprite("Floor.HorizontalTop_1"));
+        Tile.FloorSprite.HorizontalTop.Add(GameManager.Instance.Resources.GetSprite("Floor.HorizontalTop_2"));
+        Tile.FloorSprite.InnerNormal.Add(GameManager.Instance.Resources.GetSprite("Floor.InnerNormal_1"));
+        Tile.FloorSprite.InnerNormal.Add(GameManager.Instance.Resources.GetSprite("Floor.InnerNormal_2"));
+        Tile.FloorSprite.VerticalLeft.Add(GameManager.Instance.Resources.GetSprite("Floor.VerticalLeft_1"));
+        Tile.FloorSprite.VerticalRight.Add(GameManager.Instance.Resources.GetSprite("Floor.VerticalRight_1"));
+
+        Tile.WallSprite.CornerInnerLeftBottom.Add(GameManager.Instance.Resources.GetSprite("Wall.CornerInnerLeftBottom_1"));
+        Tile.WallSprite.CornerInnerLeftTop.Add(GameManager.Instance.Resources.GetSprite("Wall.CornerInnerLeftTop_1"));
+        Tile.WallSprite.CornerInnerRightBottom.Add(GameManager.Instance.Resources.GetSprite("Wall.CornerInnerRightBottom_1"));
+        Tile.WallSprite.CornerInnerRightTop.Add(GameManager.Instance.Resources.GetSprite("Wall.CornerInnerRightTop_1"));
+
+        Tile.WallSprite.CornerOuterLeftTop.Add(GameManager.Instance.Resources.GetSprite("Wall.CornerOuterLeftTop_1"));
+        Tile.WallSprite.CornerOuterLeftTop.Add(GameManager.Instance.Resources.GetSprite("Wall.CornerOuterLeftTop_2"));
+        Tile.WallSprite.CornerOuterRightTop.Add(GameManager.Instance.Resources.GetSprite("Wall.CornerOuterRightTop_1"));
+        Tile.WallSprite.CornerOuterRightTop.Add(GameManager.Instance.Resources.GetSprite("Wall.CornerOuterRightTop_2"));
+        
+        Tile.WallSprite.HorizontalTop.Add(GameManager.Instance.Resources.GetSprite("Wall.HorizontalTop_1"));
+        Tile.WallSprite.HorizontalTop.Add(GameManager.Instance.Resources.GetSprite("Wall.HorizontalTop_2"));
+        Tile.WallSprite.HorizontalTop.Add(GameManager.Instance.Resources.GetSprite("Wall.HorizontalTop_3"));
+        Tile.WallSprite.HorizontalTop.Add(GameManager.Instance.Resources.GetSprite("Wall.HorizontalTop_4"));
+        
+        Tile.WallSprite.HorizontalBottom.Add(GameManager.Instance.Resources.GetSprite("Wall.HorizontalBottom_1"));
+        Tile.WallSprite.HorizontalBottom.Add(GameManager.Instance.Resources.GetSprite("Wall.HorizontalBottom_2"));
+        Tile.WallSprite.HorizontalBottom.Add(GameManager.Instance.Resources.GetSprite("Wall.HorizontalBottom_3"));
+        Tile.WallSprite.HorizontalBottom.Add(GameManager.Instance.Resources.GetSprite("Wall.HorizontalBottom_4"));
+        
+        Tile.WallSprite.VerticalLeft.Add(GameManager.Instance.Resources.GetSprite("Wall.VerticalLeft_1"));
+        Tile.WallSprite.VerticalLeft.Add(GameManager.Instance.Resources.GetSprite("Wall.VerticalLeft_2"));
+        Tile.WallSprite.VerticalLeft.Add(GameManager.Instance.Resources.GetSprite("Wall.VerticalLeft_3"));
+        
+        Tile.WallSprite.VerticalRight.Add(GameManager.Instance.Resources.GetSprite("Wall.VerticalRight_1"));
+        Tile.WallSprite.VerticalRight.Add(GameManager.Instance.Resources.GetSprite("Wall.VerticalRight_2"));
+        Tile.WallSprite.VerticalRight.Add(GameManager.Instance.Resources.GetSprite("Wall.VerticalRight_3"));
+        
+        Tile.WallSprite.VerticalSplit.Add(GameManager.Instance.Resources.GetSprite("Wall.VerticalSplit_1"));
+        Tile.WallSprite.VerticalSplit.Add(GameManager.Instance.Resources.GetSprite("Wall.VerticalSplit_2"));
+        Tile.WallSprite.VerticalSplit.Add(GameManager.Instance.Resources.GetSprite("Wall.VerticalSplit_3"));
+        Tile.WallSprite.VerticalSplit.Add(GameManager.Instance.Resources.GetSprite("Wall.VerticalSplit_4"));
+        
+        Tile.WallSprite.VerticalTop.Add(GameManager.Instance.Resources.GetSprite("Wall.VerticalTop_1"));
+    }
 
     public TileMap Generate(int roomCount, int minRoomSize, int maxRoomSize, int randomSeed)
     {
@@ -605,15 +657,43 @@ public class DungeonTileMapGenerator
 
                 tile.neighbors[direction] = neighbor;
             }
+
+            tile.spriteRenderer = tile.AddComponent<SpriteRenderer>();
+            if (Tile.Type.Wall == tile.type)
+            {
+                tile.spriteRenderer.sprite = Tile.WallSprite.GetSprite(tile);
+            }
+
+            if (Tile.Type.Floor == tile.type)
+            {
+                tile.spriteRenderer.sprite = Tile.FloorSprite.GetSprite(tile);
+            }
+
+            tile.spriteRenderer.sortingOrder = 100;
+            tile.spriteRenderer.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
         }
 
-        foreach (var pair in tileMap.rooms)
         {
-            Room room = pair.Value;
-            GameManager.Instance.EnqueueEvent(new GameManager.BuildRoomWallEvent(room));
+            foreach (var pair in tileMap.rooms)
+            {
+                Room room = pair.Value;
+                GameManager.Instance.EnqueueEvent(new GameManager.BuildRoomWallEvent(room));
+            }
+
+            GameManager.Instance.EnqueueEvent(new GameManager.BuildCorridorWallEvent(corridors));
+
+            for (int i = 0; i < tileMap.width * tileMap.height; i++)
+            {
+                Tile tile = tileMap.GetTile(i);
+                if (null == tile)
+                {
+                    continue;
+                }
+                GameManager.Instance.EnqueueEvent(new GameManager.EnableTileSpriteEvent(tile));
+            }
         }
-        GameManager.Instance.EnqueueEvent(new GameManager.BuildCorridorWallEvent(corridors));
     }
+
     private void BuildWallOnTile(int x, int y)
     {
         Tile tile = tileMap.GetTile(x, y);
