@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class Tile : MonoBehaviour
@@ -36,7 +37,7 @@ public class Tile : MonoBehaviour
     public Tile[] neighbors = new Tile[(int)Direction.Max];
     public DungeonObject dungeonObject;
     public SpriteRenderer spriteRenderer;
-
+    public const int SortingOrder = 100;
     public Vector3 position
     {
         get { return new Vector3(rect.x, rect.y); }
@@ -58,6 +59,11 @@ public class Tile : MonoBehaviour
         Color color = this.spriteRenderer.color;
         color.a = alpha;
         this.spriteRenderer.color = color;
+
+        if (null != dungeonObject)
+        {
+            dungeonObject.Visible(flag);
+        }
     }
 
     public static Sprite CreateSprite(Tile tile)

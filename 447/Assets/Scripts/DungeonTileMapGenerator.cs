@@ -359,7 +359,7 @@ public class DungeonTileMapGenerator
         var end = tileMap.GetTile((int)b.center.x, (int)b.center.y);
 
         Rect searchBoundary = DungeonTileMapGenerator.GetBoundaryRect(new List<Room>() { a, b });
-        AStarPathFinder pathFinder = new AStarPathFinder(tileMap, searchBoundary, new AStarPathFinder.RandomLookup());
+        AStarPathFinder pathFinder = new AStarPathFinder(tileMap, searchBoundary);
 		Corridor corridor = new Corridor();
 		corridor.path = pathFinder.FindPath(start, end);
         Debug.Assert(0 < corridor.path.Count);
@@ -669,7 +669,7 @@ public class DungeonTileMapGenerator
                 tile.spriteRenderer.sprite = Tile.FloorSprite.GetSprite(tile);
             }
 
-            tile.spriteRenderer.sortingOrder = 100;
+            tile.spriteRenderer.sortingOrder = Tile.SortingOrder;
             tile.spriteRenderer.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
         }
 

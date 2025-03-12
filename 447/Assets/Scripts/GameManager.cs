@@ -32,6 +32,7 @@ public class GameManager : MonoBehaviour
 
         Resources.Load();
         DungeonTileMapGenerator.Init();
+        DungeonObject.Init();
     }
 
     public void CreateDungeon()

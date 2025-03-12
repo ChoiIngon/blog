@@ -150,7 +150,7 @@ public class TileMap
 
     public List<Tile> FindPath(Tile from, Tile to)
     {
-        AStarPathFinder pathFinder = new AStarPathFinder(this, rect, new AStarPathFinder.RandomLookup());
+        AStarPathFinder pathFinder = new AStarPathFinder(this, rect);
         List<Tile> path = pathFinder.FindPath(from, to);
         if (null == path || 0 == path.Count)
         {

@@ -72,15 +72,13 @@ public class AStarPathFinder
 
     private TileMap tileMap;
     private Rect boundary;
-    private LookupOffsetPolicy lookupOffsetPolicy;
 
     public List<Tile> tiles = new List<Tile>();
 
-    public AStarPathFinder(TileMap tileMap, Rect pathFindBoundary, LookupOffsetPolicy offsetPolicy)
+    public AStarPathFinder(TileMap tileMap, Rect pathFindBoundary)
     {
         this.tileMap = tileMap;
         this.boundary = pathFindBoundary;
-        this.lookupOffsetPolicy = offsetPolicy;
     }
 
     public List<Tile> FindPath(Tile from, Tile to)
@@ -125,7 +123,7 @@ public class AStarPathFinder
             currentNode = sortedNodes[0];
 
             List<Node> children = new List<Node>();
-            int offsetIndex = lookupOffsetPolicy.GetOffsetIndex(currentNode);
+            int offsetIndex = UnityEngine.Random.Range(0, LOOKUP_OFFSETS.Length);
             for (int i = 0; i < LOOKUP_OFFSETS.Length; i++)// 장애물로 막혀 있는데 말고 갈 수 있는 타일들을 openNode 리스트에 넣는다
             {
                 var offset = LOOKUP_OFFSETS[offsetIndex];
