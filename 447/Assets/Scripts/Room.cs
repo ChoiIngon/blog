@@ -16,7 +16,12 @@ public class Room
 
     public Rect GetFloorRect()
     {
-        return new Rect(rect.x + 1, rect.y + 1, rect.width - 1, rect.height - 1);
+        Rect floorRect = new Rect(rect.x, rect.y, rect.width, rect.height);
+        floorRect.xMin += 1;
+        floorRect.xMax -= 1;
+        floorRect.yMin += 1;
+        floorRect.yMax -= 1;
+        return floorRect;
     }
 
     public Vector3 position

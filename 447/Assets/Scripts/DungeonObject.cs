@@ -60,6 +60,7 @@ public class DungeonObject
             }
         }
     }
+
     protected static Sprite GetRandomSprite(List<Sprite> sprites)
     {
         if (0 == sprites.Count)
@@ -84,6 +85,7 @@ public class DungeonObject
         }
         gameObject.transform.SetParent(tile.transform, false);
         spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
+        spriteRenderer.sortingOrder = SortingOrder;
     }
 
     public System.Action GetInteraction(Interaction interaction)
@@ -147,7 +149,6 @@ public class Door : DungeonObject
             gameObject.name = "Door.Vertical";
         }
 
-        spriteRenderer.sortingOrder = SortingOrder;
         Color color = spriteRenderer.color;
         color.a = 0.0f;
         spriteRenderer.color = color;
@@ -160,7 +161,6 @@ public class UpStair : DungeonObject
     {
         gameObject.name = "Stair.Up";
         spriteRenderer.sprite = GameManager.Instance.Resources.GetSprite("Stair.Up");
-        spriteRenderer.sortingOrder = SortingOrder;
         Color color = spriteRenderer.color;
         color.a = 0.0f;
         spriteRenderer.color = color;
@@ -173,7 +173,43 @@ public class DownStair : DungeonObject
     {
         gameObject.name = "Stair.Down";
         spriteRenderer.sprite = GameManager.Instance.Resources.GetSprite("Stair.Down");
-        spriteRenderer.sortingOrder = SortingOrder;
+        Color color = spriteRenderer.color;
+        color.a = 0.0f;
+        spriteRenderer.color = color;
+    }
+}
+
+public class Torch : DungeonObject
+{
+    public static new void Init()
+    {
+        Horizontal.Add(GameManager.Instance.Resources.GetSprite("Torch_1"));
+        Vertical.Add(GameManager.Instance.Resources.GetSprite("Torch_2"));
+    }
+
+    private static List<Sprite> Horizontal = new List<Sprite>();
+    private static List<Sprite> Vertical = new List<Sprite>();
+
+    public Torch(Tile tile) : base(tile)
+    {
+        gameObject.name = "Torch";
+
+        Tile left = tile.neighbors[(int)Tile.Direction.Left];
+        Tile right = tile.neighbors[(int)Tile.Direction.Right];
+
+        if (null != left && Tile.Type.Wall == left.type && null != right && Tile.Type.Wall == right.type)
+        {
+            spriteRenderer.sprite = GetRandomSprite(Horizontal);
+        }
+
+        Tile top = tile.neighbors[(int)Tile.Direction.Top];
+        Tile bottom = tile.neighbors[(int)Tile.Direction.Bottom];
+
+        if (null != top && Tile.Type.Wall == top.type && null != bottom && Tile.Type.Wall == bottom.type)
+        {
+            spriteRenderer.sprite = GetRandomSprite(Vertical);
+        }
+
         Color color = spriteRenderer.color;
         color.a = 0.0f;
         spriteRenderer.color = color;
@@ -182,17 +218,44 @@ public class DownStair : DungeonObject
 
 public class Bone : DungeonObject
 {
+    public static new void Init()
+    {
+        Sprites.Add(GameManager.Instance.Resources.GetSprite("Bone_1"));
+        Sprites.Add(GameManager.Instance.Resources.GetSprite("Bone_2"));
+    }
+
     static List<Sprite> Sprites = new List<Sprite>();
     public Bone(Tile tile) : base(tile) 
     {
         gameObject.name = "Bone";
-
-        interactions[(int)Interaction.Inspect] = OnInspect;
+        spriteRenderer.sprite = GetRandomSprite(Sprites);
+        Color color = spriteRenderer.color;
+        color.a = 0.0f;
+        spriteRenderer.color = color;
     }
 
     public void OnInspect()
     {
     }
+}
+
+public class Shackle : DungeonObject
+{
+    public static new void Init()
+    {
+        Sprites.Add(GameManager.Instance.Resources.GetSprite("Shackle_1"));
+        Sprites.Add(GameManager.Instance.Resources.GetSprite("Shackle_2"));
+    }
+
+    public Shackle(Tile tile) : base(tile)
+    {
+        gameObject.name = "Shackle";
+        spriteRenderer.sprite = GetRandomSprite(Sprites);
+        Color color = spriteRenderer.color;
+        color.a = 0.0f;
+        spriteRenderer.color = color;
+    }
+    public static List<Sprite> Sprites = new List<Sprite>();
 }
 
 
@@ -206,7 +269,21 @@ public class Chest : DungeonObject
 
 public class Key : DungeonObject
 {
+    public static new void Init()
+    {
+        Sprites.Add(GameManager.Instance.Resources.GetSprite("keys_1_1"));
+    }
+
+    private static List<Sprite> Sprites = new List<Sprite>();
+
     public Key(Tile tile) : base(tile)
     {
+        gameObject.name = "Key";
+        spriteRenderer.sprite = GetRandomSprite(Sprites);
+        
+        Color color = spriteRenderer.color;
+        color.a = 0.0f;
+        spriteRenderer.color = color;
     }
 }
+

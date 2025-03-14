@@ -43,6 +43,26 @@ public class DungeonLevelGenerator
         paths.Clear();
         this.tileMap = tileMap;
         List<Room> rooms = new List<Room>(tileMap.rooms.Values);
+
+        foreach (Room room in rooms)
+        {
+            if (30 >= Random.Range(0, 100) + 1)
+            {
+                CreateBoneDecorator(room);
+            }
+
+            if (30 >= Random.Range(0, 100) + 1)
+            {
+                CreateShackleDecorator(room);
+            }
+
+            if (30 >= Random.Range(0, 100) + 1)
+            {
+                CreateTorchDecorator(room);
+            }
+        }
+
+        
         for (int i = 0; i < rooms.Count; i++) 
         {
             for (int j = i + 1; j < rooms.Count; j++)
@@ -75,8 +95,8 @@ public class DungeonLevelGenerator
 
         {
             Rect floorRect = this.start.GetFloorRect();
-            int x = (int)Random.Range(floorRect.xMin + 1, floorRect.xMax - 2);
-            int y = (int)Random.Range(floorRect.yMin + 1, floorRect.yMax - 2);
+            int x = (int)Random.Range(floorRect.xMin + 1, floorRect.xMax - 1);
+            int y = (int)Random.Range(floorRect.yMin + 1, floorRect.yMax - 1);
 
             tileMap.start = tileMap.GetTile(x, y);
             tileMap.start.dungeonObject = new DownStair(tileMap.start);
@@ -84,8 +104,8 @@ public class DungeonLevelGenerator
         }
         {
             Rect floorRect = this.end.GetFloorRect();
-            int x = (int)Random.Range(floorRect.xMin + 1, floorRect.xMax - 2);
-            int y = (int)Random.Range(floorRect.yMin + 1, floorRect.yMax - 2);
+            int x = (int)Random.Range(floorRect.xMin + 1, floorRect.xMax - 1);
+            int y = (int)Random.Range(floorRect.yMin + 1, floorRect.yMax - 1);
             
             tileMap.end = tileMap.GetTile(x, y);
             tileMap.end.dungeonObject = new UpStair(tileMap.end);
@@ -103,6 +123,7 @@ public class DungeonLevelGenerator
             LockEndRoom();
         }
 
+        
         return tileMap;
     }
 
@@ -123,19 +144,17 @@ public class DungeonLevelGenerator
         foreach (Tile door in end.doors)
         {
             door.dungeonObject = new Door(door);
-            GameManager.Instance.EnqueueEvent(new GameManager.EnableTileSpriteEvent(door));
+            //GameManager.Instance.EnqueueEvent(new GameManager.EnableTileSpriteEvent(door));
         }
 
-        path.RemoveAt(0);
-
-        Room room = path[Random.Range(0, path.Count)];
+        Room room = path[1];
         Rect floorRect = room.GetFloorRect();
 
-        int x = (int)Random.Range(floorRect.xMin, floorRect.xMax - 1);
-        int y = (int)Random.Range(floorRect.yMin, floorRect.yMax - 1);
+        int x = (int)Random.Range(floorRect.xMin, floorRect.xMax);
+        int y = (int)Random.Range(floorRect.yMin, floorRect.yMax);
 
         Tile tile = tileMap.GetTile(x, y);
-
+        tile.dungeonObject = new Key(tile);
     }
 
     private List<Room> FindPath(Room from, Room to)
@@ -152,5 +171,75 @@ public class DungeonLevelGenerator
 
     private void CreateItem(Tile tile, string itmeCode)
     {
+    }
+
+    private void CreateBoneDecorator(Room room)
+    {
+        int boneCount = Random.Range(0, 3);
+        for (int i = 0; i < boneCount; i++)
+        {
+            Rect floorRect = room.GetFloorRect();
+            int x = Random.Range((int)floorRect.xMin, (int)floorRect.xMax);
+            int y = Random.Range((int)floorRect.yMin, (int)floorRect.yMax);
+
+            var tile = tileMap.GetTile(x, y);
+            if (null == tile)
+            {
+                continue;
+            }
+
+            tile.dungeonObject = new Bone(tile);
+        }
+    }
+
+    private void CreateShackleDecorator(Room room)
+    {
+        int gimmickCount = Random.Range(0, 3);
+        for (int i = 0; i < gimmickCount; i++)
+        {
+            int x = UnityEngine.Random.Range((int)room.rect.xMin + 1, (int)room.rect.xMax - 2);
+            int y = (int)room.rect.yMax - 1;
+
+            var tile = tileMap.GetTile(x, y);
+            if (null == tile)
+            {
+                continue;
+            }
+
+            if (Tile.Type.Wall != tile.type)
+            {
+                continue;
+            }
+
+            tile.dungeonObject = new Shackle(tile);
+        }
+    }
+
+    private void CreateTorchDecorator(Room room)
+    {
+        int gimmickCount = Random.Range(0, 3);
+        for (int i = 0; i < gimmickCount; i++)
+        {
+            int x = UnityEngine.Random.Range((int)room.rect.xMin + 1, (int)room.rect.xMax - 2);
+            int y = (int)room.rect.yMax - 1;
+
+            var tile = tileMap.GetTile(x, y);
+            if (null == tile)
+            {
+                continue;
+            }
+
+            if (Tile.Type.Wall != tile.type)
+            {
+                continue;
+            }
+
+            if (null != tile.dungeonObject)
+            {
+                continue;
+            }
+
+            tile.dungeonObject = new Torch(tile);
+        }
     }
 }

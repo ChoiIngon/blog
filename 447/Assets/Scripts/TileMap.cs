@@ -87,9 +87,9 @@ public class TileMap
 
 			// 방 내부 바닥 부분을 floor 타입으로 변경
 			Rect floorRect = room.GetFloorRect();
-            for (int y = (int)floorRect.yMin; y < (int)floorRect.yMax -1; y++)
+            for (int y = (int)floorRect.yMin; y < (int)floorRect.yMax; y++)
             {
-                for (int x = (int)floorRect.xMin; x < (int)floorRect.xMax - 1; x++)
+                for (int x = (int)floorRect.xMin; x < (int)floorRect.xMax; x++)
                 {
                     Tile floor = GetTile(x, y);
                     floor.type = Tile.Type.Floor;
