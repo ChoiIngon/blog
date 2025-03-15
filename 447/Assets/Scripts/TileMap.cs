@@ -36,7 +36,7 @@ public class TileMap
             tile.rect = new Rect(i % width, i / width, 1, 1);
             tile.type = Tile.Type.None;
             tile.cost = Tile.PathCost.MaxCost;
-            tile.gameObject.transform.position = new Vector3(tile.rect.x + tile.rect.width/2, tile.rect.y + tile.rect.height / 2);
+            tile.gameObject.transform.position = new Vector3(tile.rect.x, tile.rect.y);
             tile.gameObject.transform.SetParent(gameObject.transform, false);   
             tiles[i] = tile;
         }

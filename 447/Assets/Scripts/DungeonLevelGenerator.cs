@@ -111,7 +111,9 @@ public class DungeonLevelGenerator
             tileMap.end.dungeonObject = new UpStair(tileMap.end);
             GameManager.Instance.EnqueueEvent(new GameManager.EnableTileSpriteEvent(tileMap.end));
         }
-        
+
+        var player = Player.Create(tileMap);
+
         rooms.Remove(start);
         rooms.Remove(end);
 

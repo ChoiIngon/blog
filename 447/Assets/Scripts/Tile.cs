@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
+    public const int SortingOrder = 100;
+
     public class PathCost
     {
         public const int MinCost = 1;
@@ -33,11 +35,14 @@ public class Tile : MonoBehaviour
     public Type type = Type.None;
     public Rect rect;
     public int cost = 1;
-    public Room room;
+    public Room room;   // 타일이 속해 있는 방. 통로 타일의 경우 room이 없다.
     public Tile[] neighbors = new Tile[(int)Direction.Max];
-    public DungeonObject dungeonObject;
+
     public SpriteRenderer spriteRenderer;
-    public const int SortingOrder = 100;
+
+    public DungeonObject dungeonObject;
+    public Actor actor;
+    
     public Vector3 position
     {
         get { return new Vector3(rect.x, rect.y); }

@@ -73,7 +73,7 @@ public class DungeonObject
 
     public GameObject gameObject;
     public SpriteRenderer spriteRenderer;
-    public System.Action[] interactions = new System.Action[(int)Interaction.Max];
+    public System.Action<Actor>[] interactions = new System.Action<Actor>[(int)Interaction.Max];
 
     public DungeonObject(Tile tile)
     {
@@ -88,7 +88,7 @@ public class DungeonObject
         spriteRenderer.sortingOrder = SortingOrder;
     }
 
-    public System.Action GetInteraction(Interaction interaction)
+    public System.Action<Actor> GetInteraction(Interaction interaction)
     {
         if (0 > (int)interaction && interaction >= Interaction.Max)
         {
@@ -152,6 +152,10 @@ public class Door : DungeonObject
         Color color = spriteRenderer.color;
         color.a = 0.0f;
         spriteRenderer.color = color;
+
+        interactions[(int)Interaction.Open] = (Actor actor) =>
+        {
+        }; 
     }
 }
 
