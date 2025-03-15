@@ -56,6 +56,7 @@ public class Actor : MonoBehaviour
     public virtual void Move(int x, int y)
     {
         this.direction = GetDirection(new Vector3 (x, y));
+        SetAction(Action.Walk);
 
         var nextTile = tileMap.GetTile(x, y);
         if (null == nextTile)
@@ -68,7 +69,7 @@ public class Actor : MonoBehaviour
             return;
         }
 
-        if (null != nextTile.dungeonObject)
+        if (null != nextTile.dungeonObject && true == nextTile.dungeonObject.block)
         {
             return;
         }
@@ -87,8 +88,6 @@ public class Actor : MonoBehaviour
 
         tile = nextTile;
         nextTile.actor = this;
-        
-        SetAction(Action.Walk);
     }
         
     public virtual void Destroy()

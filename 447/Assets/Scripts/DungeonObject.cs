@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class DungeonObject
 {
+    public const int SortingOrder = Tile.SortingOrder + 1;
+    
     public enum Interaction
     {
         Open,   // 열기 : 잠겨있지 않은 문을 연다 or 상자를 열어 아이템을 획득한다.
@@ -19,8 +21,6 @@ public class DungeonObject
         TurnOff,
         Max,
     }
-
-    public const int SortingOrder = Tile.SortingOrder + 1;
 
     public static void Init()
     {
@@ -61,31 +61,28 @@ public class DungeonObject
         }
     }
 
-    protected static Sprite GetRandomSprite(List<Sprite> sprites)
-    {
-        if (0 == sprites.Count)
-        {
-            return null;
-        }
-
-        return sprites[Random.Range(0, sprites.Count)];
-    }
-
     public GameObject gameObject;
-    public SpriteRenderer spriteRenderer;
-    public System.Action<Actor>[] interactions = new System.Action<Actor>[(int)Interaction.Max];
+    public SpriteRenderer spriteRenderer { get; protected set; }
+    public System.Action<Actor>[] interactions { get; protected set; }
+    public bool block { get; private set; }
 
-    public DungeonObject(Tile tile)
+    public DungeonObject(Tile tile, bool block)
     {
-        gameObject = new GameObject();
         if (null == tile)
         {
             Debug.Log($"DungeonObject on null tile(x:{tile.rect.x}, y:{tile.rect.y}");
             return;
         }
-        gameObject.transform.SetParent(tile.transform, false);
-        spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
-        spriteRenderer.sortingOrder = SortingOrder;
+
+        this.gameObject = new GameObject();
+        this.gameObject.transform.SetParent(tile.transform, false);
+
+        this.spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
+        this.spriteRenderer.sortingOrder = SortingOrder;
+
+        this.interactions = new System.Action<Actor>[(int)Interaction.Max];
+
+        this.block = block;
     }
 
     public System.Action<Actor> GetInteraction(Interaction interaction)
@@ -115,6 +112,16 @@ public class DungeonObject
         color.a = alpha;
         this.spriteRenderer.color = color;
     }
+
+    protected static Sprite GetRandomSprite(List<Sprite> sprites)
+    {
+        if (0 == sprites.Count)
+        {
+            return null;
+        }
+
+        return sprites[Random.Range(0, sprites.Count)];
+    }
 }
 
 public class Door : DungeonObject
@@ -128,7 +135,7 @@ public class Door : DungeonObject
     private static List<Sprite> Horizontal = new List<Sprite>();
     private static List<Sprite> Vertical = new List<Sprite>();
 
-    public Door(Tile tile) : base(tile)
+    public Door(Tile tile) : base(tile, true)
     {
         Tile top = tile.neighbors[(int)Tile.Direction.Top];
         Tile bottom = tile.neighbors[(int)Tile.Direction.Bottom];
@@ -161,7 +168,7 @@ public class Door : DungeonObject
 
 public class UpStair : DungeonObject
 {
-    public UpStair(Tile tile) : base(tile)
+    public UpStair(Tile tile) : base(tile, true)
     {
         gameObject.name = "Stair.Up";
         spriteRenderer.sprite = GameManager.Instance.Resources.GetSprite("Stair.Up");
@@ -173,7 +180,7 @@ public class UpStair : DungeonObject
 
 public class DownStair : DungeonObject
 {
-    public DownStair(Tile tile) : base(tile)
+    public DownStair(Tile tile) : base(tile, true)
     {
         gameObject.name = "Stair.Down";
         spriteRenderer.sprite = GameManager.Instance.Resources.GetSprite("Stair.Down");
@@ -194,7 +201,7 @@ public class Torch : DungeonObject
     private static List<Sprite> Horizontal = new List<Sprite>();
     private static List<Sprite> Vertical = new List<Sprite>();
 
-    public Torch(Tile tile) : base(tile)
+    public Torch(Tile tile) : base(tile, false)
     {
         gameObject.name = "Torch";
 
@@ -229,7 +236,7 @@ public class Bone : DungeonObject
     }
 
     static List<Sprite> Sprites = new List<Sprite>();
-    public Bone(Tile tile) : base(tile) 
+    public Bone(Tile tile) : base(tile, false) 
     {
         gameObject.name = "Bone";
         spriteRenderer.sprite = GetRandomSprite(Sprites);
@@ -251,7 +258,7 @@ public class Shackle : DungeonObject
         Sprites.Add(GameManager.Instance.Resources.GetSprite("Shackle_2"));
     }
 
-    public Shackle(Tile tile) : base(tile)
+    public Shackle(Tile tile) : base(tile, false)
     {
         gameObject.name = "Shackle";
         spriteRenderer.sprite = GetRandomSprite(Sprites);
@@ -262,11 +269,9 @@ public class Shackle : DungeonObject
     public static List<Sprite> Sprites = new List<Sprite>();
 }
 
-
-
 public class Chest : DungeonObject
 {
-    public Chest(Tile tile) : base(tile)
+    public Chest(Tile tile) : base(tile, true)
     {
     }
 }
@@ -280,7 +285,7 @@ public class Key : DungeonObject
 
     private static List<Sprite> Sprites = new List<Sprite>();
 
-    public Key(Tile tile) : base(tile)
+    public Key(Tile tile) : base(tile, true)
     {
         gameObject.name = "Key";
         spriteRenderer.sprite = GetRandomSprite(Sprites);

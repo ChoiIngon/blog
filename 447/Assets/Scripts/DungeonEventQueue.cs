@@ -62,6 +62,15 @@ class DungeonEventQueue : MonoBehaviour
         coroutine = null;
     }
 
+    public bool Active
+    {
+        get
+        {
+            return 0 < events.Count || null != coroutine;
+        }
+    }
+
+
     private static DungeonEventQueue _instance = null;
     public static DungeonEventQueue Instance
     {

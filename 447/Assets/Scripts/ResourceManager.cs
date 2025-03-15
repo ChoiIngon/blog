@@ -61,36 +61,36 @@ public class ResourceManager
 
             {
                 var idle_U = new Skin.SpriteSheet(new List<Sprite>() { GetSprite("player-idle_up") }, TurnPassSpeed * 4, true);
+                var idle_R = new Skin.SpriteSheet(new List<Sprite>() { GetSprite("player-idle_right") }, TurnPassSpeed * 4, true);
                 var idle_D = new Skin.SpriteSheet(new List<Sprite>() { GetSprite("player-idle_down") }, TurnPassSpeed * 4, true);
                 var idle_L = new Skin.SpriteSheet(new List<Sprite>() { GetSprite("player-idle_left") }, TurnPassSpeed * 4, true);
-                var idle_R = new Skin.SpriteSheet(new List<Sprite>() { GetSprite("player-idle_right") }, TurnPassSpeed * 4, true);
 
-                skin.AddSpriteSheet(Actor.Action.Idle, Actor.Direction.Up, idle_U);
-                skin.AddSpriteSheet(Actor.Action.Idle, Actor.Direction.Down, idle_D);
-                skin.AddSpriteSheet(Actor.Action.Idle, Actor.Direction.Left, idle_L);
-                skin.AddSpriteSheet(Actor.Action.Idle, Actor.Direction.Right, idle_R);
+                skin.AddSpriteSheet(Actor.Action.Idle, Actor.Direction.Up,      idle_U);
+                skin.AddSpriteSheet(Actor.Action.Idle, Actor.Direction.Right,   idle_R);
+                skin.AddSpriteSheet(Actor.Action.Idle, Actor.Direction.Down,    idle_D);
+                skin.AddSpriteSheet(Actor.Action.Idle, Actor.Direction.Left,    idle_L);
             }
             {
-                var walk_D = new Skin.SpriteSheet(new List<Sprite>() { GetSprite("player-walk_left_1"), GetSprite("player-idle_left"), GetSprite("player-walk_left_2") }, TurnPassSpeed, false);
-                var walk_U = new Skin.SpriteSheet(new List<Sprite>() { GetSprite("player-walk_left_1"), GetSprite("player-idle_left"), GetSprite("player-walk_left_2") }, TurnPassSpeed, false);
-                var walk_L = new Skin.SpriteSheet(new List<Sprite>() { GetSprite("player-walk_right_1"), GetSprite("player-idle_right"), GetSprite("player-walk_right_2") }, TurnPassSpeed, false);
+                var walk_U = new Skin.SpriteSheet(new List<Sprite>() { GetSprite("player-walk_right_1"), GetSprite("player-idle_right"), GetSprite("player-walk_right_2") }, TurnPassSpeed, false);
                 var walk_R = new Skin.SpriteSheet(new List<Sprite>() { GetSprite("player-walk_right_1"), GetSprite("player-idle_right"), GetSprite("player-walk_right_2") }, TurnPassSpeed, false);
+                var walk_D = new Skin.SpriteSheet(new List<Sprite>() { GetSprite("player-walk_left_1"), GetSprite("player-idle_left"), GetSprite("player-walk_left_2") }, TurnPassSpeed, false);
+                var walk_L = new Skin.SpriteSheet(new List<Sprite>() { GetSprite("player-walk_left_1"), GetSprite("player-idle_left"), GetSprite("player-walk_left_2") }, TurnPassSpeed, false);
 
-                skin.AddSpriteSheet(Actor.Action.Walk, Actor.Direction.Down, walk_D);
-                skin.AddSpriteSheet(Actor.Action.Walk, Actor.Direction.Up, walk_U);
-                skin.AddSpriteSheet(Actor.Action.Walk, Actor.Direction.Left, walk_L);
-                skin.AddSpriteSheet(Actor.Action.Walk, Actor.Direction.Right, walk_R);
+                skin.AddSpriteSheet(Actor.Action.Walk, Actor.Direction.Up,      walk_U);
+                skin.AddSpriteSheet(Actor.Action.Walk, Actor.Direction.Right,   walk_R);
+                skin.AddSpriteSheet(Actor.Action.Walk, Actor.Direction.Down,    walk_D);
+                skin.AddSpriteSheet(Actor.Action.Walk, Actor.Direction.Left,    walk_L);
             }
             {
-                var attack_D = new Skin.SpriteSheet(new List<Sprite>() { GetSprite("player-attack_left_1"), GetSprite("player-attack_left_2") }, TurnPassSpeed * 2, false);
-                var attack_U = new Skin.SpriteSheet(new List<Sprite>() { GetSprite("player-attack_left_1"), GetSprite("player-attack_left_2") }, TurnPassSpeed * 2, false);
-                var attack_L = new Skin.SpriteSheet(new List<Sprite>() { GetSprite("player-attack_right_1"), GetSprite("player-attack_right_2") }, TurnPassSpeed * 2, false);
+                var attack_U = new Skin.SpriteSheet(new List<Sprite>() { GetSprite("player-attack_right_1"), GetSprite("player-attack_right_2") }, TurnPassSpeed * 2, false);
                 var attack_R = new Skin.SpriteSheet(new List<Sprite>() { GetSprite("player-attack_right_1"), GetSprite("player-attack_right_2") }, TurnPassSpeed * 2, false);
+                var attack_D = new Skin.SpriteSheet(new List<Sprite>() { GetSprite("player-attack_left_1"), GetSprite("player-attack_left_2") }, TurnPassSpeed * 2, false);
+                var attack_L = new Skin.SpriteSheet(new List<Sprite>() { GetSprite("player-attack_left_1"), GetSprite("player-attack_left_2") }, TurnPassSpeed * 2, false);
 
-                skin.AddSpriteSheet(Actor.Action.Attack, Actor.Direction.Down, attack_D);
-                skin.AddSpriteSheet(Actor.Action.Attack, Actor.Direction.Up, attack_U);
-                skin.AddSpriteSheet(Actor.Action.Attack, Actor.Direction.Left, attack_L);
+                skin.AddSpriteSheet(Actor.Action.Attack, Actor.Direction.Up,    attack_U);
                 skin.AddSpriteSheet(Actor.Action.Attack, Actor.Direction.Right, attack_R);
+                skin.AddSpriteSheet(Actor.Action.Attack, Actor.Direction.Down,  attack_D);
+                skin.AddSpriteSheet(Actor.Action.Attack, Actor.Direction.Left,  attack_L);
             }
 
             skins.Add("Player", skin);
