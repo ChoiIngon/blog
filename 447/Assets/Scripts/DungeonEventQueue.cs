@@ -50,7 +50,7 @@ class DungeonEventQueue : MonoBehaviour
                 yield break;
             }
 
-            yield return actor.StartCoroutine(actor.SetAction(Actor.Action.Walk));
+            yield return actor.SetAction(Actor.Action.Walk);
             actor.Move(x, y);
             actor.StartCoroutine(actor.SetAction(Actor.Action.Idle));
         }
