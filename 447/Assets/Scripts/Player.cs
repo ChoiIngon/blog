@@ -19,7 +19,7 @@ public class Player : Actor
         meta.agility = 3;
         meta.sight = 5;
         var player = Actor.Create<Player>(meta, tileMap, new Vector3(startTile.rect.x + 1, startTile.rect.y));
-
+        DungeonEventQueue.Instance.Enqueue(new DungeonEventQueue.Idle(player));
         return player;
     }
 
@@ -32,22 +32,22 @@ public class Player : Actor
 
         if (true == Input.GetKeyDown(KeyCode.UpArrow))
         {
-            Move((int)transform.position.x, (int)transform.position.y + 1);
+            DungeonEventQueue.Instance.Enqueue(new DungeonEventQueue.Move(this, (int)transform.position.x, (int)transform.position.y + 1));
         }
 
         if (true == Input.GetKeyDown(KeyCode.DownArrow))
         {
-            Move((int)transform.position.x, (int)transform.position.y - 1);
+            DungeonEventQueue.Instance.Enqueue(new DungeonEventQueue.Move(this, (int)transform.position.x, (int)transform.position.y - 1));
         }
 
         if (true == Input.GetKeyDown(KeyCode.LeftArrow))
         {
-            Move((int)transform.position.x - 1, (int)transform.position.y);
+            DungeonEventQueue.Instance.Enqueue(new DungeonEventQueue.Move(this, (int)transform.position.x - 1, (int)transform.position.y));
         }
 
         if (true == Input.GetKeyDown(KeyCode.RightArrow))
         {
-            Move((int)transform.position.x + 1, (int)transform.position.y);
+            DungeonEventQueue.Instance.Enqueue(new DungeonEventQueue.Move(this, (int)transform.position.x + 1, (int)transform.position.y));
         }
     }
 

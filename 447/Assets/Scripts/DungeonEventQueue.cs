@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 class DungeonEventQueue : MonoBehaviour
@@ -7,6 +8,26 @@ class DungeonEventQueue : MonoBehaviour
     public interface DungeonEvent
     {
         public IEnumerator OnEvent();
+    }
+
+    public class Idle : DungeonEvent
+    {
+        Actor actor;
+        public Idle(Actor actor)
+        {
+            this.actor = actor;
+        }
+
+        public IEnumerator OnEvent()
+        {
+            if (null == actor.meta.skin)
+            {
+                yield break;
+            }
+
+            actor.StartCoroutine(actor.SetAction(Actor.Action.Idle));
+            yield break;
+        }
     }
 
     public class Move : DungeonEvent
@@ -24,9 +45,43 @@ class DungeonEventQueue : MonoBehaviour
 
         public IEnumerator OnEvent()
         {
-            yield return null;
+            if (null == actor.meta.skin)
+            {
+                yield break;
+            }
+
+            yield return actor.StartCoroutine(actor.SetAction(Actor.Action.Walk));
+            actor.Move(x, y);
+            actor.StartCoroutine(actor.SetAction(Actor.Action.Idle));
         }
     }
+
+    public class Test : DungeonEvent
+    {
+        int id;
+        public Test(int id)
+        {
+            this.id = id;
+        }
+
+        private IEnumerator InfiniteLoop()
+        {
+            int i = 0;
+            while (true)
+            {
+                Debug.Log($"log:{id}-{i++}");
+                yield return new WaitForSeconds(1.0f);
+            }
+        }
+
+        public IEnumerator OnEvent()
+        {
+            Instance.StartCoroutine(InfiniteLoop());
+            yield break;
+        }
+    }
+
+    
 
     private Coroutine coroutine;
     private Queue<DungeonEvent> events = new Queue<DungeonEvent>();

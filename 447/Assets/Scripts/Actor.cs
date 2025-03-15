@@ -56,7 +56,7 @@ public class Actor : MonoBehaviour
     public virtual void Move(int x, int y)
     {
         this.direction = GetDirection(new Vector3 (x, y));
-        SetAction(Action.Walk);
+        //SetAction(Action.Walk);
 
         var nextTile = tileMap.GetTile(x, y);
         if (null == nextTile)
@@ -102,11 +102,11 @@ public class Actor : MonoBehaviour
         GameObject.DestroyImmediate(gameObject);
     }
 
-    public void SetAction(Action action)
+    public IEnumerator SetAction(Action action)
     {
         if (null == meta.skin)
         {
-            return;
+            yield break;
         }
 
         StopAnimation();
@@ -115,10 +115,11 @@ public class Actor : MonoBehaviour
         Skin.SpriteSheet spriteSheet = meta.skin.GetSpriteSheet(action, direction);
         if (null == spriteSheet)
         {
-            return;
+            yield break;
         }
 
         animationCoroutine = StartCoroutine(PlayAnimation(spriteSheet));
+        yield return animationCoroutine;
     }
     
     private void StopAnimation()
@@ -147,8 +148,6 @@ public class Actor : MonoBehaviour
                 yield return new WaitForSeconds(spriteSheet.playTime / spriteSheet.sprites.Count);
             }
         } while (spriteSheet.loop);
-
-        SetAction(Action.Idle);
     }
 
     private int GetDirection(Vector3 position)
