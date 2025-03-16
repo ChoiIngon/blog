@@ -3,6 +3,7 @@ using UnityEngine;
 public class Player : Actor
 {
     private ShadowCast shadowCast;
+    public bool hasKey;
 
     public static Player Create(TileMap tileMap)
     {
@@ -19,6 +20,8 @@ public class Player : Actor
         meta.agility = 6;
         meta.sight = 5;
         var player = Actor.Create<Player>(meta, tileMap, new Vector3(startTile.rect.x + 1, startTile.rect.y));
+        player.hasKey = false;
+
         DungeonEventQueue.Instance.Enqueue(new DungeonEventQueue.Idle(player));
         return player;
     }
@@ -57,6 +60,25 @@ public class Player : Actor
             if (null != tile && null != tile.actor)
             {
                 DungeonEventQueue.Instance.Enqueue(new DungeonEventQueue.Attack(this, tile.actor));
+            }
+            if (null != tile && null != tile.dungeonObject)
+            {
+                for (int i = 0; i < (int)DungeonObject.Interaction.Max; i++)
+                {
+                    if (null == tile.dungeonObject)
+                    {
+                        continue;
+                    }
+                    
+                    var interection = tile.dungeonObject.GetInteraction((DungeonObject.Interaction)i);
+                    if (null == interection)
+                    {
+                        continue;
+                    }
+
+                    interection(this);
+                }
+                DungeonEventQueue.Instance.Enqueue(new DungeonEventQueue.Move(this, (int)tile.rect.x, (int)tile.rect.y));
             }
             else
             {

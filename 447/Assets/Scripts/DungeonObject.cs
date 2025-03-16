@@ -64,7 +64,7 @@ public class DungeonObject
     public SpriteRenderer spriteRenderer { get; protected set; }
     public System.Action<Actor>[] interactions { get; protected set; }
     public bool block { get; private set; }
-
+    public Tile tile;
     public DungeonObject(Tile tile, bool block)
     {
         if (null == tile)
@@ -81,6 +81,7 @@ public class DungeonObject
 
         this.interactions = new System.Action<Actor>[(int)Interaction.Max];
 
+        this.tile = tile;
         this.block = block;
     }
 
@@ -159,9 +160,25 @@ public class Door : DungeonObject
         color.a = 0.0f;
         spriteRenderer.color = color;
 
-        interactions[(int)Interaction.Open] = (Actor actor) =>
+        interactions[(int)Interaction.Open] = OnOpen;
+    }
+
+    private void OnOpen(Actor actor)
+    {
+        var player = actor as Player;
+        if (null == player)
         {
-        }; 
+            return;
+        }
+
+        if (false == player.hasKey)
+        {
+            return;
+        }
+
+        tile.dungeonObject = null;
+        gameObject.transform.parent = null;
+        GameObject.DestroyImmediate(gameObject);
     }
 }
 
@@ -292,6 +309,23 @@ public class Key : DungeonObject
         Color color = spriteRenderer.color;
         color.a = 0.0f;
         spriteRenderer.color = color;
+
+        interactions[(int)Interaction.Loot] = OnLoot;
+    }
+
+    void OnLoot(Actor actor)
+    {
+        var player = actor as Player;
+        if (null == player)
+        {
+            return;
+        }
+
+        player.hasKey = true;
+
+        tile.dungeonObject = null;
+        gameObject.transform.parent = null;
+        GameObject.DestroyImmediate(gameObject);
     }
 }
 
