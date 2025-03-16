@@ -113,7 +113,7 @@ public class DungeonLevelGenerator
         }
 
         var player = Player.Create(tileMap);
-
+        
         rooms.Remove(start);
         rooms.Remove(end);
 
@@ -125,7 +125,10 @@ public class DungeonLevelGenerator
             LockEndRoom();
         }
 
-        
+        foreach (Room room in rooms)
+        {
+            CreateMonster(room);
+        }
         return tileMap;
     }
 
@@ -243,5 +246,15 @@ public class DungeonLevelGenerator
 
             tile.dungeonObject = new Torch(tile);
         }
+    }
+
+    private void CreateMonster(Room room)
+    {
+        Rect floorRect = room.GetFloorRect();
+        int x = (int)Random.Range(floorRect.xMin + 1, floorRect.xMax - 1);
+        int y = (int)Random.Range(floorRect.yMin + 1, floorRect.yMax - 1);
+        var monster = Monster.Create(this.tileMap, new Vector3(x, y));
+
+        this.tileMap.monsters.Add(monster);
     }
 }

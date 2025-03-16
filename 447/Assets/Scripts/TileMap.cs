@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class TileMap
 {
@@ -21,6 +22,8 @@ public class TileMap
 
     public Tile start;
     public Tile end;
+    public Player player;
+    public Monster.MonsterManager monsters = new Monster.MonsterManager();
 
     public TileMap(List<Room> rooms)
     {
@@ -208,5 +211,12 @@ public class TileMap
         path.Reverse(); // 시작점부터 출력하도록 뒤집기
 
         return path;
+    }
+
+    public ShadowCast CastLight(int x, int y, int sightRange)
+    {
+        ShadowCast sight = new ShadowCast(this);
+        sight.CastLight(x, y, sightRange);
+        return sight;
     }
 }

@@ -50,7 +50,6 @@ public class Actor : MonoBehaviour
     public virtual void Attack(Actor target)
     {
         this.direction = GetDirection(target.transform.position);
-        SetAction(Action.Attack);
     }
 
     public virtual void Move(int x, int y)

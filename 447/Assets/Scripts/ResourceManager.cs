@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Net.Mail;
 using UnityEngine;
 using UnityEngine.U2D;
 
@@ -48,8 +49,8 @@ public class ResourceManager
             {
                 string name = sprite.name.Replace("(Clone)", "");   // GetSprites는 Clone을 리턴하기 때문에, 이름에서 (Clone) postfix를 제거해준다.
                 sprites.Add(name, sprite);
+                DungeonLog.Write($"Load Resources/SpriteAtlas/{spriteAtlasAsset}/{name}");
             }
-            Debug.Log($"Load Resources/SpriteAtlas/{spriteAtlasAsset} complete");
         }
     }
 
@@ -71,9 +72,9 @@ public class ResourceManager
                 skin.AddSpriteSheet(Actor.Action.Idle, Actor.Direction.Left,    idle_L);
             }
             {
-                var walk_U = new Skin.SpriteSheet(new List<Sprite>() { GetSprite("player-walk_right_1"), GetSprite("player-idle_right"), GetSprite("player-walk_right_2") }, TurnPassSpeed, false);
+                var walk_U = new Skin.SpriteSheet(new List<Sprite>() { GetSprite("player-walk_up_1"), GetSprite("player-idle_up"), GetSprite("player-walk_up_2") }, TurnPassSpeed, false);
                 var walk_R = new Skin.SpriteSheet(new List<Sprite>() { GetSprite("player-walk_right_1"), GetSprite("player-idle_right"), GetSprite("player-walk_right_2") }, TurnPassSpeed, false);
-                var walk_D = new Skin.SpriteSheet(new List<Sprite>() { GetSprite("player-walk_left_1"), GetSprite("player-idle_left"), GetSprite("player-walk_left_2") }, TurnPassSpeed, false);
+                var walk_D = new Skin.SpriteSheet(new List<Sprite>() { GetSprite("player-walk_down_1"), GetSprite("player-idle_down"), GetSprite("player-walk_down_2") }, TurnPassSpeed, false);
                 var walk_L = new Skin.SpriteSheet(new List<Sprite>() { GetSprite("player-walk_left_1"), GetSprite("player-idle_left"), GetSprite("player-walk_left_2") }, TurnPassSpeed, false);
 
                 skin.AddSpriteSheet(Actor.Action.Walk, Actor.Direction.Up,      walk_U);
@@ -93,7 +94,7 @@ public class ResourceManager
                 skin.AddSpriteSheet(Actor.Action.Attack, Actor.Direction.Left,  attack_L);
             }
 
-            skins.Add("Player", skin);
+            skins.Add("Actor", skin);
         }
     }
 

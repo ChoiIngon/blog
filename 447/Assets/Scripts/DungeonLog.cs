@@ -12,12 +12,8 @@ public class DungeonLog : MonoBehaviour
     public float verticalScrollBarWidth = 0.0f;
     GameObject content;
     ScrollRect scrollRect;
-    private void Start()
-    {
-        Init();
-    }
-
-    void Init()
+    
+    private void Init()
     {
         // 1. Canvas 생성 (이미 존재하면 생략 가능)
         Canvas canvas = FindObjectOfType<Canvas>();
@@ -129,8 +125,8 @@ public class DungeonLog : MonoBehaviour
                     GameObject container = new GameObject();
                     container.name = typeof(DungeonLog).Name;
                     _instance = container.AddComponent<DungeonLog>();
-                    _instance.Init();
                 }
+                _instance.Init();
             }
 
             return _instance;

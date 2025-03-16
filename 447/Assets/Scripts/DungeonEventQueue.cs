@@ -45,13 +45,29 @@ class DungeonEventQueue : MonoBehaviour
 
         public IEnumerator OnEvent()
         {
-            if (null == actor.meta.skin)
-            {
-                yield break;
-            }
+            actor.Move(x, y);
 
             yield return actor.SetAction(Actor.Action.Walk);
-            actor.Move(x, y);
+            actor.StartCoroutine(actor.SetAction(Actor.Action.Idle));
+        }
+    }
+
+    public class Attack : DungeonEvent
+    {
+        Actor actor;
+        Actor target;
+
+        public Attack(Actor actor, Actor target)
+        {
+            this.actor = actor;
+            this.target = target;
+        }
+
+        public IEnumerator OnEvent()
+        {
+            actor.Attack(target);
+
+            yield return actor.SetAction(Actor.Action.Attack);
             actor.StartCoroutine(actor.SetAction(Actor.Action.Idle));
         }
     }

@@ -27,7 +27,6 @@ public class DungeonObject
         System.AppDomain appDomain = System.AppDomain.CurrentDomain;
         System.Reflection.Assembly[] assemblies = appDomain.GetAssemblies();
 
-        Debug.Log(System.AppDomain.CurrentDomain.FriendlyName);
         string executingAssemblyName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
         foreach (var assembly in assemblies)
         {
