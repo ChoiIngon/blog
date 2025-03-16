@@ -22,7 +22,7 @@ public class Player : Actor
         var player = Actor.Create<Player>(meta, tileMap, new Vector3(startTile.rect.x + 1, startTile.rect.y));
         player.hasKey = false;
 
-        DungeonEventQueue.Instance.Enqueue(new DungeonEventQueue.Idle(player));
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.Idle(player));
         return player;
     }
 
@@ -59,7 +59,7 @@ public class Player : Actor
             Tile tile = tileMap.GetTile((int)transform.position.x + (int)offset.x, (int)transform.position.y + (int)offset.y);
             if (null != tile && null != tile.actor)
             {
-                DungeonEventQueue.Instance.Enqueue(new DungeonEventQueue.Attack(this, tile.actor));
+                DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.Attack(this, tile.actor));
             }
             if (null != tile && null != tile.dungeonObject)
             {
@@ -78,11 +78,11 @@ public class Player : Actor
 
                     interection(this);
                 }
-                DungeonEventQueue.Instance.Enqueue(new DungeonEventQueue.Move(this, (int)tile.rect.x, (int)tile.rect.y));
+                DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.Move(this, (int)tile.rect.x, (int)tile.rect.y));
             }
             else
             {
-                DungeonEventQueue.Instance.Enqueue(new DungeonEventQueue.Move(this, (int)tile.rect.x, (int)tile.rect.y));
+                DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.Move(this, (int)tile.rect.x, (int)tile.rect.y));
             }
             tileMap.monsters.Update(this);
         }

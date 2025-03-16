@@ -38,7 +38,7 @@ public class Monster : Actor
         monster.spriteRenderer.color = Color.red;
         monster.behaviourTreeRoot = behaviourTreeRoot;
 
-        DungeonEventQueue.Instance.Enqueue(new DungeonEventQueue.Idle(monster));
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.Idle(monster));
         return monster;
     }
 
@@ -108,7 +108,7 @@ public class Monster : Actor
             while (1 <= path.Count && 1.0f <= self.actionPoint)
             {
                 Tile tile = path[0];
-                DungeonEventQueue.Instance.Enqueue(new DungeonEventQueue.Move(self, (int)tile.rect.x, (int)tile.rect.y));
+                DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.Move(self, (int)tile.rect.x, (int)tile.rect.y));
                 path.RemoveAt(0);
 
                 self.actionPoint -= 1.0f;
@@ -150,7 +150,7 @@ public class Monster : Actor
 
             while (1.0f <= self.actionPoint)
             {
-                DungeonEventQueue.Instance.Enqueue(new DungeonEventQueue.Attack(self, target));
+                DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.Attack(self, target));
                 self.actionPoint -= 1.0f;
             }
 

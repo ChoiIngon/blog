@@ -100,7 +100,6 @@ public class DungeonLevelGenerator
 
             tileMap.start = tileMap.GetTile(x, y);
             tileMap.start.dungeonObject = new DownStair(tileMap.start);
-            GameManager.Instance.EnqueueEvent(new GameManager.EnableTileSpriteEvent(tileMap.start));
         }
         {
             Rect floorRect = this.end.GetFloorRect();
@@ -109,7 +108,6 @@ public class DungeonLevelGenerator
             
             tileMap.end = tileMap.GetTile(x, y);
             tileMap.end.dungeonObject = new UpStair(tileMap.end);
-            GameManager.Instance.EnqueueEvent(new GameManager.EnableTileSpriteEvent(tileMap.end));
         }
 
         var player = Player.Create(tileMap);
@@ -149,7 +147,6 @@ public class DungeonLevelGenerator
         foreach (Tile door in end.doors)
         {
             door.dungeonObject = new Door(door);
-            //GameManager.Instance.EnqueueEvent(new GameManager.EnableTileSpriteEvent(door));
         }
 
         Room room = path[1];
