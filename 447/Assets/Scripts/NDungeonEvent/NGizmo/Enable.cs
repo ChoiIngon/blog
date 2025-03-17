@@ -16,13 +16,8 @@ namespace NDungeonEvent.NGizmo
 
         public IEnumerator OnEvent()
         {
-            GameObject gizmoRoot = null;
-            if (false == GameManager.Instance.gizmos.TryGetValue(name, out gizmoRoot))
-            {
-                yield break;
-            }
-
-            gizmoRoot.SetActive(enable);
+            GameManager.Instance.Gizmos.GetGroup(this.name).Enable(enable);
+            yield break;
         }
     }
 }

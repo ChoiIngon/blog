@@ -104,17 +104,17 @@ public class DungeonTileMapGenerator
 
         tileMap = new TileMap(selectedRooms);
 
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateGrid(GameManager.EventName.BackgroundGridGizmo, tileMap.rect));
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateGrid(GameManager.Gizmo.GroupName.BackgroundGrid, tileMap.rect));
         DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.MoveCamera(tileMap.rect.center, GameManager.Instance.tickTime));
         DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.RepositionRoom(selectedRooms));
 
         ConnectRooms(tileMap);
 
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(GameManager.EventName.TileCostGizmo, false));
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(GameManager.Gizmo.GroupName.TileCost, false));
 
         BuildWall(tileMap);
 
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(GameManager.EventName.BackgroundGridGizmo, false));
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(GameManager.Gizmo.GroupName.BackgroundGrid, false));
 
         return tileMap;
     }
@@ -321,7 +321,7 @@ public class DungeonTileMapGenerator
             {
                 lines.Add(new NDungeonEvent.NGizmo.CreateLine.Line() { start = connection.p1.center, end = connection.p2.center });
             }
-            DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateLine(GameManager.EventName.MiniumSpanningTreeGizmo, lines, Color.green, GameManager.SortingOrder.SpanningTreeEdge, 0.5f));
+            DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateLine(GameManager.Gizmo.GroupName.MiniumSpanningTree, lines, Color.green, GameManager.SortingOrder.SpanningTreeEdge, 0.5f));
         }
 
         foreach (var connection in mst.connections)
@@ -332,7 +332,7 @@ public class DungeonTileMapGenerator
             ConnectRoom(connection.p1, connection.p2);
         }
 
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(GameManager.EventName.MiniumSpanningTreeGizmo, false));
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(GameManager.Gizmo.GroupName.MiniumSpanningTree, false));
     }
     private void ConnectRoom(Room a, Room b)
     {
@@ -369,7 +369,7 @@ public class DungeonTileMapGenerator
 		{
             tile.type = Tile.Type.Floor;
 			tile.cost = Tile.PathCost.MinCost;
-			DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateTile(tile, Color.blue, GameManager.SortingOrder.Floor));
+			DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateTile(tile, Color.blue, GameManager.SortingOrder.Corridor));
 		}
 	}
 	private void ConnectVerticalRoom(Room a, Room b)

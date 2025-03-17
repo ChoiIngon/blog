@@ -14,15 +14,7 @@ namespace NDungeonEvent.NGizmo
 
         public IEnumerator OnEvent()
         {
-            DungeonGizmo.Block gizmo;
-            if (false == GameManager.Instance.roomGizmos.TryGetValue(index, out gizmo))
-            {
-                yield break;
-            }
-
-            gizmo.parent = null;
-            DungeonGizmo.Destroy(gizmo);
-            GameManager.Instance.roomGizmos.Remove(index);
+            GameManager.Instance.Gizmos.GetGroup(GameManager.Gizmo.GroupName.Room).Remove(index);
             yield return new WaitForSeconds(GameManager.Instance.tickTime);
         }
     }

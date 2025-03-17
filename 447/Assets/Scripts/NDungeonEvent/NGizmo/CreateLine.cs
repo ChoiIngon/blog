@@ -34,19 +34,17 @@ namespace NDungeonEvent.NGizmo
                 yield break;
             }
 
-            GameObject giizmoRoot = new GameObject(name);
-            giizmoRoot.transform.parent = GameManager.Instance.transform;
-
-            GameManager.Instance.gizmos.Add(name, giizmoRoot);
-
             float interval = GameManager.Instance.tickTime / lines.Count;
             for (int i = 0; i < lines.Count; i++)
             {
                 Line line = lines[i];
                 string gizmoName = $"{name}_{i}_({line.start.x},{line.start.y}) -> ({line.end.x},{line.end.y})";
+
                 DungeonGizmo.Line gizmo = new DungeonGizmo.Line(gizmoName, color, line.start, line.end, width);
-                gizmo.parent = giizmoRoot.transform;
                 gizmo.sortingOrder = sortingOrder;
+
+                GameManager.Instance.Gizmos.GetGroup(name).Add(gizmo);
+                
                 yield return new WaitForSeconds(interval);
             }
         }

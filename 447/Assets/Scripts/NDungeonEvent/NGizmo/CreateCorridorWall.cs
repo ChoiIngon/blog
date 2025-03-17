@@ -28,20 +28,12 @@ namespace NDungeonEvent.NGizmo
                     return;
                 }
 
-                GameObject gizmoRoot = null;
-                if (false == GameManager.Instance.gizmos.TryGetValue(GameManager.EventName.TileGizmo, out gizmoRoot))
-                {
-                    return;
-                }
-
-                DungeonGizmo.Rect gizmo = null;
-                if (false == GameManager.Instance.tileGizmos.TryGetValue(tile.index, out gizmo))
+                DungeonGizmo.Rect gizmo = GameManager.Instance.Gizmos.GetGroup(GameManager.Gizmo.GroupName.Tile).Get<DungeonGizmo.Rect>(tile.index);
+                if (null == gizmo)
                 {
                     gizmo = new DungeonGizmo.Rect($"Tile_{tile.index}", Color.white, 1.0f, 1.0f);
                     gizmo.position = new Vector3(tile.rect.x, tile.rect.y);
-                    gizmo.parent = gizmoRoot.transform;
-                    GameManager.Instance.tileGizmos.Add(tile.index, gizmo);
-                    return;
+                    GameManager.Instance.Gizmos.GetGroup(GameManager.Gizmo.GroupName.Tile).Add(tile.index, gizmo);
                 }
 
                 gizmo.color = Color.white;
@@ -52,8 +44,8 @@ namespace NDungeonEvent.NGizmo
                 float interval = GameManager.Instance.tickTime / corridor.path.Count;
                 foreach (Tile tile in corridor.path)
                 {
-                    DungeonGizmo.Rect gizmo = null;
-                    if (false == GameManager.Instance.tileGizmos.TryGetValue(tile.index, out gizmo))
+                    DungeonGizmo.Rect gizmo = GameManager.Instance.Gizmos.GetGroup(GameManager.Gizmo.GroupName.Tile).Get<DungeonGizmo.Rect>(tile.index);
+                    if (null == gizmo)
                     {
                         yield break;
                     }

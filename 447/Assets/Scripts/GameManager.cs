@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
+    
     public int roomCount;
     public int minRoomSize;
     public int maxRoomSize;
@@ -11,20 +12,21 @@ public class GameManager : MonoBehaviour
     public int randomSeed = 0;
     public float tickTime = 0.05f;
 
-    public Dictionary<string, GameObject>       gizmos = new Dictionary<string, GameObject>();
-    public Dictionary<int, DungeonGizmo.Block>  roomGizmos = new Dictionary<int, DungeonGizmo.Block>();
-    public Dictionary<int, DungeonGizmo.Rect>   tileGizmos = new Dictionary<int, DungeonGizmo.Rect>();
-
     private DungeonTileMapGenerator tileMapGenerator    = new DungeonTileMapGenerator();
     private DungeonLevelGenerator levelGenerator        = new DungeonLevelGenerator();
     public TileMap tileMap;
 
-    public ResourceManager Resources = new ResourceManager();
+    public ResourceManager Resources;
+    public Gizmo Gizmos;
 
     private void Start()
     {
         gameObject.AddComponent<CameraDrag>();
         gameObject.AddComponent<CameraScale>();
+
+        Resources = new ResourceManager();
+        Gizmos = new Gizmo();
+        Gizmos.gameObject.transform.parent = transform;
 
         Resources.Load();
         DungeonTileMapGenerator.Init();
@@ -33,25 +35,7 @@ public class GameManager : MonoBehaviour
 
     public void CreateDungeon()
     {
-        InitRoomGizmo();
-		InitTileGizmo();
-
-        foreach (var pair in gizmos)
-        {
-            GameObject gizmoRoot = pair.Value;
-            while (0 < gizmoRoot.transform.childCount)
-            {
-                Transform gizmoTransform = gizmoRoot.transform.GetChild(0);
-                gizmoTransform.parent = null;
-                GameObject gizmoGameObject = gizmoTransform.gameObject;
-                GameObject.DestroyImmediate(gizmoGameObject);
-            }
-            gizmoRoot.transform.parent = null;
-            GameObject.DestroyImmediate(gizmoRoot);
-        }
-        gizmos.Clear();
-
-        DungeonGizmo.ClearAll();
+        Gizmos.Clear();
 
         Stopwatch stopWatch = new Stopwatch();
         if (0 == randomSeed)
@@ -69,32 +53,8 @@ public class GameManager : MonoBehaviour
         stopWatch.Stop();
         DungeonLog.Write($"Dungeon data generation is complete(elapsed_time:{stopWatch.Elapsed})");
 
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(GameManager.EventName.RoomGizmo, false));
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(GameManager.EventName.TileGizmo, false));
-    }
-
-    private void InitTileGizmo()
-    {
-        foreach (var pair in tileGizmos)
-        {
-            var gizmo = pair.Value;
-            gizmo.parent = null;
-            DungeonGizmo.Destroy(gizmo);
-        }
-
-        tileGizmos.Clear();
-    }
-
-    private void InitRoomGizmo()
-    {
-        foreach (var pair in roomGizmos)
-        {
-            var gizmo = pair.Value;
-            gizmo.parent = null;
-            DungeonGizmo.Destroy(gizmo);
-        }
-
-        roomGizmos.Clear();
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(GameManager.Gizmo.GroupName.Room, false));
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(GameManager.Gizmo.GroupName.Tile, false));
     }
 
     public static class SortingOrder
@@ -109,15 +69,6 @@ public class GameManager : MonoBehaviour
         public static int TriangleLine = 30;
         public static int TriangleInnerCircle = 30;
         public static int BiggestCircle = 31;
-    }
-
-    public static class EventName
-    {
-        public const string RoomGizmo = "RoomGizmo";
-        public const string MiniumSpanningTreeGizmo = "MiniumSpanningTreeGizmo";
-        public const string TileCostGizmo = "TileCostGizmo";
-        public const string BackgroundGridGizmo = "BackgroundGridGizmo";
-        public const string TileGizmo = "TileGizmo";
     }
 
     #region hide
@@ -152,7 +103,128 @@ public class GameManager : MonoBehaviour
         {
             Camera.main.orthographicSize = halfWidth / aspect + 10.0f;
         }
+
+        Camera.main.transform.position = new Vector3(boundary.center.x, boundary.center.y, Camera.main.transform.position.z);
     }
 
+    public class Gizmo
+    {
+        public static class GroupName
+        {
+            public const string Room = "Room";
+            public const string Tile = "Tile";
+            public const string TileCost = "TileCost";
+            public const string MiniumSpanningTree = "MiniumSpanningTree";
+            public const string BackgroundGrid = "BackgroundGrid";
+            public const string Triangle = "Triangle";
+        }
+
+        public class Group
+        {
+            public GameObject gameObject;
+            public Dictionary<int, DungeonGizmo.Gizmo> gizmos;
+
+            public Group(string name)
+            {
+                gameObject = new GameObject(name);
+            }
+
+            public void Add(int index, DungeonGizmo.Gizmo gizmo)
+            {
+                if (null == gizmos)
+                {
+                    gizmos = new Dictionary<int, DungeonGizmo.Gizmo>();
+                }
+
+                gizmos[index] = gizmo;
+                Add(gizmo);
+            }
+
+            public void Add(DungeonGizmo.Gizmo gizmo)
+            {
+                gizmo.parent = gameObject.transform;
+            }
+
+            public T Get<T>(int index) where T : DungeonGizmo.Gizmo
+            {
+                if (null == gizmos)
+                {
+                    return null;
+                }
+
+                DungeonGizmo.Gizmo gizmo = null;
+                if (false == gizmos.TryGetValue(index, out gizmo))
+                {
+                    return null;
+                }
+
+                return gizmo as T;
+            }
+
+            public void Remove(int index)
+            {
+                DungeonGizmo.Gizmo gizmo = Get<DungeonGizmo.Gizmo>(index);
+                if (null == gizmo)
+                {
+                    return;
+                }
+
+                gizmo.gameObject.transform.parent = null;
+                gizmos.Remove(index);
+                DungeonGizmo.Destroy(gizmo);
+            }
+
+            public void Clear()
+            {
+                if (null != gizmos)
+                {
+                    gizmos.Clear();
+                }
+
+                while (0 < gameObject.transform.childCount)
+                {
+                    var childTransform = gameObject.transform.GetChild(0);
+                    childTransform.parent = null;
+                    GameObject.DestroyImmediate(childTransform.gameObject);
+                }
+
+                Enable(true);
+            }
+
+            public void Enable(bool flag)
+            {
+                gameObject.SetActive(flag);
+            }
+        }
+
+        public GameObject gameObject;
+        private Dictionary<string, Group> gropus = new Dictionary<string, Group>();
+
+        public Gizmo()
+        {
+            gameObject = new GameObject("DungeonGizmo");
+        }
+
+        public void Clear()
+        {
+            foreach (var group in gropus.Values)
+            {
+                group.Clear();
+            }
+        }
+        
+        public Group GetGroup(string name)
+        {
+            Group group = null;
+            if (false == gropus.TryGetValue(name, out group))
+            {
+                group = new Group(name);
+                group.gameObject.transform.parent = gameObject.transform;
+                gropus.Add(name, group);
+            }
+
+            return group;
+        }
+    }
     #endregion
 }

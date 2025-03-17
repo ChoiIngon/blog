@@ -16,8 +16,8 @@ namespace NDungeonEvent.NGizmo
 
         public IEnumerator OnEvent()
         {
-            DungeonGizmo.Block gizmo;
-            if (false == GameManager.Instance.roomGizmos.TryGetValue(room.index, out gizmo))
+            DungeonGizmo.Block gizmo = GameManager.Instance.Gizmos.GetGroup(GameManager.Gizmo.GroupName.Room).Get<DungeonGizmo.Block>(room.index);
+            if (null == gizmo)
             {
                 yield break;
             }

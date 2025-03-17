@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Build.Content;
 using UnityEngine;
 
 namespace NDungeonEvent.NGizmo
@@ -28,16 +29,10 @@ namespace NDungeonEvent.NGizmo
 
         public IEnumerator OnEvent()
         {
-            GameObject gizmoRoot = null;
-            if (false == GameManager.Instance.gizmos.TryGetValue(GameManager.EventName.RoomGizmo, out gizmoRoot))
-            {
-                yield break;
-            }
-
             foreach (Snapshot data in this.snapshots)
             {
-                DungeonGizmo.Block gizmo;
-                if (false == GameManager.Instance.roomGizmos.TryGetValue(data.index, out gizmo))
+                var gizmo = GameManager.Instance.Gizmos.GetGroup(GameManager.Gizmo.GroupName.Room).Get<DungeonGizmo.Block>(data.index);
+                if (null == gizmo)
                 {
                     continue;
                 }
@@ -60,7 +55,6 @@ namespace NDungeonEvent.NGizmo
             }
 
             GameManager.AdjustOrthographicCamera(cameraBoundary);
-            Camera.main.transform.position = new Vector3(cameraBoundary.center.x, cameraBoundary.center.y, Camera.main.transform.position.z);
         }
     }
 }

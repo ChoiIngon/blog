@@ -91,9 +91,8 @@ public class Player : Actor
     public override void Move(int x, int y)
     {
         base.Move(x, y);
-        Camera.main.transform.position = new Vector3(transform.position.x, transform.position.y, Camera.main.transform.position.z);
-        Rect rect = new Rect(0, 0, meta.sight * 2, meta.sight * 2);
-        GameManager.AdjustOrthographicCamera(rect);
+        Rect cameraBoundary = new Rect(transform.position.x, transform.position.y, meta.sight * 2, meta.sight * 2);
+        GameManager.AdjustOrthographicCamera(cameraBoundary);
     }
 
     public override void Attack(Actor target)

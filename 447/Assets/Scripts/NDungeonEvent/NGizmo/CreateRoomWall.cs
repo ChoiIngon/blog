@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace NDungeonEvent.NGizmo
@@ -60,17 +61,17 @@ namespace NDungeonEvent.NGizmo
 
             if (Tile.Type.Wall == tile.type)
             {
-                GameObject gizmoRoot = null;
-                if (false == GameManager.Instance.gizmos.TryGetValue(GameManager.EventName.TileGizmo, out gizmoRoot))
+                DungeonGizmo.Rect gizmo = GameManager.Instance.Gizmos.GetGroup(GameManager.Gizmo.GroupName.Tile).Get<DungeonGizmo.Rect>(tile.index);
+                if (null == gizmo)
                 {
-                    return;
+                    gizmo = new DungeonGizmo.Rect($"Tile_{tile.index}", Color.white, 1.0f, 1.0f);
+                    gizmo.sortingOrder = GameManager.SortingOrder.Floor;
+                    gizmo.position = new Vector3(x, y);
+                    
+                    GameManager.Instance.Gizmos.GetGroup(GameManager.Gizmo.GroupName.Tile).Add(tile.index, gizmo);
                 }
 
-                DungeonGizmo.Rect gizmo = new DungeonGizmo.Rect($"Tile_{tile.index}", Color.white, 1.0f, 1.0f);
-                gizmo.sortingOrder = GameManager.SortingOrder.Floor;
-                gizmo.position = new Vector3(x, y);
-                gizmo.parent = gizmoRoot.transform;
-                GameManager.Instance.tileGizmos[tile.index] = gizmo;
+                gizmo.color = Color.white;
             }
         }
     }
