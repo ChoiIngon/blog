@@ -14,7 +14,7 @@ namespace NDungeonEvent.NGizmo
 
         public IEnumerator OnEvent()
         {
-            GameManager.Instance.Gizmos.GetGroup(GameManager.Gizmo.GroupName.Room).Remove(index);
+            GameManager.Instance.Gizmos.GetGroup(DungeonGizmo.GroupName.Room).Remove(index);
             yield return new WaitForSeconds(GameManager.Instance.tickTime);
         }
     }

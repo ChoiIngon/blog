@@ -61,14 +61,14 @@ namespace NDungeonEvent.NGizmo
 
             if (Tile.Type.Wall == tile.type)
             {
-                DungeonGizmo.Rect gizmo = GameManager.Instance.Gizmos.GetGroup(GameManager.Gizmo.GroupName.Tile).Get<DungeonGizmo.Rect>(tile.index);
+                DungeonGizmo.Rect gizmo = GameManager.Instance.Gizmos.GetGroup(DungeonGizmo.GroupName.Tile).Get<DungeonGizmo.Rect>(tile.index);
                 if (null == gizmo)
                 {
                     gizmo = new DungeonGizmo.Rect($"Tile_{tile.index}", Color.white, 1.0f, 1.0f);
-                    gizmo.sortingOrder = GameManager.Gizmo.SortingOrder.Wall;
+                    gizmo.sortingOrder = DungeonGizmo.SortingOrder.Wall;
                     gizmo.position = new Vector3(x, y);
                     
-                    GameManager.Instance.Gizmos.GetGroup(GameManager.Gizmo.GroupName.Tile).Add(tile.index, gizmo);
+                    GameManager.Instance.Gizmos.GetGroup(DungeonGizmo.GroupName.Tile).Add(tile.index, gizmo);
                 }
 
                 gizmo.color = Color.white;

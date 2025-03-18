@@ -1,28 +1,155 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class DungeonGizmo
+public class DungeonGizmo
 {
+	public static class GroupName
+	{
+		public const string BackgroundGrid = "BackgroundGrid";
+		public const string Room = "Room";
+		public const string Tile = "Tile";
+		public const string TileCost = "TileCost";
+		public const string MiniumSpanningTree = "MiniumSpanningTree";
+		public const string Triangle = "Triangle";
+	}
+
+	public static class SortingOrder
+	{
+		public static int Room = 5;
+		public static int Tile = 10;
+		public static int Corridor = 11;
+		public static int Wall = 15;
+		public static int TileCost = 20;
+		public static int SpanningTreeEdge = 25;
+		public static int TriangleLine = 30;
+		public static int TriangleInnerCircle = 30;
+		public static int BiggestCircle = 31;
+	}
+
+	public class Group
+	{
+		public GameObject gameObject;
+		public Dictionary<int, DungeonGizmo.Gizmo> gizmos;
+
+		public Group(string name)
+		{
+			gameObject = new GameObject(name);
+		}
+
+		public void Add(int index, DungeonGizmo.Gizmo gizmo)
+		{
+			if (null == gizmos)
+			{
+				gizmos = new Dictionary<int, DungeonGizmo.Gizmo>();
+			}
+
+			gizmos[index] = gizmo;
+			Add(gizmo);
+		}
+
+		public void Add(DungeonGizmo.Gizmo gizmo)
+		{
+			gizmo.parent = gameObject.transform;
+		}
+
+		public T Get<T>(int index) where T : DungeonGizmo.Gizmo
+		{
+			if (null == gizmos)
+			{
+				return null;
+			}
+
+			DungeonGizmo.Gizmo gizmo = null;
+			if (false == gizmos.TryGetValue(index, out gizmo))
+			{
+				return null;
+			}
+
+			return gizmo as T;
+		}
+
+		public void Remove(int index)
+		{
+			DungeonGizmo.Gizmo gizmo = Get<DungeonGizmo.Gizmo>(index);
+			if (null == gizmo)
+			{
+				return;
+			}
+
+			gizmo.gameObject.transform.parent = null;
+			gizmos.Remove(index);
+			DungeonGizmo.Destroy(gizmo);
+		}
+
+		public void Clear()
+		{
+			if (null != gizmos)
+			{
+				gizmos.Clear();
+			}
+
+			while (0 < gameObject.transform.childCount)
+			{
+				var childTransform = gameObject.transform.GetChild(0);
+				childTransform.parent = null;
+				GameObject.DestroyImmediate(childTransform.gameObject);
+			}
+
+			Enable(true);
+		}
+
+		public void Enable(bool flag)
+		{
+			gameObject.SetActive(flag);
+		}
+	}
+
     private static Shader shader = Shader.Find("Sprites/Default");
-    public static GameObject root = new GameObject("GizmoRoot");
+	private static GameObject gameObject = new GameObject("DungeonGizmo");
+	private Dictionary<string, Group> gropus = new Dictionary<string, Group>();
 
     public static void ClearAll()
     {
-        while (0 < root.transform.childCount)
+        while (0 < gameObject.transform.childCount)
         {
-            Transform transform = root.transform.GetChild(0);
-            transform.parent = null;
-            GameObject gameObject = transform.gameObject;
-            GameObject.DestroyImmediate(gameObject);
+            Transform childTranform = gameObject.transform.GetChild(0);
+            childTranform.parent = null;
+            GameObject childGameObject = childTranform.gameObject;
+            GameObject.DestroyImmediate(childGameObject);
         }
     }
 
-    public static void Destroy(Gizmo shape)
-    {
-        shape.gameObject.transform.parent = null;
-        GameObject.DestroyImmediate(shape.gameObject);
-    }
+	public static void Destroy(Gizmo shape)
+	{
+		shape.gameObject.transform.parent = null;
+		GameObject.DestroyImmediate(shape.gameObject);
+	}
 
+	public DungeonGizmo()
+	{
+	}
+
+	public void Clear()
+	{
+		foreach (var group in gropus.Values)
+		{
+			group.Clear();
+		}
+	}
+
+	public Group GetGroup(string name)
+	{
+		Group group = null;
+		if (false == gropus.TryGetValue(name, out group))
+		{
+			group = new Group(name);
+			group.gameObject.transform.parent = gameObject.transform;
+			gropus.Add(name, group);
+		}
+
+		return group;
+	}
+	
     public class Gizmo
     {
         public readonly GameObject gameObject;
@@ -30,7 +157,7 @@ public static class DungeonGizmo
         protected Gizmo(string name)
         {
             this.gameObject = new GameObject(name);
-            this.gameObject.transform.parent = root.transform;
+            this.gameObject.transform.parent = gameObject.transform;
         }
 
         public string name

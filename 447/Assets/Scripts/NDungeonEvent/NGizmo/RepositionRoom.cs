@@ -1,11 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Build.Content;
 using UnityEngine;
 
 namespace NDungeonEvent.NGizmo
 {
-    public class RepositionRoom : DungeonEvent
+	public class RepositionRoom : DungeonEvent
     {
         private struct Snapshot
         {
@@ -31,7 +30,7 @@ namespace NDungeonEvent.NGizmo
         {
             foreach (Snapshot data in this.snapshots)
             {
-                var gizmo = GameManager.Instance.Gizmos.GetGroup(GameManager.Gizmo.GroupName.Room).Get<DungeonGizmo.Block>(data.index);
+                var gizmo = GameManager.Instance.Gizmos.GetGroup(DungeonGizmo.GroupName.Room).Get<DungeonGizmo.Block>(data.index);
                 if (null == gizmo)
                 {
                     continue;

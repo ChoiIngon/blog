@@ -46,7 +46,7 @@ namespace NDungeonEvent.NGizmo
                 DungeonGizmo.Rect gizmo = new DungeonGizmo.Rect($"Tile_{snapshot.index}", color, snapshot.width, snapshot.height);
                 gizmo.position = snapshot.position;
                 gizmo.sortingOrder = sortingOrder;
-                GameManager.Instance.Gizmos.GetGroup(GameManager.Gizmo.GroupName.Tile).Add(snapshot.index, gizmo);
+                GameManager.Instance.Gizmos.GetGroup(DungeonGizmo.GroupName.Tile).Add(snapshot.index, gizmo);
 
 				yield return new WaitForSeconds(interval);
 			}

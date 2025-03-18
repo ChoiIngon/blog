@@ -1,10 +1,9 @@
 using System.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 
 namespace NDungeonEvent.NGizmo
 {
-    public class CreateRoom : DungeonEvent
+	public class CreateRoom : DungeonEvent
     {
         public Room room;
         public Vector3 position;
@@ -28,9 +27,9 @@ namespace NDungeonEvent.NGizmo
 
             var gizmo = new DungeonGizmo.Block($"Room_{room.index}", color, room.rect.width, room.rect.height);
             gizmo.position = new Vector3(position.x, position.y, 0.0f);
-            gizmo.sortingOrder = GameManager.Gizmo.SortingOrder.Room;
+            gizmo.sortingOrder = DungeonGizmo.SortingOrder.Room;
 
-            GameManager.Instance.Gizmos.GetGroup(GameManager.Gizmo.GroupName.Room).Add(room.index, gizmo);
+            GameManager.Instance.Gizmos.GetGroup(DungeonGizmo.GroupName.Room).Add(room.index, gizmo);
 
             GameManager.AdjustOrthographicCamera(cameraBoundary);
 
