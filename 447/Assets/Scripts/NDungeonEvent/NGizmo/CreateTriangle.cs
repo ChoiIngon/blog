@@ -23,20 +23,20 @@ namespace NDungeonEvent.NGizmo
             foreach (var triangle in triangulation.triangles)
             {
                 DungeonGizmo.Line line_ab = new DungeonGizmo.Line($"Triangle_{index}_ab", Color.green, triangle.a, triangle.b, 0.1f);
-                line_ab.sortingOrder = GameManager.SortingOrder.TriangleLine;
+                line_ab.sortingOrder = GameManager.Gizmo.SortingOrder.TriangleLine;
                 group.Add(line_ab);
 
                 DungeonGizmo.Line line_ac = new DungeonGizmo.Line($"Triangle_{index}_ac", Color.green, triangle.a, triangle.c, 0.1f);
-                line_ac.sortingOrder = GameManager.SortingOrder.TriangleLine;
+                line_ac.sortingOrder = GameManager.Gizmo.SortingOrder.TriangleLine;
                 group.Add(line_ac);
 
                 DungeonGizmo.Line line_bc = new DungeonGizmo.Line($"Triangle_{index}_bc", Color.green, triangle.b, triangle.c, 0.1f);
-                line_bc.sortingOrder = GameManager.SortingOrder.TriangleLine;
+                line_bc.sortingOrder = GameManager.Gizmo.SortingOrder.TriangleLine;
                 group.Add(line_bc);
 
                 DungeonGizmo.Circle innerCircle = new DungeonGizmo.Circle($"Triangle_{index}_InnerCircle", Color.green, triangle.innerCircle.radius, 0.1f);
                 innerCircle.position = triangle.innerCircle.center;
-                innerCircle.sortingOrder = GameManager.SortingOrder.TriangleInnerCircle;
+                innerCircle.sortingOrder = GameManager.Gizmo.SortingOrder.TriangleInnerCircle;
                 group.Add(innerCircle);
 
                 yield return new WaitForSeconds(interval);
@@ -44,7 +44,7 @@ namespace NDungeonEvent.NGizmo
 
             DungeonGizmo.Circle circle = new DungeonGizmo.Circle($"Biggest_{index}_InnerCircle", Color.red, biggestCircle.radius, 0.5f);
             circle.position = biggestCircle.center;
-            circle.sortingOrder = GameManager.SortingOrder.BiggestCircle;
+            circle.sortingOrder = GameManager.Gizmo.SortingOrder.BiggestCircle;
             group.Add(circle);
             yield return new WaitForSeconds(GameManager.Instance.tickTime);
             group.Clear();

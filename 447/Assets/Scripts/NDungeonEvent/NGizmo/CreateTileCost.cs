@@ -26,7 +26,7 @@ namespace NDungeonEvent.NGizmo
                 Tile tile = tiles[i];
 
                 DungeonGizmo.Rect gizmo = new DungeonGizmo.Rect($"TileCost_{tile.index}", Color.white, tile.rect.width, tile.rect.height);
-                gizmo.sortingOrder = GameManager.SortingOrder.Corridor;
+                gizmo.sortingOrder = GameManager.Gizmo.SortingOrder.TileCost;
                 gizmo.position = new Vector3(tile.rect.x, tile.rect.y);
 
                 GameManager.Instance.Gizmos.GetGroup(GameManager.Gizmo.GroupName.TileCost).Add(gizmo);

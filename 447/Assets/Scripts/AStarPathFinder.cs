@@ -11,48 +11,6 @@ public class AStarPathFinder
         new Vector2Int( 0, 1)   // up
     };
 
-    public interface LookupOffsetPolicy
-    {
-        public int GetOffsetIndex(Node node);
-    }
-
-    public class StraightLookup : LookupOffsetPolicy
-    {
-        public int GetOffsetIndex(Node node)
-        {
-            if (null != node.parent)
-            {
-                if (node.index < node.parent.index)
-                {
-                    if (node.index + 1 == node.parent.index) // 좌측으로 이동 중
-                    {
-                        return 0;
-                    }
-                    return 1;
-                }
-
-                if (node.index > node.parent.index)
-                {
-                    if (node.index - 1 == node.parent.index) // 우측으로 이동
-                    {
-                        return 2;
-                    }
-
-                    return 3;
-                }
-            }
-            return UnityEngine.Random.Range(0, LOOKUP_OFFSETS.Length);
-        }
-    }
-
-    public class RandomLookup : LookupOffsetPolicy
-    {
-        public int GetOffsetIndex(Node node)
-        {
-            return UnityEngine.Random.Range(0, LOOKUP_OFFSETS.Length);
-        }
-    }
-
     public class Node
     {
         public Tile tile;

@@ -1,35 +1,56 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace NDungeonEvent.NGizmo
 {
-    public class CreateTile : DungeonEvent
+	public class CreateTile : DungeonEvent
     {
-        private Tile tile;
-        private Vector3 position;
+        private struct Snapshot
+        {
+			public int index;
+			public Vector3 position;
+			public float width;
+			public float height;
+		}
+
+        private List<Snapshot> snapshots = new List<Snapshot>();
         private Color color;
-        private float width;
-        private float height;
         private int sortingOrder;
 
         public CreateTile(Tile tile, Color color, int sortingOrder)
         {
-            this.tile = tile;
-            this.position = new Vector3(tile.rect.x, tile.rect.y);
-            this.color = color;
-            this.width = tile.rect.width;
-            this.height = tile.rect.height;
+            Snapshot snapshot = new Snapshot() { index = tile.index, position = new Vector3(tile.rect.x, tile.rect.y), width = tile.rect.width, height = tile.rect.height };
+			snapshots.Add(snapshot);
+			this.color = color;
             this.sortingOrder = sortingOrder;
         }
 
-        public IEnumerator OnEvent()
-        {
-            DungeonGizmo.Rect gizmo = new DungeonGizmo.Rect($"Tile_{tile.index}", color, width, height);
-            gizmo.position = position;
-            gizmo.sortingOrder = sortingOrder;
+		public CreateTile(List<Tile> tiles, Color color, int sortingOrder)
+		{
+            foreach (var tile in tiles)
+            {
+                Snapshot snapshot = new Snapshot() { index = tile.index, position = new Vector3(tile.rect.x, tile.rect.y), width = tile.rect.width, height = tile.rect.height };
+                snapshots.Add(snapshot);
+            }
+			this.color = color;
+			this.sortingOrder = sortingOrder;
+		}
 
-            GameManager.Instance.Gizmos.GetGroup(GameManager.Gizmo.GroupName.Tile).Add(tile.index, gizmo);
-            yield return new WaitForSeconds(GameManager.Instance.tickTime / 10);
+		public IEnumerator OnEvent()
+        {
+            float interval = GameManager.Instance.tickTime / snapshots.Count;
+
+			foreach (var snapshot in snapshots)
+            {
+                DungeonGizmo.Rect gizmo = new DungeonGizmo.Rect($"Tile_{snapshot.index}", color, snapshot.width, snapshot.height);
+                gizmo.position = snapshot.position;
+                gizmo.sortingOrder = sortingOrder;
+                GameManager.Instance.Gizmos.GetGroup(GameManager.Gizmo.GroupName.Tile).Add(snapshot.index, gizmo);
+
+				yield return new WaitForSeconds(interval);
+			}
+            
         }
     }
 }

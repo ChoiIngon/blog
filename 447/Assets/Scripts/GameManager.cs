@@ -57,20 +57,6 @@ public class GameManager : MonoBehaviour
         DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(GameManager.Gizmo.GroupName.Tile, false));
     }
 
-    public static class SortingOrder
-    {
-        public static int BackgroundGrid = 1;
-        public static int Room = 1;
-        public static int SpanningTreeEdge = 8;
-        public static int Corridor = 9;
-        public static int Floor = 10;
-        public static int Wall = 10;
-        public static int Door = 10;
-        public static int TriangleLine = 30;
-        public static int TriangleInnerCircle = 30;
-        public static int BiggestCircle = 31;
-    }
-
     #region hide
     private static GameManager _instance = null;
     public static GameManager Instance
@@ -111,15 +97,28 @@ public class GameManager : MonoBehaviour
     {
         public static class GroupName
         {
+            public const string BackgroundGrid = "BackgroundGrid";
             public const string Room = "Room";
             public const string Tile = "Tile";
             public const string TileCost = "TileCost";
             public const string MiniumSpanningTree = "MiniumSpanningTree";
-            public const string BackgroundGrid = "BackgroundGrid";
             public const string Triangle = "Triangle";
         }
 
-        public class Group
+		public static class SortingOrder
+		{
+			public static int Room = 5;
+            public static int Tile = 10;
+			public static int Corridor = 11;
+			public static int Wall = 15;
+			public static int TileCost = 20;
+			public static int SpanningTreeEdge = 25;
+			public static int TriangleLine = 30;
+			public static int TriangleInnerCircle = 30;
+			public static int BiggestCircle = 31;
+		}
+
+		public class Group
         {
             public GameObject gameObject;
             public Dictionary<int, DungeonGizmo.Gizmo> gizmos;

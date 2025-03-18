@@ -65,7 +65,7 @@ namespace NDungeonEvent.NGizmo
                 if (null == gizmo)
                 {
                     gizmo = new DungeonGizmo.Rect($"Tile_{tile.index}", Color.white, 1.0f, 1.0f);
-                    gizmo.sortingOrder = GameManager.SortingOrder.Floor;
+                    gizmo.sortingOrder = GameManager.Gizmo.SortingOrder.Wall;
                     gizmo.position = new Vector3(x, y);
                     
                     GameManager.Instance.Gizmos.GetGroup(GameManager.Gizmo.GroupName.Tile).Add(tile.index, gizmo);

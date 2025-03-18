@@ -321,7 +321,7 @@ public class DungeonTileMapGenerator
             {
                 lines.Add(new NDungeonEvent.NGizmo.CreateLine.Line() { start = connection.p1.center, end = connection.p2.center });
             }
-            DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateLine(GameManager.Gizmo.GroupName.MiniumSpanningTree, lines, Color.green, GameManager.SortingOrder.SpanningTreeEdge, 0.5f));
+            DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateLine(GameManager.Gizmo.GroupName.MiniumSpanningTree, lines, Color.green, GameManager.Gizmo.SortingOrder.SpanningTreeEdge, 0.5f));
         }
 
         foreach (var connection in mst.connections)
@@ -369,8 +369,9 @@ public class DungeonTileMapGenerator
 		{
             tile.type = Tile.Type.Floor;
 			tile.cost = Tile.PathCost.MinCost;
-			DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateTile(tile, Color.blue, GameManager.SortingOrder.Corridor));
 		}
+
+		DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateTile(corridor.path, Color.blue, GameManager.Gizmo.SortingOrder.Corridor));
 	}
 	private void ConnectVerticalRoom(Room a, Room b)
     {
