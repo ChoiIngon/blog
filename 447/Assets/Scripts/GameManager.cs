@@ -54,8 +54,12 @@ public class GameManager : MonoBehaviour
         DungeonLog.Write($"Dungeon data generation is complete(elapsed_time:{stopWatch.Elapsed})");
 
         DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(DungeonGizmo.GroupName.Room, false));
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(DungeonGizmo.GroupName.Tile, false));
-    }
+        //DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(DungeonGizmo.GroupName.Tile, false));
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(DungeonGizmo.GroupName.Corridor, false));
+		//DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreatedRoomWall(new List<Room>(tileMap.rooms.Values)));
+		//DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateCorridorWall(corridors));
+		DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.ShowTileMap(tileMap, true));
+	}
 
     #region hide
     private static GameManager _instance = null;

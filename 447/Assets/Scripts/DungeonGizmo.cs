@@ -8,7 +8,8 @@ public class DungeonGizmo
 		public const string BackgroundGrid = "BackgroundGrid";
 		public const string Room = "Room";
 		public const string Tile = "Tile";
-		public const string TileCost = "TileCost";
+		public const string Path = "Path";
+        public const string Corridor = "Corridor";
 		public const string MiniumSpanningTree = "MiniumSpanningTree";
 		public const string Triangle = "Triangle";
 	}
@@ -17,9 +18,9 @@ public class DungeonGizmo
 	{
 		public static int Room = 5;
 		public static int Tile = 10;
-		public static int Corridor = 11;
 		public static int Wall = 15;
-		public static int TileCost = 20;
+		public static int Path = 20;
+		public static int Corridor = 21;
 		public static int SpanningTreeEdge = 25;
 		public static int TriangleLine = 30;
 		public static int TriangleInnerCircle = 30;

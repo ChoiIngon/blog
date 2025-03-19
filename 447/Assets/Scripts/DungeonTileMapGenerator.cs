@@ -4,10 +4,6 @@ using UnityEngine;
 
 public class DungeonTileMapGenerator
 {
-    public class Corridor
-    {
-        public List<Tile> path;
-    }
     const int MinRoomSize = 5;
 
     int roomCount = 0;
@@ -110,13 +106,19 @@ public class DungeonTileMapGenerator
 
         ConnectRooms(tileMap);
 
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(DungeonGizmo.GroupName.TileCost, false));
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(DungeonGizmo.GroupName.Path, false));
 
         BuildWall(tileMap);
 
         DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(DungeonGizmo.GroupName.BackgroundGrid, false));
 
-        return tileMap;
+		//DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(DungeonGizmo.GroupName.Tile, false));
+		//DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreatedRoomWall(new List<Room>(tileMap.rooms.Values)));
+		//DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateCorridorWall(corridors));
+		DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(DungeonGizmo.GroupName.Room, false));
+		DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(DungeonGizmo.GroupName.Corridor, false));
+		DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.ShowTileMap(tileMap, true));
+		return tileMap;
     }
 
     #region CreateRooms
@@ -360,18 +362,18 @@ public class DungeonTileMapGenerator
         Rect searchBoundary = DungeonTileMapGenerator.GetBoundaryRect(new List<Room>() { a, b });
         AStarPathFinder pathFinder = new AStarPathFinder(tileMap, searchBoundary);
 		Corridor corridor = new Corridor();
-		corridor.path = pathFinder.FindPath(start, end);
-        Debug.Assert(0 < corridor.path.Count);
+		corridor.tiles = pathFinder.FindPath(start, end);
+        Debug.Assert(0 < corridor.tiles.Count);
 
         corridors.Add(corridor);
 
-		foreach (var tile in corridor.path)
+		foreach (var tile in corridor.tiles)
 		{
             tile.type = Tile.Type.Floor;
 			tile.cost = Tile.PathCost.MinCost;
 		}
 
-		DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateTile(corridor.path, Color.blue, DungeonGizmo.SortingOrder.Corridor));
+		DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateTile(DungeonGizmo.GroupName.Corridor, corridor.tiles, Color.blue, DungeonGizmo.SortingOrder.Corridor));
 	}
 	private void ConnectVerticalRoom(Room a, Room b)
     {
@@ -600,7 +602,7 @@ public class DungeonTileMapGenerator
 
         foreach (var corridor in corridors)
         {
-            foreach (Tile tile in corridor.path)
+            foreach (Tile tile in corridor.tiles)
             {
                 int x = (int)tile.rect.x;
                 int y = (int)tile.rect.y;
@@ -672,11 +674,7 @@ public class DungeonTileMapGenerator
             tile.spriteRenderer.sortingOrder = Tile.SortingOrder;
             tile.spriteRenderer.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
         }
-        
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreatedRoomWall(new List<Room>(tileMap.rooms.Values)));
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateCorridorWall(corridors));
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.ShowTileMap(tileMap, true));
-    }
+	}
 
     private void BuildWallOnTile(int x, int y)
     {
@@ -793,7 +791,7 @@ public class DungeonTileMapGenerator
             }
 		}
 
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateTileCost(tiles));
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateTile(DungeonGizmo.GroupName.Path, tiles, Color.white, DungeonGizmo.SortingOrder.Path));
         return true;
 	}
     

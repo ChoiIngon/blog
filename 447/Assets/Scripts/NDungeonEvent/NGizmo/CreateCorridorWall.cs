@@ -6,9 +6,9 @@ namespace NDungeonEvent.NGizmo
 {
     public class CreateCorridorWall : DungeonEvent
     {
-        private List<DungeonTileMapGenerator.Corridor> corridors;
+        private List<Corridor> corridors;
 
-        public CreateCorridorWall(List<DungeonTileMapGenerator.Corridor> corridors)
+        public CreateCorridorWall(List<Corridor> corridors)
         {
             this.corridors = corridors;
         }
@@ -41,8 +41,8 @@ namespace NDungeonEvent.NGizmo
 
             foreach (var corridor in corridors)
             {
-                float interval = GameManager.Instance.tickTime / corridor.path.Count;
-                foreach (Tile tile in corridor.path)
+                float interval = GameManager.Instance.tickTime / corridor.tiles.Count;
+                foreach (Tile tile in corridor.tiles)
                 {
                     DungeonGizmo.Rect gizmo = GameManager.Instance.Gizmos.GetGroup(DungeonGizmo.GroupName.Tile).Get<DungeonGizmo.Rect>(tile.index);
                     if (null == gizmo)
