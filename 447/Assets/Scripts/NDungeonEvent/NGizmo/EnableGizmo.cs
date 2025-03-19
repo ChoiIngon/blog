@@ -3,12 +3,12 @@ using UnityEngine;
 
 namespace NDungeonEvent.NGizmo
 {
-    public class Enable : DungeonEvent
+    public class EnableGizmo : DungeonEvent
     {
         private string name;
         private bool enable;
 
-        public Enable(string name, bool enable)
+        public EnableGizmo(string name, bool enable)
         {
             this.name = name;
             this.enable = enable;

@@ -150,7 +150,18 @@ public class DungeonGizmo
 
 		return group;
 	}
-	
+
+    public void DestroyGroup(string name)
+    {
+        Group group = null;
+        if (false == gropus.TryGetValue(name, out group))
+        {
+            return;
+        }
+        group.Clear();
+        gropus.Remove(name);
+    }
+
     public class Gizmo
     {
         public readonly GameObject gameObject;

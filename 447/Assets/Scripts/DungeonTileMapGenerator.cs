@@ -106,17 +106,17 @@ public class DungeonTileMapGenerator
 
         ConnectRooms(tileMap);
 
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(DungeonGizmo.GroupName.Path, false));
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.EnableGizmo(DungeonGizmo.GroupName.Path, false));
 
         BuildWall(tileMap);
 
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(DungeonGizmo.GroupName.BackgroundGrid, false));
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.EnableGizmo(DungeonGizmo.GroupName.BackgroundGrid, false));
 
 		//DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(DungeonGizmo.GroupName.Tile, false));
 		//DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreatedRoomWall(new List<Room>(tileMap.rooms.Values)));
 		//DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateCorridorWall(corridors));
-		DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(DungeonGizmo.GroupName.Room, false));
-		DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(DungeonGizmo.GroupName.Corridor, false));
+		DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.EnableGizmo(DungeonGizmo.GroupName.Room, false));
+		DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.EnableGizmo(DungeonGizmo.GroupName.Corridor, false));
 		DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.ShowTileMap(tileMap, true));
 		return tileMap;
     }
@@ -241,7 +241,7 @@ public class DungeonTileMapGenerator
                 continue;
             }
 
-            DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.DestroyRoom(room.index));
+            DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.DestroyGizmo(DungeonGizmo.GroupName.Room, room.index));
         }
 
         return selectedRooms;
@@ -334,7 +334,7 @@ public class DungeonTileMapGenerator
             ConnectRoom(connection.p1, connection.p2);
         }
 
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(DungeonGizmo.GroupName.MiniumSpanningTree, false));
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.EnableGizmo(DungeonGizmo.GroupName.MiniumSpanningTree, false));
     }
     private void ConnectRoom(Room a, Room b)
     {

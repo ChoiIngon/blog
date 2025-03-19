@@ -91,6 +91,7 @@ public class Player : Actor
     public override void Move(int x, int y)
     {
         base.Move(x, y);
+        FieldOfView();
         Rect cameraBoundary = new Rect(transform.position.x, transform.position.y, meta.sight * 2, meta.sight * 2);
         GameManager.AdjustOrthographicCamera(cameraBoundary);
     }
@@ -110,6 +111,29 @@ public class Player : Actor
             tileMap.monsters.Remove((Monster)target);
             target.transform.parent = null;
             GameObject.DestroyImmediate(target.gameObject);
+        }
+    }
+
+    private void FieldOfView()
+    {
+        if (null != shadowCast)
+        {
+            foreach (var tile in shadowCast.tiles)
+            {
+                tile.Visible(false);
+            }
+        }
+
+        int x = (int)transform.position.x;
+        int y = (int)transform.position.y;
+
+        shadowCast = tileMap.CastLight(x, y, meta.sight);
+        if(null != shadowCast)
+        {
+            foreach (var tile in shadowCast.tiles)
+            {
+                tile.Visible(true);
+            }
         }
     }
 }
