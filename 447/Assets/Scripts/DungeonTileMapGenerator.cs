@@ -111,14 +111,11 @@ public class DungeonTileMapGenerator
         BuildWall(tileMap);
 
         DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.EnableGizmo(DungeonGizmo.GroupName.BackgroundGrid, false));
-
-		//DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.Enable(DungeonGizmo.GroupName.Tile, false));
-		//DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreatedRoomWall(new List<Room>(tileMap.rooms.Values)));
-		//DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateCorridorWall(corridors));
 		DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.EnableGizmo(DungeonGizmo.GroupName.Room, false));
 		DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.EnableGizmo(DungeonGizmo.GroupName.Corridor, false));
 		DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.ShowTileMap(tileMap, true));
-		return tileMap;
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.ShowTileMap(tileMap, false));
+        return tileMap;
     }
 
     #region CreateRooms
