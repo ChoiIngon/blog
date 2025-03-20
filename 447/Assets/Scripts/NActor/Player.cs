@@ -1,3 +1,4 @@
+using NDungeonEvent.NActor;
 using UnityEngine;
 
 public class Player : Actor
@@ -19,10 +20,11 @@ public class Player : Actor
         meta.skin = GameManager.Instance.Resources.GetSkin("Actor");
         meta.agility = 6;
         meta.sight = 6;
-        var player = Actor.Create<Player>(meta, tileMap, new Vector3(startTile.rect.x + 1, startTile.rect.y));
-        player.hasKey = false;
 
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.Idle(player));
+        Vector3 position = new Vector3(startTile.rect.x + 1, startTile.rect.y);
+        var player = Actor.Create<Player>(meta, tileMap, position);
+        player.hasKey = false;
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.RefreshFoV(player));
         return player;
     }
 
@@ -78,25 +80,22 @@ public class Player : Actor
 
                     interection(this);
                 }
-				//DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.Move(this, (int)tile.rect.x, (int)tile.rect.y));
-
 				Move((int)tile.rect.x, (int)tile.rect.y);
 			}
             else
             {
-				//DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.Move(this, (int)tile.rect.x, (int)tile.rect.y));
 				Move((int)tile.rect.x, (int)tile.rect.y);
 			}
             
             tileMap.monsters.Update(this);
+            DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.RefreshFoV(this));
         }
     }
 
     public override void Move(int x, int y)
     {
         base.Move(x, y);
-        FieldOfView();
-        Rect cameraBoundary = new Rect(transform.position.x, transform.position.y, meta.sight * 2, meta.sight * 2);
+        Rect cameraBoundary = new Rect(position.x, position.y, meta.sight * 2, meta.sight * 2);
         GameManager.AdjustOrthographicCamera(cameraBoundary);
     }
 
@@ -118,7 +117,7 @@ public class Player : Actor
         }
     }
 
-    private void FieldOfView()
+    public void RefreshFoV()
     {
         if (null != shadowCast)
         {

@@ -36,11 +36,9 @@ namespace NDungeonEvent.NGizmo
                     continue;
                 }
 
-                if(true == visible)
-                {
-                    tile.Visible(visible);
-                }
-                else
+                tile.Visible(visible);
+                
+                if(false == visible)
                 {
                     tile.spriteRenderer.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
                     if (null != tile.dungeonObject)

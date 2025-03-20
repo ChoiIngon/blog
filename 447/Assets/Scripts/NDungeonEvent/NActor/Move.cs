@@ -22,7 +22,7 @@ namespace NDungeonEvent.NActor
             {
                 float spriteCount = spriteSheet.sprites.Count;
                 float interpolation = (index + 1) / spriteCount;
-				actor.transform.position = Vector3.Lerp(this.from, this.to, interpolation);
+				actor.spritePosition = Vector3.Lerp(this.from, this.to, interpolation);
 			});
             actor.StartCoroutine(actor.SetAction(Actor.Action.Idle));
         }

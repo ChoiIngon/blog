@@ -63,7 +63,8 @@ public class DungeonObject
     public GameObject gameObject;
     public SpriteRenderer spriteRenderer { get; protected set; }
     public System.Action<Actor>[] interactions { get; protected set; }
-    public bool block { get; private set; }
+    public bool blockWay { get; private set; }
+    public bool blockLightCast { get; private set; }
     public Tile tile;
     public DungeonObject(Tile tile, bool block)
     {
@@ -82,7 +83,7 @@ public class DungeonObject
         this.interactions = new System.Action<Actor>[(int)Interaction.Max];
 
         this.tile = tile;
-        this.block = block;
+        this.blockWay = block;
     }
 
     public System.Action<Actor> GetInteraction(Interaction interaction)

@@ -21,7 +21,7 @@ public class Monster : Actor
         meta.name = $"Monster_{monsterNo}";
         meta.skin = GameManager.Instance.Resources.GetSkin("Actor");
         meta.health = 5;
-        meta.agility = Random.Range(3, 18);
+        meta.agility = Random.Range(3, 12);
         meta.sight = 5;
 
         var behaviourTreeRoot = new BehaviourTree.Root("Root");
@@ -33,11 +33,20 @@ public class Monster : Actor
 
         var monster = Actor.Create<Monster>(meta, tileMap, position);
         monster.monsterNo = monsterNo;
-        monster.spriteRenderer.color = Color.red;
         monster.behaviourTreeRoot = behaviourTreeRoot;
-
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.Idle(monster));
+        monster.spriteRenderer.color = Color.red;
+        monster.Visible(false);
+        
         return monster;
+    }
+
+    public override void Move(int x, int y)
+    {
+        base.Move(x, y);
+        if(null != tile)
+        {
+            Visible(tile.visible);
+        }
     }
 
     public class Search : BehaviourTree.Node
@@ -58,14 +67,13 @@ public class Monster : Actor
                 return BehaviourTree.Result.Failure;
             }
 
-            if (self.meta.sight < Vector3.Distance(self.transform.position, player.transform.position))
+            if (self.meta.sight < Vector3.Distance(self.position, player.position))
             {
                 return BehaviourTree.Result.Failure;
             }
 
-            var to = self.tileMap.GetTile((int)player.transform.position.x, (int)player.transform.position.y);
-
-            var fov = self.tileMap.CastLight((int)self.transform.position.x, (int)self.transform.position.y, self.meta.sight);
+            var to = self.tileMap.GetTile((int)player.position.x, (int)player.position.y);
+            var fov = self.tileMap.CastLight((int)self.position.x, (int)self.position.y, self.meta.sight);
             foreach (var tile in fov.tiles)
             {
                 if (tile == to)
@@ -97,8 +105,8 @@ public class Monster : Actor
                 return BehaviourTree.Result.Failure;
             }
   
-            var from = self.tileMap.GetTile((int)self.transform.position.x, (int)self.transform.position.y);
-            var to = self.tileMap.GetTile((int)target.transform.position.x, (int)target.transform.position.y);
+            var from = self.tileMap.GetTile((int)self.position.x, (int)self.position.y);
+            var to = self.tileMap.GetTile((int)target.position.x, (int)target.position.y);
 
             var path = self.tileMap.FindPath(from, to);
             path.RemoveAt(0);
@@ -170,7 +178,8 @@ public class Monster : Actor
             foreach (var pair in monsters)
             {
                 Monster monster = pair.Value;
-                monster.actionPoint += (float)monster.meta.agility / (float)player.meta.agility;
+                float addActionPoint = (float)monster.meta.agility / (float)player.meta.agility;
+                monster.actionPoint += Random.Range(addActionPoint/2, addActionPoint * 1.5f);
                 monster.behaviourTreeRoot.blackboard.Set("Self", monster);
                 monster.behaviourTreeRoot.blackboard.Set("Player", player);
 

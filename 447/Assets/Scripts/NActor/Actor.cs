@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Threading;
 using UnityEngine;
 
 public class Actor : MonoBehaviour
@@ -34,7 +35,11 @@ public class Actor : MonoBehaviour
     public Tile tile { get; private set; }
 
     public Vector3 position = Vector3.zero;
-    
+    public Vector3 spritePosition
+    {
+        set { transform.position = value; }
+        get { return transform.position; }
+    }
     private Coroutine animationCoroutine;
 
     public void Visible(bool flag)
@@ -47,6 +52,7 @@ public class Actor : MonoBehaviour
         }
         color = new Color(color.r, color.g, color.b, alpha);
         spriteRenderer.color = color;
+        Debug.Log($"{gameObject.name} is " + (flag ? "appear" : "disappear") + $"(x:{(int)position.x}, y:{(int)position.y})");
     }
 
     public virtual void Attack(Actor target)
@@ -57,7 +63,7 @@ public class Actor : MonoBehaviour
     public virtual void Move(int x, int y)
     {
         this.direction = GetDirection(new Vector3 (x, y));
-        //SetAction(Action.Walk);
+        
         Vector3 from = position;
 
         var nextTile = tileMap.GetTile(x, y);
@@ -71,7 +77,7 @@ public class Actor : MonoBehaviour
             return;
         }
 
-        if (null != nextTile.dungeonObject && true == nextTile.dungeonObject.block)
+        if (null != nextTile.dungeonObject && true == nextTile.dungeonObject.blockWay)
         {
             return;
         }
@@ -88,10 +94,13 @@ public class Actor : MonoBehaviour
 
 		if (null != tile)   // 기존에 올라가 있던 타일이 있다면 타일이 가지고 있던 actor를 null로 만들어 준다
         {
+            Debug.Log($"{gameObject.name} left from (x:{(int)tile.rect.x}, y:{(int)tile.rect.y})");
             tile.actor = null;
         }
 
         tile = nextTile;
+
+        Debug.Log($"{gameObject.name} moved to (x:{(int)tile.rect.x}, y:{(int)tile.rect.y})");
         nextTile.actor = this;
     }
         
@@ -216,10 +225,12 @@ public class Actor : MonoBehaviour
         actor.stamina = meta.stamina;
 
         actor.tileMap = tileMap;
-        actor.direction = Direction.Down;
-        actor.transform.position = position;
 
-        actor.Move((int)position.x, (int)position.y);
+        actor.direction = Direction.Down;
+        actor.position = position;
+        actor.spritePosition = position;
+
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.Create(actor));
         return actor;
     }
 }

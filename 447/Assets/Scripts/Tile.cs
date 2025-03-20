@@ -37,6 +37,7 @@ public class Tile : MonoBehaviour
     public int cost = 1;
     public Room room;   // 타일이 속해 있는 방. 통로 타일의 경우 room이 없다.
     public Tile[] neighbors = new Tile[(int)Direction.Max];
+    public bool visible = false;
 
     public SpriteRenderer spriteRenderer;
 
@@ -69,6 +70,13 @@ public class Tile : MonoBehaviour
         {
             dungeonObject.Visible(flag);
         }
+
+        if(null != actor)
+        {
+            actor.Visible(flag);
+        }
+
+        visible = flag;
     }
 
     public static Sprite CreateSprite(Tile tile)

@@ -1,12 +1,13 @@
 using System.Collections;
+using System.Numerics;
 
 namespace NDungeonEvent.NActor
 {
-    public class Idle : DungeonEvent
+    public class Create : DungeonEvent
     {
         private Actor actor;
 
-        public Idle(Actor actor)
+        public Create(Actor actor)
         {
             this.actor = actor;
         }
@@ -18,7 +19,7 @@ namespace NDungeonEvent.NActor
                 yield break;
             }
 
-            actor.StartCoroutine(actor.SetAction(Actor.Action.Idle));
+            actor.Move((int)actor.position.x, (int)actor.position.y);
             yield break;
         }
     }
