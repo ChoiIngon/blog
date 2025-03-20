@@ -32,6 +32,8 @@ public class Actor : MonoBehaviour
 
     public TileMap tileMap { get; protected set; }
     public Tile tile { get; private set; }
+
+    public Vector3 position = Vector3.zero;
     
     private Coroutine animationCoroutine;
 
@@ -56,6 +58,7 @@ public class Actor : MonoBehaviour
     {
         this.direction = GetDirection(new Vector3 (x, y));
         //SetAction(Action.Walk);
+        Vector3 from = position;
 
         var nextTile = tileMap.GetTile(x, y);
         if (null == nextTile)
@@ -78,9 +81,12 @@ public class Actor : MonoBehaviour
             return;
         }
 
-        transform.position = new Vector3(x, y);
+        position = new Vector3(x, y);
+        Vector3 to = position;
 
-        if (null != tile)   // 기존에 올라가 있던 타일이 있다면 타일이 가지고 있던 actor를 null로 만들어 준다
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.Move(this, from, to));
+
+		if (null != tile)   // 기존에 올라가 있던 타일이 있다면 타일이 가지고 있던 actor를 null로 만들어 준다
         {
             tile.actor = null;
         }
@@ -151,22 +157,22 @@ public class Actor : MonoBehaviour
 
     private int GetDirection(Vector3 position)
     {
-        if (transform.position.x < position.x)
+        if (this.position.x < position.x)
         {
             return Direction.Right;
         }
 
-        if (position.x < transform.position.x)
+        if (position.x < this.position.x)
         {
             return Direction.Left;
         }
 
-        if (transform.position.y < position.y)
+        if (this.position.y < position.y)
         {
             return Direction.Up;
         }
 
-        if (position.y < transform.position.y)
+        if (position.y < this.position.y)
         {
             return Direction.Down;
         }

@@ -1,26 +1,28 @@
 using System.Collections;
+using UnityEngine;
 
 namespace NDungeonEvent.NActor
 {
     public class Move : DungeonEvent
     {
         private Actor actor;
-        private int x;
-        private int y;
+        private Vector3 from;
+        private Vector3 to;
 
-        public Move(Actor actor, int x, int y)
+        public Move(Actor actor, Vector3 from, Vector3 to)
         {
             this.actor = actor;
-            this.x = x;
-            this.y = y;
+            this.from = from;
+            this.to = to;
         }
 
         public IEnumerator OnEvent()
         {
-            actor.Move(x, y);
-
+			actor.transform.position = to;
             yield return actor.SetAction(Actor.Action.Walk);
             actor.StartCoroutine(actor.SetAction(Actor.Action.Idle));
         }
+
+        
     }
 }

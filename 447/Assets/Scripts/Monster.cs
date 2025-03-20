@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class Monster : Actor
@@ -22,7 +20,7 @@ public class Monster : Actor
         Actor.Meta meta = new Actor.Meta();
         meta.name = $"Monster_{monsterNo}";
         meta.skin = GameManager.Instance.Resources.GetSkin("Actor");
-        meta.health = 10;
+        meta.health = 5;
         meta.agility = Random.Range(3, 18);
         meta.sight = 5;
 
@@ -108,7 +106,7 @@ public class Monster : Actor
             while (1 <= path.Count && 1.0f <= self.actionPoint)
             {
                 Tile tile = path[0];
-                DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.Move(self, (int)tile.rect.x, (int)tile.rect.y));
+                self.Move((int)tile.rect.x, (int)tile.rect.y);
                 path.RemoveAt(0);
 
                 self.actionPoint -= 1.0f;

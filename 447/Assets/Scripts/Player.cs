@@ -18,7 +18,7 @@ public class Player : Actor
         meta.name = "Player";
         meta.skin = GameManager.Instance.Resources.GetSkin("Actor");
         meta.agility = 6;
-        meta.sight = 5;
+        meta.sight = 6;
         var player = Actor.Create<Player>(meta, tileMap, new Vector3(startTile.rect.x + 1, startTile.rect.y));
         player.hasKey = false;
 
@@ -61,7 +61,7 @@ public class Player : Actor
             {
                 DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.Attack(this, tile.actor));
             }
-            if (null != tile && null != tile.dungeonObject)
+            else if (null != tile && null != tile.dungeonObject)
             {
                 for (int i = 0; i < (int)DungeonObject.Interaction.Max; i++)
                 {
@@ -78,12 +78,16 @@ public class Player : Actor
 
                     interection(this);
                 }
-                DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.Move(this, (int)tile.rect.x, (int)tile.rect.y));
-            }
+				//DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.Move(this, (int)tile.rect.x, (int)tile.rect.y));
+
+				Move((int)tile.rect.x, (int)tile.rect.y);
+			}
             else
             {
-                DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.Move(this, (int)tile.rect.x, (int)tile.rect.y));
-            }
+				//DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.Move(this, (int)tile.rect.x, (int)tile.rect.y));
+				Move((int)tile.rect.x, (int)tile.rect.y);
+			}
+            
             tileMap.monsters.Update(this);
         }
     }
