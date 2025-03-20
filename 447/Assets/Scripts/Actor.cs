@@ -107,7 +107,7 @@ public class Actor : MonoBehaviour
         GameObject.DestroyImmediate(gameObject);
     }
 
-    public IEnumerator SetAction(Action action)
+    public IEnumerator SetAction(Action action, System.Action<Skin.SpriteSheet, int> onAnimation= null)
     {
         if (null == meta.skin)
         {
@@ -123,7 +123,7 @@ public class Actor : MonoBehaviour
             yield break;
         }
 
-        animationCoroutine = StartCoroutine(PlayAnimation(spriteSheet));
+        animationCoroutine = StartCoroutine(PlayAnimation(spriteSheet, onAnimation));
         yield return animationCoroutine;
     }
     
@@ -138,7 +138,7 @@ public class Actor : MonoBehaviour
         animationCoroutine = null;
     }
 
-    private IEnumerator PlayAnimation(Skin.SpriteSheet spriteSheet)
+    private IEnumerator PlayAnimation(Skin.SpriteSheet spriteSheet, System.Action<Skin.SpriteSheet, int> onAnimation)
     {
         if (0 == spriteSheet.sprites.Count)
         {
@@ -150,6 +150,10 @@ public class Actor : MonoBehaviour
             for (int i = 0; i < spriteSheet.sprites.Count; i++)
             {
                 spriteRenderer.sprite = spriteSheet.sprites[i];
+                if (null != onAnimation)
+                {
+                    onAnimation(spriteSheet, i);
+                }
                 yield return new WaitForSeconds(spriteSheet.playTime / spriteSheet.sprites.Count);
             }
         } while (spriteSheet.loop);

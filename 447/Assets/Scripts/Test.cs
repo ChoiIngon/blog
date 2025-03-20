@@ -12,10 +12,7 @@ public class Test : MonoBehaviour
 
     IEnumerator PrintNumber()
     {
-        Coroutine coroutine = StartCoroutine(PrintNumber(1));
-        yield return coroutine;
-        StartCoroutine(PrintNumber(2));
-        yield return StartCoroutine(PrintNumber(3));
+        yield return PrintNumber(1);
     }
 
     IEnumerator PrintNumber(int number)

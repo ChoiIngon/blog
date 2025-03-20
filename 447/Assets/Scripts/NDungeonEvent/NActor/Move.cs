@@ -18,11 +18,13 @@ namespace NDungeonEvent.NActor
 
         public IEnumerator OnEvent()
         {
-			actor.transform.position = to;
-            yield return actor.SetAction(Actor.Action.Walk);
+            yield return actor.SetAction(Actor.Action.Walk, (Skin.SpriteSheet spriteSheet, int index) =>
+            {
+                float spriteCount = spriteSheet.sprites.Count;
+                float interpolation = (index + 1) / spriteCount;
+				actor.transform.position = Vector3.Lerp(this.from, this.to, interpolation);
+			});
             actor.StartCoroutine(actor.SetAction(Actor.Action.Idle));
         }
-
-        
     }
 }
