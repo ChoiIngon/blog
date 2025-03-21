@@ -65,43 +65,43 @@ public class Actor : MonoBehaviour
         this.direction = GetDirection(new Vector3 (x, y));
         
         Vector3 from = position;
-
-        var nextTile = tileMap.GetTile(x, y);
-        if (null == nextTile)
-        {
-            return;
-        }
-
-        if (Tile.Type.Wall == nextTile.type)
-        {
-            return;
-        }
-
-        if (null != nextTile.dungeonObject && true == nextTile.dungeonObject.blockWay)
-        {
-            return;
-        }
-
-        if (null != nextTile.actor)
-        {
-            return;
-        }
-
-        position = new Vector3(x, y);
         Vector3 to = position;
 
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.Move(this, from, to));
-
-		if (null != tile)   // 기존에 올라가 있던 타일이 있다면 타일이 가지고 있던 actor를 null로 만들어 준다
+		var nextTile = tileMap.GetTile(x, y);
+		do
         {
-            Debug.Log($"{gameObject.name} left from (x:{(int)tile.rect.x}, y:{(int)tile.rect.y})");
-            tile.actor = null;
-        }
+			if (Tile.Type.Wall == nextTile.type)
+			{
+                break;
+			}
 
-        tile = nextTile;
+			if (null != nextTile.dungeonObject && true == nextTile.dungeonObject.blockWay)
+			{
+                break;
+			}
 
-        Debug.Log($"{gameObject.name} moved to (x:{(int)tile.rect.x}, y:{(int)tile.rect.y})");
-        nextTile.actor = this;
+			if (null != nextTile.actor)
+			{
+                break;
+			}
+
+            to = new Vector3(x, y);
+		} while (false);
+
+        if (this.position != to)
+        {
+			this.position = to;
+
+			if (null != this.tile)   // 기존에 올라가 있던 타일이 있다면 타일이 가지고 있던 actor를 null로 만들어 준다
+			{
+				this.tile.actor = null;
+			}
+
+			nextTile.actor = this;
+			this.tile = nextTile;
+		}
+        
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.Move(this, from, to));
     }
         
     public virtual void Destroy()

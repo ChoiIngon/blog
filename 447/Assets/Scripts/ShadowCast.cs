@@ -96,7 +96,7 @@ public class ShadowCast
                 {
                     float centerSlope = (float)dx / (float)dy;
 
-                    if (Tile.Type.Wall == tile.type || (null != tile.dungeonObject && true == tile.dungeonObject.blockWay) || (startSlope >= centerSlope && centerSlope >= endSlope))
+                    if (Tile.Type.Wall == tile.type || (null != tile.dungeonObject && true == tile.dungeonObject.blockLightCast) || (startSlope >= centerSlope && centerSlope >= endSlope))
                     {
                         this.tiles.Add(tile);
                     }
@@ -104,7 +104,7 @@ public class ShadowCast
 
                 if (true == blocked)
                 {
-                    if (Tile.Type.Wall == tile.type || (null != tile.dungeonObject && true == tile.dungeonObject.blockWay))
+                    if (Tile.Type.Wall == tile.type || (null != tile.dungeonObject && true == tile.dungeonObject.blockLightCast))
                     {
                         nextStartSlope = rightSlope;
                         continue;
@@ -115,7 +115,7 @@ public class ShadowCast
                         startSlope = nextStartSlope;    // 블록킹 섹션이 끝나는 경우 새로운 시작 기울기 설정
                     }
                 }
-                else if (Tile.Type.Wall == tile.type || (null != tile.dungeonObject && true == tile.dungeonObject.blockWay))            // 블록킹 섹션 시작. 새로운 종료 기울기를 설정하고 다음 행 또는 열에서 재귀적 스캔 시작
+                else if (Tile.Type.Wall == tile.type || (null != tile.dungeonObject && true == tile.dungeonObject.blockLightCast))            // 블록킹 섹션 시작. 새로운 종료 기울기를 설정하고 다음 행 또는 열에서 재귀적 스캔 시작
                 {
                     blocked = true;
                     nextStartSlope = rightSlope;
