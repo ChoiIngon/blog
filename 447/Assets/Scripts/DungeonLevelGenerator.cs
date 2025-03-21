@@ -1,11 +1,9 @@
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using Unity.VisualScripting;
 using UnityEngine;
-using static UnityEditor.Recorder.OutputPath;
 
 public class DungeonLevelGenerator
 {
+    const int MaxJourneyTileCount = 50;
     public int level;
     public TileMap tileMap;
     public Room start;
@@ -34,14 +32,10 @@ public class DungeonLevelGenerator
 
     public Dictionary<RoomPathKey, List<Room>> paths = new Dictionary<RoomPathKey, List<Room>>();
 
-    public DungeonLevelGenerator()
-    {
-    }
-
     public TileMap Generate(TileMap tileMap)
     {
-        paths.Clear();
-        this.tileMap = tileMap;
+        Init(tileMap);
+
         List<Room> rooms = new List<Room>(tileMap.rooms.Values);
 
         foreach (Room room in rooms)
@@ -62,36 +56,8 @@ public class DungeonLevelGenerator
             }
         }
 
-        
-        for (int i = 0; i < rooms.Count; i++) 
-        {
-            for (int j = i + 1; j < rooms.Count; j++)
-            {
-                Room start = rooms[i];
-                Room end = rooms[j];
-
-                paths.Add(new RoomPathKey(start, end), tileMap.FindPath(start, end));
-                paths.Add(new RoomPathKey(end, start), tileMap.FindPath(end, start));
-            }
-        }
-
-        List<Room> furthestPath = new List<Room>();
-        foreach (var pair in paths)
-        {
-            if (furthestPath.Count < pair.Value.Count)
-            {
-                this.start = pair.Key.start;
-                this.end = pair.Key.end;
-                furthestPath = pair.Value;
-            }
-        }
-
-        if(start.doors.Count < end.doors.Count)
-        {
-            Room tmp = start;
-            this.start = end;
-            this.end = tmp;
-        }
+        Room start = GetStartRoom();
+        Room end = GetEndRoom();
 
         {
             Rect floorRect = this.start.GetFloorRect();
@@ -253,5 +219,95 @@ public class DungeonLevelGenerator
         var monster = Monster.Create(this.tileMap, new Vector3(x, y));
 
         this.tileMap.monsters.Add(monster);
+    }
+
+    private void Init(TileMap tileMap)
+    {
+        paths.Clear();
+        this.tileMap = tileMap;
+        // 방과 방들 끼리 경로 구하기
+        List<Room> rooms = new List<Room>(tileMap.rooms.Values);
+        for (int i = 0; i < rooms.Count; i++)
+        {
+            for (int j = i + 1; j < rooms.Count; j++)
+            {
+                Room start = rooms[i];
+                Room end = rooms[j];
+                paths.Add(new RoomPathKey(start, end), tileMap.FindPath(start, end));
+                paths.Add(new RoomPathKey(end, start), tileMap.FindPath(end, start));
+            }
+        }
+    }
+
+    private List<Room> GetFurthestPath()
+    {
+        List<Room> furthestPath = new List<Room>();
+        foreach (var pair in paths)
+        {
+            if (furthestPath.Count < pair.Value.Count)
+            {
+                furthestPath = pair.Value;
+            }
+        }
+        /*
+        var lines = new List<NDungeonEvent.NGizmo.CreateLine.Line>();
+        for (int i = 0; i < furthestPath.Count - 1; i++)
+        {
+            Room start = furthestPath[i];
+            Room end = furthestPath[i + 1];
+            lines.Add(new NDungeonEvent.NGizmo.CreateLine.Line() { start = start.center, end = end.center });
+        }
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateLine(DungeonGizmo.GroupName.FurthestPath, lines, Color.yellow, DungeonGizmo.SortingOrder.FurthestPath, 0.4f));
+        */
+        return furthestPath;
+    }
+
+    private Room GetStartRoom()
+    {
+        if (null != this.start)
+        {
+            return this.start;
+        }
+
+        List<Room> furthestPath = GetFurthestPath();
+        this.start = furthestPath[0];
+        this.end = furthestPath[furthestPath.Count - 1];
+
+        if (this.start.doors.Count < this.end.doors.Count)
+        {
+            Room tmp = start;
+            this.start = end;
+            this.end = tmp;
+        }
+
+        Tile startTile = tileMap.GetTile((int)start.rect.center.x, (int)start.rect.center.y);
+        Tile endTile = tileMap.GetTile((int)end.rect.center.x, (int)end.rect.center.y);
+        var path = tileMap.FindPath(endTile, startTile);
+
+        if (path.Count > MaxJourneyTileCount)
+        {
+            for (int i = MaxJourneyTileCount; i < path.Count; i++)
+            {
+                var tile = path[i];
+                if (null != tile.room)
+                {
+                    this.start = tile.room;
+                    break;
+                }
+            }
+        }
+
+        return this.start;
+    }
+
+    private Room GetEndRoom()
+    {
+        if (null != this.end)
+        {
+            return this.end;
+        }
+
+        GetStartRoom();
+        return this.end;
     }
 }

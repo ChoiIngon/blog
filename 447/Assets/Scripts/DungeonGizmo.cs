@@ -8,13 +8,14 @@ public class DungeonGizmo
 		public const string BackgroundGrid = "BackgroundGrid";
 		public const string Room = "Room";
 		public const string Tile = "Tile";
-		public const string Path = "Path";
+		public const string RoomConnection = "RoomConnection";
         public const string Corridor = "Corridor";
 		public const string MiniumSpanningTree = "MiniumSpanningTree";
 		public const string Triangle = "Triangle";
-	}
-
-	public static class SortingOrder
+        public const string FurthestPath = "FurthestPath";
+    }
+    
+    public static class SortingOrder
 	{
 		public static int Room = 5;
 		public static int Tile = 10;
@@ -22,7 +23,8 @@ public class DungeonGizmo
 		public static int Path = 20;
 		public static int Corridor = 21;
 		public static int SpanningTreeEdge = 25;
-		public static int TriangleLine = 30;
+        public static int FurthestPath = 26;
+        public static int TriangleLine = 30;
 		public static int TriangleInnerCircle = 30;
 		public static int BiggestCircle = 31;
 	}

@@ -5,9 +5,10 @@ public class Test : MonoBehaviour
 {
     void Start()
     {
-        //DungeonEventQueue.Instance.Enqueue(new DungeonEventQueue.Test(1));
-        //DungeonEventQueue.Instance.Enqueue(new DungeonEventQueue.Test(2));
-        StartCoroutine(PrintNumber());
+        for (int i = 0; i < 10; i++)
+        {
+            Debug.Log(Random.Range(0, 2));
+        }
     }
 
     IEnumerator PrintNumber()

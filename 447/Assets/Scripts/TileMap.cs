@@ -199,6 +199,7 @@ public class TileMap
 
         List<Room> path = new List<Room>();
 
+        path.Add(to);
         Room parent = parents[to];
         while (null != parent)
         {

@@ -106,7 +106,7 @@ public class DungeonTileMapGenerator
 
         ConnectRooms(tileMap);
 
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.EnableGizmo(DungeonGizmo.GroupName.Path, false));
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.EnableGizmo(DungeonGizmo.GroupName.RoomConnection, false));
 
         BuildWall(tileMap);
 
@@ -790,14 +790,13 @@ public class DungeonTileMapGenerator
 					}
 
 					rollback.Push(tile);
-					tile.cost = Tile.PathCost.Floor;
-
+                    tile.cost = Mathf.Min(tile.cost, Tile.PathCost.Floor);
                     tiles.Add(tile);
                 }
             }
 		}
 
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateTile(DungeonGizmo.GroupName.Path, tiles, Color.white, DungeonGizmo.SortingOrder.Path));
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateTile(DungeonGizmo.GroupName.RoomConnection, tiles, Color.white, DungeonGizmo.SortingOrder.Path));
         return true;
 	}
     
