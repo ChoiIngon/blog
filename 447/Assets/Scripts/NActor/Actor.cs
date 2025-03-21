@@ -52,7 +52,6 @@ public class Actor : MonoBehaviour
         }
         color = new Color(color.r, color.g, color.b, alpha);
         spriteRenderer.color = color;
-        Debug.Log($"{gameObject.name} is " + (flag ? "appear" : "disappear") + $"(x:{(int)position.x}, y:{(int)position.y})");
     }
 
     public virtual void Attack(Actor target)

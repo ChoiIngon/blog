@@ -211,8 +211,8 @@ public class DungeonTileMapGenerator
 
         foreach (var connection in mst.connections)
         {
-            connection.p1.neighbors.Add(connection.p2);
-            connection.p2.neighbors.Add(connection.p1);
+            connection.room1.neighbors.Add(connection.room2);
+            connection.room2.neighbors.Add(connection.room1);
         }
 
         List<Room> selectedRooms = new List<Room>();
@@ -318,17 +318,17 @@ public class DungeonTileMapGenerator
             var lines = new List<NDungeonEvent.NGizmo.CreateLine.Line>();
             foreach (var connection in mst.connections)
             {
-                lines.Add(new NDungeonEvent.NGizmo.CreateLine.Line() { start = connection.p1.center, end = connection.p2.center });
+                lines.Add(new NDungeonEvent.NGizmo.CreateLine.Line() { start = connection.room1.center, end = connection.room2.center });
             }
             DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateLine(DungeonGizmo.GroupName.MiniumSpanningTree, lines, Color.green, DungeonGizmo.SortingOrder.SpanningTreeEdge, 0.5f));
         }
 
         foreach (var connection in mst.connections)
         {
-            connection.p1.neighbors.Add(connection.p2);
-            connection.p2.neighbors.Add(connection.p1);
+            connection.room1.neighbors.Add(connection.room2);
+            connection.room2.neighbors.Add(connection.room1);
 
-            ConnectRoom(connection.p1, connection.p2);
+            ConnectRoom(connection.room1, connection.room2);
         }
 
         DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.EnableGizmo(DungeonGizmo.GroupName.MiniumSpanningTree, false));
@@ -340,21 +340,31 @@ public class DungeonTileMapGenerator
         float yMin = Mathf.Max(a.rect.yMin, b.rect.yMin);
         float yMax = Mathf.Min(a.rect.yMax, b.rect.yMax);
 
+        List<Vector3> positions = null;
         if (3 <= xMax - xMin) // x 축 겹칩. 세로 통로 만들기
         {
-			ConnectVerticalRoom(a, b);
+			positions = ConnectVerticalRoom(a, b);
         }
         else if (3 <= yMax - yMin) // y 축 겹침. 가로 통로 만들기
         {
-            ConnectHorizontalRoom(a, b);
+            positions = ConnectHorizontalRoom(a, b);
         }
         else        // 꺾인 통로 만들어야 한다
         {
-            ConnectDiagonalRoom(a, b);
+            positions = ConnectDiagonalRoom(a, b);
         }
 
-        var start = tileMap.GetTile((int)a.center.x, (int)a.center.y);
-        var end = tileMap.GetTile((int)b.center.x, (int)b.center.y);
+        Vector3 startPosition = a.center;
+        Vector3 endPosition = b.center;
+
+        if (null != positions && 2 <= positions.Count)
+        {
+            startPosition = positions[0];
+            endPosition = positions[positions.Count - 1];
+        }
+
+        var start = tileMap.GetTile((int)startPosition.x, (int)startPosition.y);
+        var end = tileMap.GetTile((int)endPosition.x, (int)endPosition.y);
 
         Rect searchBoundary = DungeonTileMapGenerator.GetBoundaryRect(new List<Room>() { a, b });
         AStarPathFinder pathFinder = new AStarPathFinder(tileMap, searchBoundary);
@@ -372,7 +382,7 @@ public class DungeonTileMapGenerator
 
 		DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateTile(DungeonGizmo.GroupName.Corridor, corridor.tiles, Color.blue, DungeonGizmo.SortingOrder.Corridor));
 	}
-	private void ConnectVerticalRoom(Room a, Room b)
+	private List<Vector3> ConnectVerticalRoom(Room a, Room b)
     {
         Room upperRoom = null;
         Room bottomRoom = null;
@@ -397,9 +407,14 @@ public class DungeonTileMapGenerator
 
         Vector3 start = new Vector3(x, upperY);
         Vector3 end = new Vector3(x, bottomY);
-        AdjustTileCostOnCorridor(new List<Vector3>() { start, end });
+        List<Vector3> positions = new List<Vector3>() { start, end };
+        if (false == AdjustTileCostOnCorridor(positions))
+        {
+            return null;
+        }
+        return positions;
     }
-    private void ConnectHorizontalRoom(Room a, Room b)
+    private List<Vector3> ConnectHorizontalRoom(Room a, Room b)
     {
         Room leftRoom = null;
         Room rightRoom = null;
@@ -424,9 +439,14 @@ public class DungeonTileMapGenerator
 
         Vector3 start = new Vector3(leftX, y);
         Vector3 end = new Vector3(rightX, y);
-		AdjustTileCostOnCorridor(new List<Vector3>() { start, end });
+        List<Vector3> positions = new List<Vector3>() { start, end };
+        if (false == AdjustTileCostOnCorridor(positions))
+        {
+            return null;
+        }
+        return positions;
     }
-    private void ConnectDiagonalRoom(Room a, Room b)
+    private List<Vector3> ConnectDiagonalRoom(Room a, Room b)
     {
         int xMin = (int)Mathf.Max(a.rect.xMin, b.rect.xMin);
         int xMax = (int)Mathf.Min(a.rect.xMax, b.rect.xMax);
@@ -489,23 +509,17 @@ public class DungeonTileMapGenerator
                 new Vector3(rightRoomX,              rightRoom.rect.center.y)
             };
 
-            if (0 == Random.Range(0, 2))
+            List<Vector3> positions = (0 == Random.Range(0, 2)) ? corridorBL : corridorRT;
+            if(false == AdjustTileCostOnCorridor(positions))
             {
-                bool result = AdjustTileCostOnCorridor(corridorBL);
-                if (false == result)
+                positions = (corridorBL == positions) ? corridorRT : corridorBL;
+                if (false == AdjustTileCostOnCorridor(positions))
                 {
-                    AdjustTileCostOnCorridor(corridorRT);
+                    positions = null;
                 }
             }
-            else
-            {
-                bool result = AdjustTileCostOnCorridor(corridorRT);
-                if (false == result)
-                {
-                    AdjustTileCostOnCorridor(corridorBL);
-                }
-            }
-            return;
+
+            return positions;
         }
 
         if (bottomRoom == leftRoom)
@@ -524,24 +538,19 @@ public class DungeonTileMapGenerator
                 new Vector3(rightRoomX,              upperRoom.rect.center.y)
             };
 
-            if (0 == Random.Range(0, 2))
+            List<Vector3> positions = (0 == Random.Range(0, 2)) ? corridorTL : corridorRB;
+            
+            if (false == AdjustTileCostOnCorridor(positions))
             {
-                bool result = AdjustTileCostOnCorridor(corridorTL);
-                if (false == result)
+                positions = (corridorTL == positions) ? corridorRB : corridorTL;
+                if (false == AdjustTileCostOnCorridor(positions))
                 {
-                    AdjustTileCostOnCorridor(corridorRB);
+                    positions = null;
                 }
             }
-            else
-            {
-                bool result = AdjustTileCostOnCorridor(corridorRB);
-                if (false == result)
-                {
-                    AdjustTileCostOnCorridor(corridorTL);
-                }
-            }
-            return;
+            return positions;
         }
+        return null;
     }
     #endregion
 

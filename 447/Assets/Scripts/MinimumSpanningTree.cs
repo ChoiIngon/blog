@@ -7,13 +7,13 @@ public class MinimumSpanningTree
 	{
 		public Edge(Room p1, Room p2, float cost)
 		{
-			this.p1 = p1;
-			this.p2 = p2;
+			this.room1 = p1;
+			this.room2 = p2;
 			this.cost = cost;
 		}
 
-		public Room p1;
-		public Room p2;
+		public Room room1;
+		public Room room2;
 		public float cost;
 	}
 
@@ -33,7 +33,7 @@ public class MinimumSpanningTree
 	{
 		foreach (Edge other in edges)
 		{
-			if (true == (edge.p1 == other.p1 && edge.p2 == other.p2) || (edge.p1 == other.p2 && edge.p2 == other.p1))
+			if (true == (edge.room1 == other.room1 && edge.room2 == other.room2) || (edge.room1 == other.room2 && edge.room2 == other.room1))
 			{
 				return;
 			}
@@ -59,8 +59,8 @@ public class MinimumSpanningTree
 
 		foreach (Edge edge in edges)
 		{
-			Room srcParent = FindParent(edge.p1);
-			Room destParent = FindParent(edge.p2);
+			Room srcParent = FindParent(edge.room1);
+			Room destParent = FindParent(edge.room2);
 
 			if (srcParent != destParent)
 			{
