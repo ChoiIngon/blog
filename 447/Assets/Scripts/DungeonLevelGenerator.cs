@@ -223,9 +223,11 @@ public class DungeonLevelGenerator
 
     private void Init(TileMap tileMap)
     {
-        paths.Clear();
+        this.start = null;
+        this.end = null;
+        this.paths.Clear();
         this.tileMap = tileMap;
-        // 방과 방들 끼리 경로 구하기
+        // 방들간 경로 미리 구하기
         List<Room> rooms = new List<Room>(tileMap.rooms.Values);
         for (int i = 0; i < rooms.Count; i++)
         {
