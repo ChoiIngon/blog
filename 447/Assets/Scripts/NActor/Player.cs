@@ -61,7 +61,7 @@ public class Player : Actor
             Tile tile = tileMap.GetTile((int)transform.position.x + (int)offset.x, (int)transform.position.y + (int)offset.y);
             if (null != tile && null != tile.actor)
             {
-                DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.Attack(this, tile.actor));
+                Attack(tile.actor);
             }
             else if (null != tile && null != tile.dungeonObject)
             {
@@ -104,6 +104,9 @@ public class Player : Actor
         base.Attack(target);
 
         target.health -= 1;
+
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.Attack(this, target, target.health, 1));
+
         if (0 >= target.health)
         {
             if (null != target.tile)
@@ -112,8 +115,7 @@ public class Player : Actor
             }
 
             tileMap.monsters.Remove((Monster)target);
-            target.transform.parent = null;
-            GameObject.DestroyImmediate(target.gameObject);
+            DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.Destroy(target));
         }
     }
 

@@ -161,13 +161,11 @@ public class TileGenerator
 
         DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateRoom(room, TileMap.GetBoundaryRect(this.rooms), Color.red));
 
-        RepositionBlocks(room.center, this.rooms);
-
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.RepositionRoom(this.rooms));
+        RepositionRoom(room.center, this.rooms);
         DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.ChangeRoomColor(room, Color.blue));
     }
 
-    private void RepositionBlocks(Vector3 center, List<Room> rooms)
+    private void RepositionRoom(Vector3 center, List<Room> rooms)
     {
         while (true)
         {
@@ -190,6 +188,7 @@ public class TileGenerator
                 break;
             }
         }
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.RepositionRoom(this.rooms));
     }
 
     private void ResolveOverlap(Vector3 center, Rect boundary, Room room1, Room room2)

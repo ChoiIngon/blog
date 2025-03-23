@@ -49,6 +49,14 @@ public class Monster : Actor
         }
     }
 
+    public override void Attack(Actor target)
+    {
+        base.Attack(target);
+
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.Attack(this, target, target.health, 0));
+    }
+
+
     public class Search : BehaviourTree.Node
     {
         public Search(string name) : base(name) { }
@@ -156,7 +164,7 @@ public class Monster : Actor
 
             while (1.0f <= self.actionPoint)
             {
-                DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NActor.Attack(self, target));
+                self.Attack(target);
                 self.actionPoint -= 1.0f;
             }
 
