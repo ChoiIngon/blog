@@ -81,10 +81,6 @@ public class TileGenerator
         CreateRooms();
         SelectRooms();
 
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateGrid(DungeonGizmo.GroupName.BackgroundGrid, tileMap.rect));
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.MoveCamera(tileMap.rect.center, GameManager.Instance.tickTime));
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.RepositionRoom(new List<Room>(tileMap.rooms.Values)));
-
         CreateTiles();
 
         DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateGrid(DungeonGizmo.GroupName.BackgroundGrid, tileMap.rect));
@@ -749,24 +745,6 @@ public class TileGenerator
             }
         }
 
-        foreach (var corridor in corridors)
-        {
-            foreach (Tile tile in corridor.tiles)
-            {
-                int x = (int)tile.rect.x;
-                int y = (int)tile.rect.y;
-
-                BuildWallOnTile(x - 1, y - 1);
-                BuildWallOnTile(x - 1, y);
-                BuildWallOnTile(x - 1, y + 1);
-                BuildWallOnTile(x, y - 1);
-                BuildWallOnTile(x, y + 1);
-                BuildWallOnTile(x + 1, y - 1);
-                BuildWallOnTile(x + 1, y);
-                BuildWallOnTile(x + 1, y + 1);
-            }
-        }
-
         Vector3[] offsets = new Vector3[(int)Tile.Direction.Max];
         offsets[(int)Tile.Direction.LeftTop] = new Vector3(-1, +1);
         offsets[(int)Tile.Direction.Top] = new Vector3(0, +1);
@@ -776,6 +754,20 @@ public class TileGenerator
         offsets[(int)Tile.Direction.LeftBottom] = new Vector3(-1, -1);
         offsets[(int)Tile.Direction.Bottom] = new Vector3(0, -1);
         offsets[(int)Tile.Direction.RightBottom] = new Vector3(+1, -1);
+
+        foreach (var corridor in corridors)
+        {
+            foreach (Tile tile in corridor.tiles)
+            {
+                int x = (int)tile.rect.x;
+                int y = (int)tile.rect.y;
+
+                foreach (var offset in offsets)
+                {
+                    BuildWallOnTile(x + (int)offset.x, y + (int)offset.y);
+                }
+            }
+        }
 
         for (int i = 0; i < tileMap.width * tileMap.height; i++)
         {

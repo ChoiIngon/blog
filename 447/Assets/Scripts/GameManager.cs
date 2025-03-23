@@ -51,6 +51,11 @@ public class GameManager : MonoBehaviour
         meta.roomCount = roomCount;
         meta.minRoomSize = minRoomSize;
         meta.maxRoomSize = maxRoomSize;
+        if(null != tileMap)
+        {
+            tileMap.gameObject.transform.parent = null;
+            GameObject.DestroyImmediate(tileMap.gameObject);
+        }
         tileMap = new TileMap(meta);
         tileMap = levelGenerator.Generate(tileMap);
         tileMap.gameObject.transform.parent = transform;
