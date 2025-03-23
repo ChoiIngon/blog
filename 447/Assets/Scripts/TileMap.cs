@@ -3,11 +3,20 @@ using UnityEngine;
 
 public class TileMap
 {
-    public GameObject gameObject;
+    public class Meta
+    {
+        public int level;
+        public int roomCount;
+        public int minRoomSize;
+        public int maxRoomSize;
+    }
 
-    public readonly Tile[] tiles;
-    public readonly Dictionary<int, Room> rooms = new Dictionary<int, Room>();
-    public readonly Rect rect;
+    public GameObject gameObject;
+    public Meta meta { get; private set; } = null;
+
+    public Tile[] tiles;
+    public Dictionary<int, Room> rooms = new Dictionary<int, Room>();
+    public Rect rect;
 
     public int width
     {
@@ -23,85 +32,13 @@ public class TileMap
     public Player player;
     public Monster.MonsterManager monsters = new Monster.MonsterManager();
 
-    public TileMap(List<Room> rooms)
+    public TileMap(Meta meta)
     {
+        this.meta = meta;
         this.gameObject = new GameObject("TileMap");
-        this.rect = DungeonTileMapGenerator.GetBoundaryRect(rooms);
-        this.tiles = new Tile[width * height];
-        // 전체 타일 초기화
-        for (int i = 0; i < width * height; i++)
-        {
-            GameObject tileObject = new GameObject($"Tile_{i}");
-            Tile tile = tileObject.AddComponent<Tile>();
-            tile.index = i;
-            tile.rect = new Rect(i % width, i / width, 1, 1);
-            tile.type = Tile.Type.None;
-            tile.cost = Tile.PathCost.MaxCost;
-            tile.gameObject.transform.position = new Vector3(tile.rect.x, tile.rect.y);
-            tile.gameObject.transform.SetParent(gameObject.transform, false);   
-            tiles[i] = tile;
-        }
-        
-        foreach (Room room in rooms)
-        {
-            this.rooms.Add(room.index, room);
-            // 블록들을 (0, 0) 기준으로 옮김
-            room.rect.x -= rect.xMin;
-            room.rect.y -= rect.yMin;
 
-			for (int x = (int)room.rect.xMin; x < (int)room.rect.xMax; x++)
-            {
-                Tile top = GetTile(x, (int)room.rect.yMax - 1);
-                top.type = Tile.Type.Floor;
-                top.cost = Tile.PathCost.MaxCost;
-                top.room = room;
-
-                Tile bottom = GetTile(x, (int)room.rect.yMin);
-                bottom.type = Tile.Type.Floor;
-                bottom.cost = Tile.PathCost.MaxCost;
-                bottom.room = room;
-            }
-
-            for (int y = (int)room.rect.yMin; y < (int)room.rect.yMax; y++)
-            {
-                Tile left = GetTile((int)room.rect.xMin, y);
-                left.type = Tile.Type.Floor;
-                left.cost = Tile.PathCost.MaxCost;
-                left.room = room;
-
-                Tile right = GetTile((int)room.rect.xMax - 1, y);
-                right.type = Tile.Type.Floor;
-                right.cost = Tile.PathCost.MaxCost;
-                right.room = room;
-            }
-
-			{
-				Tile lt = GetTile((int)room.rect.xMin, (int)room.rect.yMax - 1);
-				lt.type = Tile.Type.Wall;
-				Tile rt = GetTile((int)room.rect.xMax - 1, (int)room.rect.yMax - 1);
-				rt.type = Tile.Type.Wall;
-				Tile lb = GetTile((int)room.rect.xMin, (int)room.rect.yMin);
-                lb.type = Tile.Type.Wall;
-				Tile rb = GetTile((int)room.rect.xMax - 1, (int)room.rect.yMin);
-                rb.type = Tile.Type.Wall;
-			}
-
-			// 방 내부 바닥 부분을 floor 타입으로 변경
-			Rect floorRect = room.GetFloorRect();
-            for (int y = (int)floorRect.yMin; y < (int)floorRect.yMax; y++)
-            {
-                for (int x = (int)floorRect.xMin; x < (int)floorRect.xMax; x++)
-                {
-                    Tile floor = GetTile(x, y);
-                    floor.type = Tile.Type.Floor;
-                    floor.cost = Tile.PathCost.Floor;
-                    floor.room = room;
-                }
-            }
-        }
-        
-        rect.x = 0;
-        rect.y = 0;
+        TileGenerator tileGenerator = new TileGenerator();
+        tileGenerator.Generate(this);
     }
 
     public void Clear()
@@ -217,5 +154,22 @@ public class TileMap
         ShadowCast sight = new ShadowCast(this);
         sight.CastLight(x, y, sightRange);
         return sight;
+    }
+
+    public static Rect GetBoundaryRect(List<Room> rooms)
+    {
+        Rect boundary = new Rect();
+        boundary.xMin = float.MaxValue;
+        boundary.yMin = float.MaxValue;
+        boundary.xMax = float.MinValue;
+        boundary.yMax = float.MinValue;
+        foreach (Room room in rooms)
+        {
+            boundary.xMin = Mathf.Min(boundary.xMin, room.rect.xMin);
+            boundary.yMin = Mathf.Min(boundary.yMin, room.rect.yMin);
+            boundary.xMax = Mathf.Max(boundary.xMax, room.rect.xMax);
+            boundary.yMax = Mathf.Max(boundary.yMax, room.rect.yMax);
+        }
+        return boundary;
     }
 }

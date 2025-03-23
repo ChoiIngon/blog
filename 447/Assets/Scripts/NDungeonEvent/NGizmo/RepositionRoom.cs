@@ -23,7 +23,7 @@ namespace NDungeonEvent.NGizmo
                 this.snapshots.Add(new Snapshot() { index = room.index, position = room.position });
             }
 
-            this.cameraBoundary = DungeonTileMapGenerator.GetBoundaryRect(rooms);
+            this.cameraBoundary = TileMap.GetBoundaryRect(rooms);
         }
 
         public IEnumerator OnEvent()

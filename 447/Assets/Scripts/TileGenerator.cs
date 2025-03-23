@@ -2,17 +2,19 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class DungeonTileMapGenerator
+public class TileGenerator
 {
-    const int MinRoomSize = 5;
+    private const int MinRoomSize = 5;
+    private static WeightRandom<int> RandomDepthCount = new WeightRandom<int>();
 
-    int roomCount = 0;
-    int minRoomSize = 0;
-    int maxRoomSize = 0;
-    WeightRandom<int> depthRandom;
-    List<Corridor> corridors;
-    TileMap tileMap;
+    private int roomCount;
+    private int minRoomSize;
+    private int maxRoomSize;
 
+    private TileMap tileMap;
+    private List<Room> rooms = new List<Room>();
+    private List<Corridor> corridors = new List<Corridor>();
+    
     public static void Init()
     {
         Tile.FloorSprite.CornerInnerLeftBottom.Add(GameManager.Instance.Resources.GetSprite("Floor.CornerInnerLeftBottom_1"));
@@ -37,130 +39,100 @@ public class DungeonTileMapGenerator
         Tile.WallSprite.CornerOuterLeftTop.Add(GameManager.Instance.Resources.GetSprite("Wall.CornerOuterLeftTop_2"));
         Tile.WallSprite.CornerOuterRightTop.Add(GameManager.Instance.Resources.GetSprite("Wall.CornerOuterRightTop_1"));
         Tile.WallSprite.CornerOuterRightTop.Add(GameManager.Instance.Resources.GetSprite("Wall.CornerOuterRightTop_2"));
-        
+
         Tile.WallSprite.HorizontalTop.Add(GameManager.Instance.Resources.GetSprite("Wall.HorizontalTop_1"));
         Tile.WallSprite.HorizontalTop.Add(GameManager.Instance.Resources.GetSprite("Wall.HorizontalTop_2"));
         Tile.WallSprite.HorizontalTop.Add(GameManager.Instance.Resources.GetSprite("Wall.HorizontalTop_3"));
         Tile.WallSprite.HorizontalTop.Add(GameManager.Instance.Resources.GetSprite("Wall.HorizontalTop_4"));
-        
+
         Tile.WallSprite.HorizontalBottom.Add(GameManager.Instance.Resources.GetSprite("Wall.HorizontalBottom_1"));
         Tile.WallSprite.HorizontalBottom.Add(GameManager.Instance.Resources.GetSprite("Wall.HorizontalBottom_2"));
         Tile.WallSprite.HorizontalBottom.Add(GameManager.Instance.Resources.GetSprite("Wall.HorizontalBottom_3"));
         Tile.WallSprite.HorizontalBottom.Add(GameManager.Instance.Resources.GetSprite("Wall.HorizontalBottom_4"));
-        
+
         Tile.WallSprite.VerticalLeft.Add(GameManager.Instance.Resources.GetSprite("Wall.VerticalLeft_1"));
         Tile.WallSprite.VerticalLeft.Add(GameManager.Instance.Resources.GetSprite("Wall.VerticalLeft_2"));
         Tile.WallSprite.VerticalLeft.Add(GameManager.Instance.Resources.GetSprite("Wall.VerticalLeft_3"));
-        
+
         Tile.WallSprite.VerticalRight.Add(GameManager.Instance.Resources.GetSprite("Wall.VerticalRight_1"));
         Tile.WallSprite.VerticalRight.Add(GameManager.Instance.Resources.GetSprite("Wall.VerticalRight_2"));
         Tile.WallSprite.VerticalRight.Add(GameManager.Instance.Resources.GetSprite("Wall.VerticalRight_3"));
-        
+
         Tile.WallSprite.VerticalSplit.Add(GameManager.Instance.Resources.GetSprite("Wall.VerticalSplit_1"));
         Tile.WallSprite.VerticalSplit.Add(GameManager.Instance.Resources.GetSprite("Wall.VerticalSplit_2"));
         Tile.WallSprite.VerticalSplit.Add(GameManager.Instance.Resources.GetSprite("Wall.VerticalSplit_3"));
         Tile.WallSprite.VerticalSplit.Add(GameManager.Instance.Resources.GetSprite("Wall.VerticalSplit_4"));
-        
+
         Tile.WallSprite.VerticalTop.Add(GameManager.Instance.Resources.GetSprite("Wall.VerticalTop_1"));
+
+        RandomDepthCount.AddElement(10, 4);
+        RandomDepthCount.AddElement(20, 3);
+        RandomDepthCount.AddElement(30, 2);
+        RandomDepthCount.AddElement(40, 1);
     }
 
-    public TileMap Generate(int roomCount, int minRoomSize, int maxRoomSize, int randomSeed)
+    public void Generate(TileMap tileMap)
     {
-		Random.InitState(randomSeed);
-		
-		if (maxRoomSize < minRoomSize)
-        {
-            throw new System.ArgumentException("maximum room size should be equal or bigger than minimum room size");
-        }
+        this.tileMap = tileMap;
+        this.roomCount = tileMap.meta.roomCount;
+        this.minRoomSize = Mathf.Max(MinRoomSize, tileMap.meta.minRoomSize);
+        this.maxRoomSize = Mathf.Max(MinRoomSize, tileMap.meta.maxRoomSize);
 
-        if (0 >= roomCount)
-        {
-            return null;
-        }
-
-        this.roomCount = roomCount;  
-        this.minRoomSize = Mathf.Max(MinRoomSize, minRoomSize);
-        this.maxRoomSize = Mathf.Max(MinRoomSize, maxRoomSize);
-
-        this.depthRandom = new WeightRandom<int>();
-        this.depthRandom.AddElement(10, 4);
-        this.depthRandom.AddElement(20, 3);
-        this.depthRandom.AddElement(30, 2);
-        this.depthRandom.AddElement(40, 1);
-
-        this.corridors = new List<Corridor>();
-
-        List<Room> mockupRooms      = CreateRooms(roomCount, minRoomSize, maxRoomSize);
-        List<Room> selectedRooms    = SelectRooms(mockupRooms);
-
-        if (null != tileMap)
-        {
-            tileMap.Clear();
-        }
-
-        tileMap = new TileMap(selectedRooms);
+        CreateRooms();
+        SelectRooms();
 
         DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateGrid(DungeonGizmo.GroupName.BackgroundGrid, tileMap.rect));
         DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.MoveCamera(tileMap.rect.center, GameManager.Instance.tickTime));
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.RepositionRoom(selectedRooms));
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.RepositionRoom(new List<Room>(tileMap.rooms.Values)));
 
-        ConnectRooms(tileMap);
+        CreateTiles();
+
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateGrid(DungeonGizmo.GroupName.BackgroundGrid, tileMap.rect));
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.MoveCamera(tileMap.rect.center, GameManager.Instance.tickTime));
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.RepositionRoom(new List<Room>(tileMap.rooms.Values)));
+
+        ConnectRooms();
 
         DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.EnableGizmo(DungeonGizmo.GroupName.RoomConnection, false));
 
-        BuildWall(tileMap);
+        BuildWall();
 
         DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.EnableGizmo(DungeonGizmo.GroupName.BackgroundGrid, false));
-		DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.EnableGizmo(DungeonGizmo.GroupName.Room, false));
-		DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.EnableGizmo(DungeonGizmo.GroupName.Corridor, false));
-		DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.ShowTileMap(tileMap, true));
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.EnableGizmo(DungeonGizmo.GroupName.Room, false));
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.EnableGizmo(DungeonGizmo.GroupName.Corridor, false));
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.ShowTileMap(tileMap, true));
         DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.ShowTileMap(tileMap, false));
-        return tileMap;
     }
 
-    #region CreateRooms
-    private List<Room> CreateRooms(int roomCount, int minRoomSize, int maxRoomSize)
+    private void CreateRooms()
     {
-        int roomIndex = 1;
-        var rooms = new List<Room>();
-
-        Room baseRoom1 = CreateRoom(roomIndex++, 0, 0);
-        rooms.Add(baseRoom1);
-
-        Room baseRoom2 = CreateRoom(roomIndex++, maxRoomSize * 2, 0);
-        rooms.Add(baseRoom2);
-
-        Room baseRoom3 = CreateRoom(roomIndex++, maxRoomSize / 2, maxRoomSize * 2);
-        rooms.Add(baseRoom3);
-
         DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.WriteDungeonLog("Room data generation process starts", Color.white));
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateRoom(baseRoom1, GetBoundaryRect(rooms), Color.blue));
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateRoom(baseRoom2, GetBoundaryRect(rooms), Color.blue));
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateRoom(baseRoom3, GetBoundaryRect(rooms), Color.blue));
+        int roomIndex = 1;
+
+        // 기준이 되는 방 3개 생성
+        CreateRoom(roomIndex++, 0, 0);
+        CreateRoom(roomIndex++, maxRoomSize * 2, 0);
+        CreateRoom(roomIndex++, maxRoomSize / 2, maxRoomSize * 2);
 
         for (int i = 0; i < roomCount * 2; i++)
         {
-            Room room = CreateRoom(roomIndex++, rooms);
-            rooms.Add(room);
-            DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateRoom(room, GetBoundaryRect(rooms), Color.red));
-
-            RepositionBlocks(room.center, rooms);
-
-            DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.RepositionRoom(rooms));
-            DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.ChangeRoomColor(room, Color.blue));
+            CreateRoom(roomIndex++);
         }
+    }
 
-        return rooms;
-    }
-    private Room CreateRoom(int roomIndex, int x, int y)
+    private void CreateRoom(int roomIndex, int x, int y)
     {
-        int width = GetRandomSize();
-        int height = GetRandomSize();
-        return new Room(roomIndex, x, y, width, height);
+        int width = GetRandomRoomSize();
+        int height = GetRandomRoomSize();
+        Room room = new Room(roomIndex, x, y, width, height);
+        rooms.Add(room);
+
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateRoom(room, TileMap.GetBoundaryRect(rooms), Color.blue));
     }
-    private Room CreateRoom(int roomIndex, List<Room> exists)
+
+    private void CreateRoom(int roomIndex)
     {
-        var triangulation = new DelaunayTriangulation(exists);
+        var triangulation = new DelaunayTriangulation(this.rooms);
         if (null == triangulation)
         {
             throw new System.Exception("can not build 'DelaunayTriangles'");
@@ -183,22 +155,107 @@ public class DungeonTileMapGenerator
 
         DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateTriangle(triangulation, biggestCircle));
 
-        int width   = GetRandomSize();
-        int height  = GetRandomSize();
-        int x       = (int)biggestCircle.center.x - width / 2;
-        int y       = (int)biggestCircle.center.y - height / 2;
+        int width = GetRandomRoomSize();
+        int height = GetRandomRoomSize();
+        int x = (int)biggestCircle.center.x - width / 2;
+        int y = (int)biggestCircle.center.y - height / 2;
 
-        return new Room(roomIndex++, (int)x, (int)y, width, height);
+        Room room = new Room(roomIndex++, (int)x, (int)y, width, height);
+        this.rooms.Add(room);
+
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateRoom(room, TileMap.GetBoundaryRect(this.rooms), Color.red));
+
+        RepositionBlocks(room.center, this.rooms);
+
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.RepositionRoom(this.rooms));
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.ChangeRoomColor(room, Color.blue));
     }
-    #endregion
 
-    #region SelectRooms
-    private List<Room> SelectRooms(List<Room> mockupRooms)
+    private void RepositionBlocks(Vector3 center, List<Room> rooms)
+    {
+        while (true)
+        {
+            bool overlap = false;
+            for (int i = 0; i < rooms.Count; i++)
+            {
+                for (int j = i + 1; j < rooms.Count; j++)
+                {
+                    if (true == rooms[i].rect.Overlaps(rooms[j].rect))
+                    {
+                        Rect boundary = TileMap.GetBoundaryRect(rooms);
+                        ResolveOverlap(center, boundary, rooms[i], rooms[j]);
+                        overlap = true;
+                    }
+                }
+            }
+
+            if (false == overlap)
+            {
+                break;
+            }
+        }
+    }
+
+    private void ResolveOverlap(Vector3 center, Rect boundary, Room room1, Room room2)
+    {
+        if (boundary.width < boundary.height) // 블록 배치가 세로로 길게 되어 있음. 그래서 가로로 이동함
+        {
+            if (room1.center.x < room2.center.x) // 두 블록 중 block2가 오른쪽 있는 경우
+            {
+                if (center.x < room2.center.x)
+                {
+                    room2.x += 1; // block2가 중앙 보다 오른쪽에 있으면 block2를 오른쪽으로 1칸 이동
+                }
+                else
+                {
+                    room1.x -= 1; // block2가 중앙 보다 왼쪽에 있으면 block1을 왼쪽으로 1칸 이동
+                }
+            }
+            else // 두 블록 중 block1이 오른쪽 있는 경우
+            {
+                if (center.x < room1.center.x)
+                {
+                    room1.x += 1; // block1이 중앙 보다 오른쪽에 있으면 block1를 오른쪽으로 1칸 이동
+                }
+                else
+                {
+                    room2.x -= 1; // block1가 중앙 보다 왼쪽에 있으면 block2를 왼쪽으로 1칸 이동
+                }
+            }
+        }
+        else // 블록 배치가 가로로 길게 되어 있음. 그래서 세로로 이동함
+        {
+            if (room1.center.y < room2.center.y)
+            {
+                if (center.y < room2.center.y)
+                {
+                    room2.y += 1; // block2가 중앙 보다 위에 있으면 block2를 윗쪽으로 1칸 이동
+                }
+                else
+                {
+                    room1.y -= 1; // block2가 중앙 보다 아래에 있으면 block1을 아래로 1칸 이동
+                }
+            }
+            else
+            {
+                if (center.y < room1.center.y)
+                {
+                    room1.y += 1; // block1이 중앙 보다 위에 있으면 block1을 위로 1칸 이동
+                }
+                else
+                {
+                    room2.y -= 1;  // block1이 중앙 보다 아래에 있으면 block2를 아래로 1칸 이동
+                }
+            }
+        }
+    }
+
+    private void SelectRooms()
     {
         DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.WriteDungeonLog("Select room process starts", Color.white));
 
-        var triangulation = new DelaunayTriangulation(mockupRooms);
-        var mst = new MinimumSpanningTree(mockupRooms);
+        var triangulation = new DelaunayTriangulation(this.rooms);
+        var mst = new MinimumSpanningTree(this.rooms);
         foreach (var triangle in triangulation.triangles)
         {
             foreach (var edge in triangle.edges)
@@ -215,35 +272,32 @@ public class DungeonTileMapGenerator
             connection.room2.neighbors.Add(connection.room1);
         }
 
-        List<Room> selectedRooms = new List<Room>();
+        Room startRoom = rooms[Random.Range(0, rooms.Count)];
+        SelectRoom(startRoom, 1);
 
-        Room startRoom = mockupRooms[Random.Range(0, mockupRooms.Count)];
-        SelectRoom(startRoom, 1, selectedRooms);
-
-        while (this.roomCount > selectedRooms.Count)
+        while (this.roomCount > this.tileMap.rooms.Count)
         {
-            Room room = mockupRooms[0];
-            if (false == selectedRooms.Contains(room))
+            Room room = rooms[0];
+            if (false == this.tileMap.rooms.ContainsKey(room.index))
             {
-                selectedRooms.Add(room);
+                this.tileMap.rooms.Add(room.index, room);
                 DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.ChangeRoomColor(room, Color.red));
             }
-            mockupRooms.RemoveAt(0);
+            rooms.RemoveAt(0);
         }
 
-        foreach (Room room in mockupRooms)
+        foreach (Room room in rooms)
         {
-            if (true == selectedRooms.Contains(room))
+            if (true == this.tileMap.rooms.ContainsKey(room.index))
             {
                 continue;
             }
 
             DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.DestroyGizmo(DungeonGizmo.GroupName.Room, room.index));
         }
-
-        return selectedRooms;
     }
-    private void SelectRoom(Room room, int depth, List<Room> selectedRooms)
+
+    private void SelectRoom(Room room, int depth)
     {
         depth--;
 
@@ -261,11 +315,11 @@ public class DungeonTileMapGenerator
 
         if (0 == depth)
         {
-            depth = GetRandomDepth();
-            selectedRooms.Add(room);
+            depth = GetRandomDepthCount();
+            tileMap.rooms.Add(room.index, room);
         }
-        
-        while (0 < room.neighbors.Count && this.roomCount > selectedRooms.Count)
+
+        while (0 < room.neighbors.Count && this.roomCount > tileMap.rooms.Count)
         {
             int index = Random.Range(0, room.neighbors.Count);
             Room neighbor = room.neighbors[index];
@@ -273,23 +327,32 @@ public class DungeonTileMapGenerator
             neighbor.neighbors.Remove(room);
             room.neighbors.RemoveAt(index);
 
-            SelectRoom(neighbor, depth, selectedRooms);
+            SelectRoom(neighbor, depth);
         }
     }
-    #endregion
 
-    #region ConnectRooms
-    private void ConnectRooms(TileMap tileMap)
+    private int GetRandomRoomSize()
     {
-        foreach (var pair in tileMap.rooms)
+        return Random.Range(minRoomSize, maxRoomSize + 1);
+    }
+
+    private int GetRandomDepthCount()
+    {
+        return TileGenerator.RandomDepthCount.Random();
+    }
+        
+    #region ConnectRooms
+    private void ConnectRooms()
+    {
+        foreach (var pair in this.tileMap.rooms)
         {
             Room room = pair.Value;
             room.neighbors.Clear();
         }
 
-        List<Room> rooms = new List<Room>(tileMap.rooms.Values);
-        var triangulation = new DelaunayTriangulation(rooms);
-        var mst = new MinimumSpanningTree(rooms);
+        List<Room> allRooms = new List<Room>(tileMap.rooms.Values);
+        var triangulation = new DelaunayTriangulation(allRooms);
+        var mst = new MinimumSpanningTree(allRooms);
         foreach (var triangle in triangulation.triangles)
         {
             foreach (var edge in triangle.edges)
@@ -343,7 +406,7 @@ public class DungeonTileMapGenerator
         List<Vector3> positions = null;
         if (3 <= xMax - xMin) // x 축 겹칩. 세로 통로 만들기
         {
-			positions = ConnectVerticalRoom(a, b);
+            positions = ConnectVerticalRoom(a, b);
         }
         else if (3 <= yMax - yMin) // y 축 겹침. 가로 통로 만들기
         {
@@ -366,23 +429,23 @@ public class DungeonTileMapGenerator
         var start = tileMap.GetTile((int)startPosition.x, (int)startPosition.y);
         var end = tileMap.GetTile((int)endPosition.x, (int)endPosition.y);
 
-        Rect searchBoundary = DungeonTileMapGenerator.GetBoundaryRect(new List<Room>() { a, b });
+        Rect searchBoundary = TileMap.GetBoundaryRect(new List<Room>() { a, b });
         AStarPathFinder pathFinder = new AStarPathFinder(tileMap, searchBoundary);
-		Corridor corridor = new Corridor();
-		corridor.tiles = pathFinder.FindPath(start, end);
+        Corridor corridor = new Corridor();
+        corridor.tiles = pathFinder.FindPath(start, end);
         Debug.Assert(0 < corridor.tiles.Count);
 
         corridors.Add(corridor);
 
-		foreach (var tile in corridor.tiles)
-		{
+        foreach (var tile in corridor.tiles)
+        {
             tile.type = Tile.Type.Floor;
-			tile.cost = Tile.PathCost.MinCost;
-		}
+            tile.cost = Tile.PathCost.MinCost;
+        }
 
-		DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateTile(DungeonGizmo.GroupName.Corridor, corridor.tiles, Color.blue, DungeonGizmo.SortingOrder.Corridor));
-	}
-	private List<Vector3> ConnectVerticalRoom(Room a, Room b)
+        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateTile(DungeonGizmo.GroupName.Corridor, corridor.tiles, Color.blue, DungeonGizmo.SortingOrder.Corridor));
+    }
+    private List<Vector3> ConnectVerticalRoom(Room a, Room b)
     {
         Room upperRoom = null;
         Room bottomRoom = null;
@@ -489,10 +552,10 @@ public class DungeonTileMapGenerator
             leftRoom = a;
         }
 
-        int upperRoomY  = (int)Random.Range(upperRoom.rect.yMin + 1 + yOverlap, upperRoom.rect.yMax - 2);
+        int upperRoomY = (int)Random.Range(upperRoom.rect.yMin + 1 + yOverlap, upperRoom.rect.yMax - 2);
         int bottomRoomY = (int)Random.Range(bottomRoom.rect.yMin + 1, bottomRoom.rect.yMax - 2 - yOverlap);
-        int leftRoomX   = (int)Random.Range(leftRoom.rect.xMin + 1, leftRoom.rect.xMax - 2 - xOverlap);
-        int rightRoomX  = (int)Random.Range(rightRoom.rect.xMin + 1 + xOverlap, rightRoom.rect.xMax - 2);
+        int leftRoomX = (int)Random.Range(leftRoom.rect.xMin + 1, leftRoom.rect.xMax - 2 - xOverlap);
+        int rightRoomX = (int)Random.Range(rightRoom.rect.xMin + 1 + xOverlap, rightRoom.rect.xMax - 2);
 
         if (upperRoom == leftRoom)
         {
@@ -510,7 +573,7 @@ public class DungeonTileMapGenerator
             };
 
             List<Vector3> positions = (0 == Random.Range(0, 2)) ? corridorBL : corridorRT;
-            if(false == AdjustTileCostOnCorridor(positions))
+            if (false == AdjustTileCostOnCorridor(positions))
             {
                 positions = (corridorBL == positions) ? corridorRT : corridorBL;
                 if (false == AdjustTileCostOnCorridor(positions))
@@ -539,7 +602,7 @@ public class DungeonTileMapGenerator
             };
 
             List<Vector3> positions = (0 == Random.Range(0, 2)) ? corridorTL : corridorRB;
-            
+
             if (false == AdjustTileCostOnCorridor(positions))
             {
                 positions = (corridorTL == positions) ? corridorRB : corridorTL;
@@ -554,7 +617,87 @@ public class DungeonTileMapGenerator
     }
     #endregion
 
-    private void BuildWall(TileMap tileMap)
+    private void CreateTiles()
+    {
+        tileMap.rect = TileMap.GetBoundaryRect(new List<Room>(tileMap.rooms.Values));
+        tileMap.tiles = new Tile[tileMap.width * tileMap.height];
+        // 전체 타일 초기화
+        for (int i = 0; i < tileMap.width * tileMap.height; i++)
+        {
+            GameObject tileObject = new GameObject($"Tile_{i}");
+            Tile tile = tileObject.AddComponent<Tile>();
+            tile.index = i;
+            tile.rect = new Rect(i % tileMap.width, i / tileMap.width, 1, 1);
+            tile.type = Tile.Type.None;
+            tile.cost = Tile.PathCost.MaxCost;
+            tile.gameObject.transform.position = new Vector3(tile.rect.x, tile.rect.y);
+            tile.gameObject.transform.SetParent(tileMap.gameObject.transform, false);
+            tileMap.tiles[i] = tile;
+        }
+
+        foreach (var pair in tileMap.rooms)
+        {
+            Room room = pair.Value;
+            // 블록들을 (0, 0) 기준으로 옮김
+            room.rect.x -= tileMap.rect.xMin;
+            room.rect.y -= tileMap.rect.yMin;
+
+            for (int x = (int)room.rect.xMin; x < (int)room.rect.xMax; x++)
+            {
+                Tile top = tileMap.GetTile(x, (int)room.rect.yMax - 1);
+                top.type = Tile.Type.Floor;
+                top.cost = Tile.PathCost.MaxCost;
+                top.room = room;
+
+                Tile bottom = tileMap.GetTile(x, (int)room.rect.yMin);
+                bottom.type = Tile.Type.Floor;
+                bottom.cost = Tile.PathCost.MaxCost;
+                bottom.room = room;
+            }
+
+            for (int y = (int)room.rect.yMin; y < (int)room.rect.yMax; y++)
+            {
+                Tile left = tileMap.GetTile((int)room.rect.xMin, y);
+                left.type = Tile.Type.Floor;
+                left.cost = Tile.PathCost.MaxCost;
+                left.room = room;
+
+                Tile right = tileMap.GetTile((int)room.rect.xMax - 1, y);
+                right.type = Tile.Type.Floor;
+                right.cost = Tile.PathCost.MaxCost;
+                right.room = room;
+            }
+
+            {
+                Tile lt = tileMap.GetTile((int)room.rect.xMin, (int)room.rect.yMax - 1);
+                lt.type = Tile.Type.Wall;
+                Tile rt = tileMap.GetTile((int)room.rect.xMax - 1, (int)room.rect.yMax - 1);
+                rt.type = Tile.Type.Wall;
+                Tile lb = tileMap.GetTile((int)room.rect.xMin, (int)room.rect.yMin);
+                lb.type = Tile.Type.Wall;
+                Tile rb = tileMap.GetTile((int)room.rect.xMax - 1, (int)room.rect.yMin);
+                rb.type = Tile.Type.Wall;
+            }
+
+            // 방 내부 바닥 부분을 floor 타입으로 변경
+            Rect floorRect = room.GetFloorRect();
+            for (int y = (int)floorRect.yMin; y < (int)floorRect.yMax; y++)
+            {
+                for (int x = (int)floorRect.xMin; x < (int)floorRect.xMax; x++)
+                {
+                    Tile floor = tileMap.GetTile(x, y);
+                    floor.type = Tile.Type.Floor;
+                    floor.cost = Tile.PathCost.Floor;
+                    floor.room = room;
+                }
+            }
+        }
+
+        tileMap.rect.x = 0;
+        tileMap.rect.y = 0;
+    }
+
+    private void BuildWall()
     {
         foreach (var pair in tileMap.rooms)
         {
@@ -625,13 +768,13 @@ public class DungeonTileMapGenerator
         }
 
         Vector3[] offsets = new Vector3[(int)Tile.Direction.Max];
-        offsets[(int)Tile.Direction.LeftTop]     = new Vector3(-1, +1);
-        offsets[(int)Tile.Direction.Top]         = new Vector3( 0, +1);
-        offsets[(int)Tile.Direction.RightTop]    = new Vector3(+1, +1);
-        offsets[(int)Tile.Direction.Left]        = new Vector3(-1,  0);
-        offsets[(int)Tile.Direction.Right]       = new Vector3(+1,  0);
-        offsets[(int)Tile.Direction.LeftBottom]  = new Vector3(-1, -1);
-        offsets[(int)Tile.Direction.Bottom]      = new Vector3( 0, -1);
+        offsets[(int)Tile.Direction.LeftTop] = new Vector3(-1, +1);
+        offsets[(int)Tile.Direction.Top] = new Vector3(0, +1);
+        offsets[(int)Tile.Direction.RightTop] = new Vector3(+1, +1);
+        offsets[(int)Tile.Direction.Left] = new Vector3(-1, 0);
+        offsets[(int)Tile.Direction.Right] = new Vector3(+1, 0);
+        offsets[(int)Tile.Direction.LeftBottom] = new Vector3(-1, -1);
+        offsets[(int)Tile.Direction.Bottom] = new Vector3(0, -1);
         offsets[(int)Tile.Direction.RightBottom] = new Vector3(+1, -1);
 
         for (int i = 0; i < tileMap.width * tileMap.height; i++)
@@ -680,7 +823,7 @@ public class DungeonTileMapGenerator
             tile.spriteRenderer.sortingOrder = Tile.SortingOrder;
             tile.spriteRenderer.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
         }
-	}
+    }
 
     private void BuildWallOnTile(int x, int y)
     {
@@ -689,31 +832,14 @@ public class DungeonTileMapGenerator
         {
             return;
         }
-        
+
         if (Tile.Type.None != tile.type)
         {
             return;
         }
-        
+
         tile.type = Tile.Type.Wall;
         tile.cost = Tile.PathCost.Wall;
-    }
-
-    public static Rect GetBoundaryRect(List<Room> rooms)
-    {
-        Rect boundary = new Rect();
-        boundary.xMin = float.MaxValue;
-        boundary.yMin = float.MaxValue;
-        boundary.xMax = float.MinValue;
-        boundary.yMax = float.MinValue;
-        foreach (Room room in rooms)
-        {
-            boundary.xMin = Mathf.Min(boundary.xMin, room.rect.xMin);
-            boundary.yMin = Mathf.Min(boundary.yMin, room.rect.yMin);
-            boundary.xMax = Mathf.Max(boundary.xMax, room.rect.xMax);
-            boundary.yMax = Mathf.Max(boundary.yMax, room.rect.yMax);
-        }
-        return boundary;
     }
 
     private class Rollback
@@ -760,15 +886,15 @@ public class DungeonTileMapGenerator
         List<Tile> tiles = new List<Tile>();
 
         Rollback rollback = new Rollback();
-		for (int start = 0; start < positions.Count - 1; start++)
+        for (int start = 0; start < positions.Count - 1; start++)
         {
             Vector3 startPosition = positions[start];
             Vector3 endPosition = positions[start + 1];
 
-			int xMin = (int)Mathf.Min(startPosition.x, endPosition.x);
-			int xMax = (int)Mathf.Max(startPosition.x, endPosition.x);
-			int yMin = (int)Mathf.Min(startPosition.y, endPosition.y);
-			int yMax = (int)Mathf.Max(startPosition.y, endPosition.y);
+            int xMin = (int)Mathf.Min(startPosition.x, endPosition.x);
+            int xMax = (int)Mathf.Max(startPosition.x, endPosition.x);
+            int yMin = (int)Mathf.Min(startPosition.y, endPosition.y);
+            int yMax = (int)Mathf.Max(startPosition.y, endPosition.y);
 
             for (int y = yMin; y <= yMax; y++)
             {
@@ -782,108 +908,21 @@ public class DungeonTileMapGenerator
                         return false;
                     }
 
-					if (Tile.Type.Wall == tile.type)
-					{
-						Debug.Log($"fail to create path at tile_index:{tile.index}, x:{x}, y:{y}");
-						rollback.Execute();
-						return false;
-					}
+                    if (Tile.Type.Wall == tile.type)
+                    {
+                        Debug.Log($"fail to create path at tile_index:{tile.index}, x:{x}, y:{y}");
+                        rollback.Execute();
+                        return false;
+                    }
 
-					rollback.Push(tile);
+                    rollback.Push(tile);
                     tile.cost = Mathf.Min(tile.cost, Tile.PathCost.Floor);
                     tiles.Add(tile);
                 }
             }
-		}
+        }
 
         DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateTile(DungeonGizmo.GroupName.RoomConnection, tiles, Color.white, DungeonGizmo.SortingOrder.Path));
         return true;
-	}
-    
-    private int GetRandomSize()
-    {
-        return Random.Range(minRoomSize, maxRoomSize + 1);
-    }
-    private int GetRandomDepth()
-    {
-        return depthRandom.Random();
-    }
-
-    private void RepositionBlocks(Vector3 center, List<Room> rooms)
-    {
-        while (true)
-        {
-            bool overlap = false;
-            for (int i = 0; i < rooms.Count; i++)
-            {
-                for (int j = i + 1; j < rooms.Count; j++)
-                {
-                    if (true == rooms[i].rect.Overlaps(rooms[j].rect))
-                    {
-                        Rect boundary = GetBoundaryRect(rooms);
-                        ResolveOverlap(center, boundary, rooms[i], rooms[j]);
-                        overlap = true;
-                    }
-                }
-            }
-
-            if (false == overlap)
-            {
-                break;
-            }
-        }
-    }
-    private void ResolveOverlap(Vector3 center, Rect boundary, Room room1, Room room2)
-    {
-        if (boundary.width < boundary.height) // 블록 배치가 세로로 길게 되어 있음. 그래서 가로로 이동함
-        {
-            if (room1.center.x < room2.center.x) // 두 블록 중 block2가 오른쪽 있는 경우
-            {
-                if (center.x < room2.center.x)
-                {
-                    room2.x += 1; // block2가 중앙 보다 오른쪽에 있으면 block2를 오른쪽으로 1칸 이동
-                }
-                else
-                {
-                    room1.x -= 1; // block2가 중앙 보다 왼쪽에 있으면 block1을 왼쪽으로 1칸 이동
-                }
-            }
-            else // 두 블록 중 block1이 오른쪽 있는 경우
-            {
-                if (center.x < room1.center.x)
-                {
-                    room1.x += 1; // block1이 중앙 보다 오른쪽에 있으면 block1를 오른쪽으로 1칸 이동
-                }
-                else
-                {
-                    room2.x -= 1; // block1가 중앙 보다 왼쪽에 있으면 block2를 왼쪽으로 1칸 이동
-                }
-            }
-        }
-        else // 블록 배치가 가로로 길게 되어 있음. 그래서 세로로 이동함
-        {
-            if (room1.center.y < room2.center.y)
-            {
-                if (center.y < room2.center.y)
-                {
-                    room2.y += 1; // block2가 중앙 보다 위에 있으면 block2를 윗쪽으로 1칸 이동
-                }
-                else
-                {
-                    room1.y -= 1; // block2가 중앙 보다 아래에 있으면 block1을 아래로 1칸 이동
-                }
-            }
-            else
-            {
-                if (center.y < room1.center.y)
-                {
-                    room1.y += 1; // block1이 중앙 보다 위에 있으면 block1을 위로 1칸 이동
-                }
-                else
-                {
-                    room2.y -= 1;  // block1이 중앙 보다 아래에 있으면 block2를 아래로 1칸 이동
-                }
-            }
-        }
     }
 }

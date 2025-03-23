@@ -12,7 +12,7 @@ public class GameManager : MonoBehaviour
     public int randomSeed = 0;
     public float tickTime = 0.05f;
 
-    private DungeonTileMapGenerator tileMapGenerator    = new DungeonTileMapGenerator();
+    //private DungeonTileMapGenerator tileMapGenerator    = new DungeonTileMapGenerator();
     private DungeonLevelGenerator levelGenerator        = new DungeonLevelGenerator();
     public TileMap tileMap;
 
@@ -29,7 +29,7 @@ public class GameManager : MonoBehaviour
         //Gizmos.gameObject.transform.parent = transform;
 
         Resources.Load();
-        DungeonTileMapGenerator.Init();
+        TileGenerator.Init();
         DungeonObject.Init();
     }
 
@@ -46,7 +46,12 @@ public class GameManager : MonoBehaviour
         DungeonLog.Write($"Dungeon data generation process starts(random_seed:{randomSeed})");
         stopWatch.Start();
 
-        tileMap = tileMapGenerator.Generate(roomCount, minRoomSize, maxRoomSize, randomSeed);
+        TileMap.Meta meta = new TileMap.Meta();
+        meta.level = 1;
+        meta.roomCount = roomCount;
+        meta.minRoomSize = minRoomSize;
+        meta.maxRoomSize = maxRoomSize;
+        tileMap = new TileMap(meta);
         tileMap = levelGenerator.Generate(tileMap);
         tileMap.gameObject.transform.parent = transform;
 
