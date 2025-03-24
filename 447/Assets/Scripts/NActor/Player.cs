@@ -8,12 +8,12 @@ public class Player : Actor
 
     public static Player Create(TileMap tileMap)
     {
-        if (null == tileMap.start)
+        if (null == tileMap.startTile)
         {
             return null;
         }
 
-        Tile startTile = tileMap.start;
+        Tile startTile = tileMap.startTile;
 
         Actor.Meta meta = new Actor.Meta();
         meta.name = "Player";

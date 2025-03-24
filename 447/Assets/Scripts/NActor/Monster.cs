@@ -10,7 +10,7 @@ public class Monster : Actor
 
     public static Monster Create(TileMap tileMap, Vector3 position)
     {
-        if (null == tileMap.start)
+        if (null == tileMap.startTile)
         {
             return null;
         }

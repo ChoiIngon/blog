@@ -27,8 +27,8 @@ public class TileMap
         get { return (int)rect.height; }
     }
 
-    public Tile start;
-    public Tile end;
+    public Tile startTile;
+    public Tile endTile;
     public Player player;
     public Monster.MonsterManager monsters = new Monster.MonsterManager();
 

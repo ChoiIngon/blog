@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class DungeonLevelGenerator
 {
     const int MaxJourneyTileCount = 50;
     public int level;
     public TileMap tileMap;
-    public Room start;
-    public Room end;
+    public Room startRoom;
+    public Room endRoom;
     public int minItemCount;
     public int maxitemCount;
 
@@ -56,31 +57,13 @@ public class DungeonLevelGenerator
             }
         }
 
-        Room start = GetStartRoom();
-        Room end = GetEndRoom();
+        GenerateGate();
 
-        {
-            Rect floorRect = this.start.GetFloorRect();
-            int x = (int)Random.Range(floorRect.xMin + 1, floorRect.xMax - 1);
-            int y = (int)Random.Range(floorRect.yMin + 1, floorRect.yMax - 1);
-
-            tileMap.start = tileMap.GetTile(x, y);
-            tileMap.start.dungeonObject = new DownStair(tileMap.start);
-        }
-        {
-            Rect floorRect = this.end.GetFloorRect();
-            int x = (int)Random.Range(floorRect.xMin + 1, floorRect.xMax - 1);
-            int y = (int)Random.Range(floorRect.yMin + 1, floorRect.yMax - 1);
-            
-            tileMap.end = tileMap.GetTile(x, y);
-            tileMap.end.dungeonObject = new UpStair(tileMap.end);
-        }
+        rooms.Remove(this.startRoom);
+        rooms.Remove(this.endRoom);
 
         var player = Player.Create(tileMap);
-        
-        rooms.Remove(start);
-        rooms.Remove(end);
-
+                
         this.minItemCount = 1;
         this.maxitemCount = 2;
 
@@ -99,7 +82,7 @@ public class DungeonLevelGenerator
     // 마지막 방을 잠그는 기능
     private void LockEndRoom()
     {
-        var path = FindPath(end, start);
+        var path = FindPath(endRoom, startRoom);
         if (null == path)
         {
             return;
@@ -110,7 +93,7 @@ public class DungeonLevelGenerator
             return;
         }
 
-        foreach (Tile door in end.doors)
+        foreach (Tile door in endRoom.doors)
         {
             door.dungeonObject = new Door(door);
         }
@@ -223,8 +206,8 @@ public class DungeonLevelGenerator
 
     private void Init(TileMap tileMap)
     {
-        this.start = null;
-        this.end = null;
+        this.startRoom = null;
+        this.endRoom = null;
         this.paths.Clear();
         this.tileMap = tileMap;
         // 방들간 경로 미리 구하기
@@ -251,65 +234,90 @@ public class DungeonLevelGenerator
                 furthestPath = pair.Value;
             }
         }
-        /*
-        var lines = new List<NDungeonEvent.NGizmo.CreateLine.Line>();
-        for (int i = 0; i < furthestPath.Count - 1; i++)
-        {
-            Room start = furthestPath[i];
-            Room end = furthestPath[i + 1];
-            lines.Add(new NDungeonEvent.NGizmo.CreateLine.Line() { start = start.center, end = end.center });
-        }
-        DungeonEventQueue.Instance.Enqueue(new NDungeonEvent.NGizmo.CreateLine(DungeonGizmo.GroupName.FurthestPath, lines, Color.yellow, DungeonGizmo.SortingOrder.FurthestPath, 0.4f));
-        */
+        
         return furthestPath;
     }
 
-    private Room GetStartRoom()
+    private void GenerateGate()
     {
-        if (null != this.start)
-        {
-            return this.start;
-        }
-
         List<Room> furthestPath = GetFurthestPath();
-        this.start = furthestPath[0];
-        this.end = furthestPath[furthestPath.Count - 1];
+        this.startRoom = furthestPath[0];
+        this.endRoom = furthestPath[furthestPath.Count - 1];
 
-        if (this.start.doors.Count < this.end.doors.Count)
+        if (this.startRoom.doors.Count < this.endRoom.doors.Count)
         {
-            Room tmp = start;
-            this.start = end;
-            this.end = tmp;
+            Room tmp = startRoom;
+            this.startRoom = endRoom;
+            this.endRoom = tmp;
         }
 
-        Tile startTile = tileMap.GetTile((int)start.rect.center.x, (int)start.rect.center.y);
-        Tile endTile = tileMap.GetTile((int)end.rect.center.x, (int)end.rect.center.y);
-        var path = tileMap.FindPath(endTile, startTile);
+        Tile startTile = tileMap.GetTile((int)this.startRoom.rect.center.x, (int)this.startRoom.rect.center.y);
+        Tile endTile = tileMap.GetTile((int)this.endRoom.rect.center.x, (int)this.endRoom.rect.center.y);
+        var tilePath = tileMap.FindPath(endTile, startTile);
 
-        if (path.Count > MaxJourneyTileCount)
+        if (tilePath.Count > MaxJourneyTileCount)
         {
-            for (int i = MaxJourneyTileCount; i < path.Count; i++)
+            for (int i = MaxJourneyTileCount; i < tilePath.Count; i++)
             {
-                var tile = path[i];
+                var tile = tilePath[i];
                 if (null != tile.room)
                 {
-                    this.start = tile.room;
+                    this.startRoom = tile.room;
                     break;
                 }
             }
         }
 
-        return this.start;
+        tileMap.startTile = GetRandomTileInRoom(this.startRoom, -1);
+        tileMap.startTile.dungeonObject = new EnterGate(tileMap.startTile);
+
+        tileMap.endTile = GetRandomTileInRoom(this.endRoom, -1);
+        tileMap.endTile.dungeonObject = new ExitGate(tileMap.endTile);
     }
 
-    private Room GetEndRoom()
+    private Tile GetRandomTileInRoom(Room room, int offset)
     {
-        if (null != this.end)
+        Rect floorRect = room.GetFloorRect();
+
+        int x = (int)Random.Range(floorRect.xMin - offset, floorRect.xMax + offset);
+        int y = (int)Random.Range(floorRect.yMin - offset, floorRect.yMax + offset);
+
+        return tileMap.GetTile(x, y);
+    }
+
+    private void LockRoom(Room room)
+    {
+        var path = FindPath(room, startRoom);
+        if (null == path)
         {
-            return this.end;
+            return;
         }
 
-        GetStartRoom();
-        return this.end;
+        if (3 > path.Count)
+        {
+            return;
+        }
+
+        /*
+        foreach (Tile door in room.doors)
+        {
+            door.dungeonObject = new Door(door);
+        }
+        
+
+        foreach (Tile door in endRoom.doors)
+        {
+            door.dungeonObject = new Door(door);
+        }
+
+        Room room = path[1];
+        Rect floorRect = room.GetFloorRect();
+
+        int x = (int)Random.Range(floorRect.xMin, floorRect.xMax);
+        int y = (int)Random.Range(floorRect.yMin, floorRect.yMax);
+
+        Tile tile = tileMap.GetTile(x, y);
+        tile.dungeonObject = new Key(tile);
+        */
     }
 }

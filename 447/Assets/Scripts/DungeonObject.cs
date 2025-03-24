@@ -183,9 +183,9 @@ public class Door : DungeonObject
     }
 }
 
-public class UpStair : DungeonObject
+public class ExitGate : DungeonObject
 {
-    public UpStair(Tile tile) : base(tile, true, true)
+    public ExitGate(Tile tile) : base(tile, true, true)
     {
         gameObject.name = "Stair.Up";
         spriteRenderer.sprite = GameManager.Instance.Resources.GetSprite("Stair.Up");
@@ -195,9 +195,9 @@ public class UpStair : DungeonObject
     }
 }
 
-public class DownStair : DungeonObject
+public class EnterGate : DungeonObject
 {
-    public DownStair(Tile tile) : base(tile, true, false)
+    public EnterGate(Tile tile) : base(tile, true, false)
     {
         gameObject.name = "Stair.Down";
         spriteRenderer.sprite = GameManager.Instance.Resources.GetSprite("Stair.Down");
