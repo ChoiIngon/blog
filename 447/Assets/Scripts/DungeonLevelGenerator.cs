@@ -1,3 +1,4 @@
+using NItem;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -55,9 +56,15 @@ public class DungeonLevelGenerator
             {
                 CreateTorchDecorator(room);
             }
+
+            if (30 >= Random.Range(0, 100) + 1)
+            {
+                CreateItem(room);
+            }
         }
 
         GenerateGate();
+        LockRoom(this.endRoom);
 
         rooms.Remove(this.startRoom);
         rooms.Remove(this.endRoom);
@@ -67,45 +74,11 @@ public class DungeonLevelGenerator
         this.minItemCount = 1;
         this.maxitemCount = 2;
 
-        if (endRoomLockProbabity > Random.Range(0, 100))
-        {
-            LockEndRoom();
-        }
-
         foreach (Room room in rooms)
         {
             CreateMonster(room);
         }
         return tileMap;
-    }
-
-    // 마지막 방을 잠그는 기능
-    private void LockEndRoom()
-    {
-        var path = FindPath(endRoom, startRoom);
-        if (null == path)
-        {
-            return;
-        }
-
-        if (3 > path.Count)
-        {
-            return;
-        }
-
-        foreach (Tile door in endRoom.doors)
-        {
-            door.dungeonObject = new Door(door);
-        }
-
-        Room room = path[1];
-        Rect floorRect = room.GetFloorRect();
-
-        int x = (int)Random.Range(floorRect.xMin, floorRect.xMax);
-        int y = (int)Random.Range(floorRect.yMin, floorRect.yMax);
-
-        Tile tile = tileMap.GetTile(x, y);
-        tile.dungeonObject = new Key(tile);
     }
 
     private List<Room> FindPath(Room from, Room to)
@@ -120,8 +93,13 @@ public class DungeonLevelGenerator
         return path;
     }
 
-    private void CreateItem(Tile tile, string itmeCode)
+    private void CreateItem(Room room)
     {
+        Tile tile = GetRandomTileInRoom(room, 0);
+
+        var meta = GameManager.Instance.ItemMetas.Find("flasks_1_1");
+        Item item = NItem.Item.Create(meta);
+        item.transform.SetParent(tile.gameObject.transform, false);
     }
 
     private void CreateBoneDecorator(Room room)
@@ -298,26 +276,13 @@ public class DungeonLevelGenerator
             return;
         }
 
-        /*
         foreach (Tile door in room.doors)
         {
             door.dungeonObject = new Door(door);
         }
         
-
-        foreach (Tile door in endRoom.doors)
-        {
-            door.dungeonObject = new Door(door);
-        }
-
-        Room room = path[1];
-        Rect floorRect = room.GetFloorRect();
-
-        int x = (int)Random.Range(floorRect.xMin, floorRect.xMax);
-        int y = (int)Random.Range(floorRect.yMin, floorRect.yMax);
-
-        Tile tile = tileMap.GetTile(x, y);
-        tile.dungeonObject = new Key(tile);
-        */
+        Room keyRoom = path[Random.Range(1, path.Count - 1)];
+        Tile keyTile = GetRandomTileInRoom(keyRoom, 0);
+        keyTile.dungeonObject = new Key(keyTile);
     }
 }
