@@ -1,5 +1,3 @@
-using NItem;
-using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
 
@@ -19,7 +17,6 @@ public class GameManager : MonoBehaviour
 
     public ResourceManager Resources;
     public DungeonGizmo Gizmos;
-    public Item.Manager ItemMetas = new Item.Manager();
 
     private void Start()
     {
@@ -33,7 +30,6 @@ public class GameManager : MonoBehaviour
         Resources.Load();
         TileGenerator.Init();
         DungeonObject.Init();
-        ItemMetas.Init();
     }
 
     public void CreateDungeon()

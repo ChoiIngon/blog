@@ -1,7 +1,5 @@
-using NItem;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Tilemaps;
 
 public class DungeonLevelGenerator
 {
@@ -56,11 +54,6 @@ public class DungeonLevelGenerator
             {
                 CreateTorchDecorator(room);
             }
-
-            if (30 >= Random.Range(0, 100) + 1)
-            {
-                CreateItem(room);
-            }
         }
 
         GenerateGate();
@@ -91,15 +84,6 @@ public class DungeonLevelGenerator
         }
 
         return path;
-    }
-
-    private void CreateItem(Room room)
-    {
-        Tile tile = GetRandomTileInRoom(room, 0);
-
-        var meta = GameManager.Instance.ItemMetas.Find("flasks_1_1");
-        Item item = NItem.Item.Create(meta);
-        item.transform.SetParent(tile.gameObject.transform, false);
     }
 
     private void CreateBoneDecorator(Room room)
