@@ -1,8 +1,5 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Tilemaps;
-using UnityEngine.WSA;
-using static NDungeon.NTileMap.TileMap;
 
 namespace NDungeon.NTileMap
 {
@@ -55,12 +52,12 @@ namespace NDungeon.NTileMap
 
             public static Vector3[] DirectionOffsets = new Vector3[] {
                 new Vector3(-1, +1),
-                new Vector3(0, +1),
+                new Vector3( 0, +1),
                 new Vector3(+1, +1),
-                new Vector3(-1, 0),
-                new Vector3(+1, 0),
+                new Vector3(-1,  0),
+                new Vector3(+1,  0),
                 new Vector3(-1, -1),
-                new Vector3(0, -1),
+                new Vector3( 0, -1),
                 new Vector3(+1, -1),
             };
 
@@ -172,7 +169,7 @@ namespace NDungeon.NTileMap
                 }
 
                 tile.cost = Tile.PathCost.MinCost;
-                tile.neighbors = new Tile[(int)Tile.Direction.Max];
+                tile.neighbors = new Tile[Tile.Direction.Max];
             }
 
             for(int i = 0; i < width * height; i++)
@@ -183,7 +180,7 @@ namespace NDungeon.NTileMap
                     continue;
                 }
 
-                for (int direction = 0; direction < (int)Tile.Direction.Max; direction++)
+                for (int direction = 0; direction < Tile.Direction.Max; direction++)
                 {
                     var offset = Tile.DirectionOffsets[direction];
                     tile.neighbors[direction] = GetTile((int)(tile.rect.x + offset.x), (int)(tile.rect.y + offset.y));
@@ -202,22 +199,27 @@ namespace NDungeon.NTileMap
                     }
                 }
             }
-            /*
+            
             foreach (Corridor corridor in this.corridors)
             {
-                foreach (Tile tile in corridor.tiles)
+                for(int i=0; i<corridor.tiles.Count; i++)
                 {
-                    if (null != tile.room)
+                    Tile tile = corridor.tiles[i];
+                    if (null == tile.room)
                     {
-                        Rect floorRect = tile.room.GetFloorRect();
-                        if (true == floorRect.Contains(new Vector2(tile.rect.x, tile.rect.y)))
-                        {
-                            continue;
-                        }
+                        continue;
                     }
+
+                    Rect floorRect = tile.room.GetFloorRect();
+                    if (true != floorRect.Contains(new Vector2(tile.rect.x, tile.rect.y)))
+                    {
+                        continue;
+                    }
+
+                    corridor.tiles.RemoveAt(i);
+                    i--;
                 }
             }
-            */
         }
 
         public Tile GetTile(int index)

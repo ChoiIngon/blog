@@ -66,6 +66,14 @@ namespace NDungeon
                 return;
             }
 
+            {
+                var room = tileMap.rooms[Random.Range(0, tileMap.rooms.Count)];
+                var floorRect = room.GetFloorRect();
+                int x = (int)Random.Range(floorRect.xMin, floorRect.xMax);
+                int y = (int)Random.Range(floorRect.yMin, floorRect.yMax);
+                GameManager.Instance.player.position = new Vector3(x, 0.0f, y);
+            }
+
             for (int i = 0; i < tileMap.width * tileMap.height; i++)
             {
                 var tileData = tileMap.GetTile(i);
@@ -81,45 +89,34 @@ namespace NDungeon
                 Tile tile = go.AddComponent<Tile>();
                 tile.data = tileData;
                 tiles.Add(tile.index, tile);
-
-                GameObject floor = GameObject.Instantiate(FloorPrefab[0], Vector3.zero, Quaternion.identity);
-                floor.name = $"Floor_{tileData.index}";
-                floor.transform.localScale = new Vector3(1.0f/TileSize, 1.0f/ TileSize, 1.0f / TileSize);
-                floor.transform.SetParent(go.transform, false);
             }
 
-            for(int childIndex=0; childIndex<tileRoot.childCount; childIndex++)
+            foreach (var itr in tiles)
             {
-                var tileObject = tileRoot.GetChild(childIndex);
-                if (null == tileObject)
+                Tile tile = itr.Value;
+                for (int i = 0; i < NTileMap.TileMap.Tile.Direction.Max; i++)
                 {
-                    continue;
-                }
-
-                Tile tile = tileObject.GetComponent<Tile>();
-                if (null == tile)
-                {
-                    continue;
-                }
-
-                var tileData = tileMap.GetTile(tile.index);
-                if (null == tileData)
-                {
-                    continue;
-                }
-
-                for (int i = 0; i < (int)NDungeon.NTileMap.TileMap.Tile.Direction.Max; i++)
-                {
-                    var neighborData = tileData.neighbors[i];
+                    var neighborData = tile.data.neighbors[i];
                     if (null == neighborData)
                     {
                         continue;
                     }
+
                     var neighbor = GetTile(neighborData.index);
                     tile.neighbors[i] = neighbor;
                 }
+            }
 
-                if(NDungeon.NTileMap.TileMap.Tile.Type.Wall == tile.type)
+            foreach (var itr in tiles)
+            {
+                Tile tile = itr.Value;
+
+                GameObject floor = GameObject.Instantiate(FloorPrefab[0], Vector3.zero, Quaternion.identity);
+                floor.name = $"Floor_{tile.index}";
+                floor.transform.localScale = new Vector3(1.0f / TileSize, 1.0f / TileSize, 1.0f / TileSize);
+                floor.transform.SetParent(tile.transform, false);
+
+                if (NTileMap.TileMap.Tile.Type.Wall == tile.type)
                 {
                     CreateWall(tile);
                 }
@@ -134,24 +131,18 @@ namespace NDungeon
                     meshRenderer.material.color = Color.red;
                 }
             }
-            var room = tileMap.rooms[Random.Range(0, tileMap.rooms.Count)];
-            var floorRect = room.GetFloorRect();
-            int x = (int)Random.Range(floorRect.xMin, floorRect.xMax);
-            int y = (int)Random.Range(floorRect.yMin, floorRect.yMax);
-
-            GameManager.Instance.player.position = GetTile(x, y).transform.position;
         }
 
         public GameObject CreateWall(Tile tile)
         {
-            var leftTop = tile.neighbors[(int)NTileMap.TileMap.Tile.Direction.LeftTop];
-            var top = tile.neighbors[(int)NTileMap.TileMap.Tile.Direction.Top];
-            var rightTop = tile.neighbors[(int)NTileMap.TileMap.Tile.Direction.RightTop];
-            var left = tile.neighbors[(int)NTileMap.TileMap.Tile.Direction.Left];
-            var right = tile.neighbors[(int)NTileMap.TileMap.Tile.Direction.Right];
-            var leftBottom = tile.neighbors[(int)NTileMap.TileMap.Tile.Direction.LeftBottom];
-            var bottom = tile.neighbors[(int)NTileMap.TileMap.Tile.Direction.Bottom];
-            var rightBottom = tile.neighbors[(int)NTileMap.TileMap.Tile.Direction.RightBottom];
+            var leftTop     = tile.neighbors[NTileMap.TileMap.Tile.Direction.LeftTop];
+            var top         = tile.neighbors[NTileMap.TileMap.Tile.Direction.Top];
+            var rightTop    = tile.neighbors[NTileMap.TileMap.Tile.Direction.RightTop];
+            var left        = tile.neighbors[NTileMap.TileMap.Tile.Direction.Left];
+            var right       = tile.neighbors[NTileMap.TileMap.Tile.Direction.Right];
+            var leftBottom  = tile.neighbors[NTileMap.TileMap.Tile.Direction.LeftBottom];
+            var bottom      = tile.neighbors[NTileMap.TileMap.Tile.Direction.Bottom];
+            var rightBottom = tile.neighbors[NTileMap.TileMap.Tile.Direction.RightBottom];
 
             GameObject wall = null;
             if (true == IsWall(top) && true == IsWall(left) && true == IsWall(right) && true == IsWall(bottom))

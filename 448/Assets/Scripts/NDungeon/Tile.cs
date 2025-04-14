@@ -15,7 +15,7 @@ namespace NDungeon
             get => data.type;
         }
 
-        public Tile[] neighbors = new Tile[(int)NDungeon.NTileMap.TileMap.Tile.Direction.Max];
+        public Tile[] neighbors = new Tile[NDungeon.NTileMap.TileMap.Tile.Direction.Max];
         public NTileMap.TileMap.Tile data;
     }
 }
