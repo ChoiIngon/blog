@@ -10,7 +10,7 @@ namespace NDungeon
     {
         private const float TileSize = 4.0f; 
 
-        private NTileMap.TileMap tileMap;
+        private TileMap tileMap;
         public int roomCount;
         public int minRoomSize;
         public int maxRoomSize;
@@ -56,7 +56,7 @@ namespace NDungeon
             Random.InitState(randomSeed);
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
-            tileMap = new NTileMap.TileMap(roomCount, minRoomSize, maxRoomSize);
+            tileMap = new  TileMap(roomCount, minRoomSize, maxRoomSize);
             stopWatch.Stop();
             UnityEngine.Debug.Log($"Dungeon data generation is complete(elapsed_time:{stopWatch.Elapsed})");
             
@@ -94,7 +94,7 @@ namespace NDungeon
             foreach (var itr in tiles)
             {
                 Tile tile = itr.Value;
-                for (int i = 0; i < NTileMap.TileMap.Tile.Direction.Max; i++)
+                for (int i = 0; i < TileMap.Tile.Direction.Max; i++)
                 {
                     var neighborData = tile.data.neighbors[i];
                     if (null == neighborData)
@@ -116,7 +116,7 @@ namespace NDungeon
                 floor.transform.localScale = new Vector3(1.0f / TileSize, 1.0f / TileSize, 1.0f / TileSize);
                 floor.transform.SetParent(tile.transform, false);
 
-                if (NTileMap.TileMap.Tile.Type.Wall == tile.type)
+                if (TileMap.Tile.Type.Wall == tile.type)
                 {
                     CreateWall(tile);
                 }
@@ -135,14 +135,14 @@ namespace NDungeon
 
         public GameObject CreateWall(Tile tile)
         {
-            var leftTop     = tile.neighbors[NTileMap.TileMap.Tile.Direction.LeftTop];
-            var top         = tile.neighbors[NTileMap.TileMap.Tile.Direction.Top];
-            var rightTop    = tile.neighbors[NTileMap.TileMap.Tile.Direction.RightTop];
-            var left        = tile.neighbors[NTileMap.TileMap.Tile.Direction.Left];
-            var right       = tile.neighbors[NTileMap.TileMap.Tile.Direction.Right];
-            var leftBottom  = tile.neighbors[NTileMap.TileMap.Tile.Direction.LeftBottom];
-            var bottom      = tile.neighbors[NTileMap.TileMap.Tile.Direction.Bottom];
-            var rightBottom = tile.neighbors[NTileMap.TileMap.Tile.Direction.RightBottom];
+            var leftTop     = tile.neighbors[TileMap.Tile.Direction.LeftTop];
+            var top         = tile.neighbors[TileMap.Tile.Direction.Top];
+            var rightTop    = tile.neighbors[TileMap.Tile.Direction.RightTop];
+            var left        = tile.neighbors[TileMap.Tile.Direction.Left];
+            var right       = tile.neighbors[TileMap.Tile.Direction.Right];
+            var leftBottom  = tile.neighbors[TileMap.Tile.Direction.LeftBottom];
+            var bottom      = tile.neighbors[TileMap.Tile.Direction.Bottom];
+            var rightBottom = tile.neighbors[TileMap.Tile.Direction.RightBottom];
 
             GameObject wall = null;
             if (true == IsWall(top) && true == IsWall(left) && true == IsWall(right) && true == IsWall(bottom))
@@ -227,7 +227,7 @@ namespace NDungeon
             {
                 return false;
             }
-            if (NTileMap.TileMap.Tile.Type.Wall != tile.type)
+            if (TileMap.Tile.Type.Wall != tile.type)
             {
                 return false;
             }
@@ -241,7 +241,7 @@ namespace NDungeon
             {
                 return false;
             }
-            if (NDungeon.NTileMap.TileMap.Tile.Type.Floor != tile.type)
+            if (TileMap.Tile.Type.Floor != tile.type)
             {
                 return false;
             }
@@ -277,7 +277,7 @@ namespace NDungeon
         {
             var tileDatas = tileMap.FindPath(from.data, to.data);
             List<Tile> path = new List<Tile>();
-            foreach (NTileMap.TileMap.Tile data in tileDatas)
+            foreach (TileMap.Tile data in tileDatas)
             {
                 var tile = GetTile(data.index);
                 path.Add(tile);

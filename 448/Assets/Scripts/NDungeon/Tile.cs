@@ -10,12 +10,12 @@ namespace NDungeon
             get => data.index;
         }
 
-        public NTileMap.TileMap.Tile.Type type
+        public TileMap.Tile.Type type
         {
             get => data.type;
         }
 
-        public Tile[] neighbors = new Tile[NDungeon.NTileMap.TileMap.Tile.Direction.Max];
-        public NTileMap.TileMap.Tile data;
+        public Tile[] neighbors = new Tile[TileMap.Tile.Direction.Max];
+        public TileMap.Tile data;
     }
 }
