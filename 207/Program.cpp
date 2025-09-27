@@ -1,121 +1,73 @@
-#include <string>
+ï»¿#include <string>
 #include <iostream>
 #include "Delegate.h"
 
-void foo1(const std::string& msg)
+std::size_t free_function(const std::string& msg)
 {
-    std::cout << "\tfunction foo(" << msg << ")" << std::endl;
-}
-
-void foo2()
-{
-    std::cout << "\tfunction foo()" << std::endl;
-}
-
-void bar1(const std::string& msg)
-{
-    std::cout << "\tfunction bar(" << msg << ")" << std::endl;
-}
-
-void bar2()
-{
-    std::cout << "\tfunction bar()" << std::endl;
+    std::cout << "\tgreeting message \'" << msg << "\' from " << __FUNCTION__ << std::endl;
+    return msg.length();
 }
 
 class Foo
 {
 public:
-    void member_function1(const std::string& msg)
+    std::size_t member_function(const std::string& msg)
     {
-        std::cout << "\tmember function of Foo class(" << msg << ")" << std::endl;
+        std::cout << "\tgreeting message \'" << msg << "\' from " << __FUNCTION__ << std::endl;
+        return msg.length();
     }
 
-    void member_function2()
+    static std::size_t static_function(const std::string& msg)
     {
-        std::cout << "\tmember function of Foo class()" << std::endl;
-    }
-};
-
-class Bar
-{
-public:
-    void member_function1(const std::string& msg)
-    {
-        std::cout << "\tmember function of Bar class(" << msg << ")" << std::endl;
-    }
-
-    void member_function2()
-    {
-        std::cout << "\tmember function of Bar class()" << std::endl;
+        std::cout << "\tgreeting message \'" << msg << "\' from " << __FUNCTION__ << std::endl;
+        return msg.length();
     }
 };
 
 int main()
 {
-    Foo fooObj;
-    Bar barObj;
+    Delegate<std::size_t(const std::string&)> delegate;
 
-    Delegate<> delegate_noparmeter;
-    // Delegate delegate; C++17 ºÎÅÍ´Â ÀÎÀÚ°¡ ¾øÀ¸¸é <>¸¦ ¾Æ¿¹ »©µµ µÊ
+    std::cout << "push_back 'free_function' function" << std::endl;
+    delegate += free_function;
 
-    std::cout << "// delegate without parameter" << std::endl;
-    delegate_noparmeter += foo2;
-    delegate_noparmeter += bar2;
-    delegate_noparmeter();
-    std::cout << std::endl;
-
-    Delegate<const std::string&> delegate;
-
-    std::cout << "// add 'foo' function" << std::endl;
-    delegate += foo1;
-    delegate("Hello World");
-    std::cout << std::endl;
-
-    std::cout << "// add 'bar' function" << std::endl;
-    delegate += bar1;
-    delegate("Hello World");
-    std::cout << std::endl;
-
-    std::cout << "// add 'Foo::member_function' function" << std::endl;
-    delegate += std::bind(&Foo::member_function1, &fooObj, std::placeholders::_1);
-    delegate("Hello World");
-    std::cout << std::endl;
-
-    std::cout << "// add 'Bar::member_function' function" << std::endl;
-    delegate += std::bind(&Bar::member_function1, &barObj, std::placeholders::_1);
-    delegate("Hello World");
-    std::cout << std::endl;
-
-    std::cout << "// remove 'Bar::member_function' function" << std::endl;
-    delegate -= std::bind(&Bar::member_function1, &barObj, std::placeholders::_1);
-    delegate("Hello World");
-    std::cout << std::endl;
-
-    std::cout << "// remove 'foo' function" << std::endl;
-    delegate -= foo1;
-    delegate("Hello World");
-    std::cout << std::endl;
-
-    std::cout << "// remove 'bar' function" << std::endl;
-    delegate -= bar1;
-    delegate("Hello World");
-    std::cout << std::endl;
-
-    std::cout << "// remove 'Foo::member_function' function" << std::endl;
-    delegate -= std::bind(&Foo::member_function1, &fooObj, std::placeholders::_1);
-    delegate("Hello World");
-    std::cout << std::endl;
-
-    auto lambda = [](const std::string& msg) {
-        std::cout << "\tlambda:" << msg << std::endl;
+    std::cout << "push_back 'lambda_function' function" << std::endl;
+    auto lambda_function = [](const std::string& msg)
+    {
+        std::cout << "\tgreeting message \'" << msg << "\' from " << __FUNCTION__ << std::endl;
+        return msg.length();
     };
-    std::cout << "// add 'lambda' function" << std::endl;
-    delegate += lambda;
-    delegate("Hello World");
+    delegate += lambda_function;
+
+    std::cout << "push_back 'Foo::member_function' function" << std::endl;
+    Foo foo;
+    delegate.push_back(&foo, &Foo::member_function);
+    
+    std::cout << "push_back 'Foo::static_function' function" << std::endl;
+    delegate += &Foo::static_function;
+
+    std::cout << "size of delegate: " << delegate.size() << std::endl;
     std::cout << std::endl;
 
-    std::cout << "// remove 'lambda' function" << std::endl;
-    delegate -= lambda;
-    delegate("Hello World");
+    std::string greeting = "Hello World";
+    std::cout << "call operator(" << greeting << ") " << std::endl;
+    delegate(greeting);
     std::cout << std::endl;
+    
+    std::cout << "erase 'free_function' function" << std::endl;
+    delegate -= free_function;
+
+    std::cout << "erase 'lambda_function' function" << std::endl;
+    delegate -= lambda_function;
+
+    std::cout << "erase 'Foo::member_function' function" << std::endl;
+    delegate.erase(&foo, &Foo::member_function);
+ 
+    std::cout << "erase 'Foo::static_function' function" << std::endl;
+    delegate -= &Foo::static_function;
+
+    std::cout << std::endl;
+    std::cout << "size of delegate: " << delegate.size() << std::endl;
+    
+    return 0;
 }

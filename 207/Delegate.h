@@ -1,76 +1,147 @@
-// Delegate.h
-#ifndef _DELEGATE_H_
-#define _DELEGATE_H_
+﻿#pragma once
 
 #include <list>
 #include <functional>
 
-template <class... ARGS>
-class Delegate
+template <class T>
+class Delegate;
+
+template <int>
+struct variadic_placeholder {};
+
+namespace std {
+    template <int N>
+    struct is_placeholder<variadic_placeholder<N>>
+        : integral_constant<int, N + 1>
+    {
+    };
+}
+
+template <class R, class... Args>
+class Delegate<R(Args...)>
 {
 public:
-    typedef typename std::list<std::function<void(ARGS...)>>::iterator iterator;
-
-    void operator () (const ARGS... args)
+    template<class Class>
+    Delegate& push_back(Class* obj, R(Class::* memfunc_ptr)(Args...))
     {
-        for (auto& func : functions)
-        {
-            func(args...);
-        }
+        this->push_back(bind(memfunc_ptr, obj));
+        return *this;
     }
 
-    Delegate& operator += (std::function<void(ARGS...)> const& func)
+    template<class Class>
+    Delegate& erase(Class* obj, R(Class::* memfunc_ptr)(Args...))
+    {
+        this->erase(bind(memfunc_ptr, obj));
+        return *this;
+    }
+
+    Delegate& push_back(std::function<R(Args...)> const& func)
     {
         functions.push_back(func);
         return *this;
     }
 
-    Delegate& operator -= (std::function<void(ARGS...)> const& func)
+    Delegate& erase(std::function<R(Args...)> const& func)
     {
-        void (* const* func_ptr)(ARGS...) = func.template target<void(*)(ARGS...)>();
-        const std::size_t func_hash = func.target_type().hash_code();
+        R(* const* func_ptr)(Args...) = func.template target<R(*)(Args...)>();
 
-        if (nullptr == func_ptr)
+        if (nullptr == func_ptr) // member function
         {
-            for (auto itr = functions.begin(); itr != functions.end(); itr++)
+            const std::size_t func_hash = func.target_type().hash_code();
+
+            for (auto itr = functions.begin(); itr != functions.end(); ++itr)
             {
                 if (func_hash == (*itr).target_type().hash_code())
                 {
                     functions.erase(itr);
-                    return *this;
+                    break;
                 }
             }
         }
         else
         {
-            for (auto itr = functions.begin(); itr != functions.end(); itr++)
+            for (auto itr = functions.begin(); itr != functions.end(); ++itr)
             {
-                void (* const* delegate_ptr)(ARGS...) = (*itr).template target<void(*)(ARGS...)>();
-                if (nullptr != delegate_ptr && *func_ptr == *delegate_ptr)
+                R(* const* target_ptr)(Args...) = itr->template target<R(*)(Args...)>();
+                if (nullptr != target_ptr && *target_ptr == *func_ptr)
                 {
                     functions.erase(itr);
-                    return *this;
+                    break;
                 }
             }
         }
+
         return *this;
     }
 
-    iterator begin() noexcept
+    Delegate& operator += (std::function<R(Args...)> const& func)
+    {
+        return push_back(func);
+    }
+
+    Delegate& operator -= (std::function<R(Args...)> const& func)
+    {
+        return erase(func);
+    }
+
+    R operator()(Args... args)
+    {
+        if (true == functions.empty())
+        {
+            return R{};
+        }
+
+        auto end = functions.end();
+        --end; // Points to the last element
+        for (auto itr = functions.begin(); itr != end; ++itr)
+        {
+            (*itr)(args...);
+        }
+
+        return (*end)(args...);
+    }
+
+    auto begin() noexcept
     {
         return functions.begin();
     }
-    iterator end() noexcept
+
+    auto end() noexcept
     {
         return functions.end();
     }
-    void clear()
+
+    void clear() noexcept
     {
         functions.clear();
     }
 
+    auto size() const noexcept
+    {
+        return functions.size();
+    }
 private:
-    std::list<std::function<void(ARGS...)>> functions;
-};
+    template <class Class, size_t... Is>
+    auto bind(std::index_sequence<Is...>, R(Class::* memfunc_ptr)(Args...), Class* obj) {
+        return std::bind(memfunc_ptr, obj, variadic_placeholder<Is>{}...);
+    }
 
-#endif
+    template <typename Class>
+    auto bind(R(Class::* memfunc_ptr)(Args...), Class* obj) {
+        return bind(std::make_index_sequence<sizeof...(Args)>{}, memfunc_ptr, obj);
+    }
+
+
+    template <size_t... Is>
+    auto bind(std::index_sequence<Is...>, R(*func_ptr)(Args...))
+    {
+        return std::bind(func_ptr, variadic_placeholder<Is>{}...);
+    }
+
+    auto bind(R(*func_ptr)(Args...))
+    {
+        return bind(std::make_index_sequence<sizeof...(Args)>{}, func_ptr);
+    }
+
+    std::list<std::function<R(Args...)>> functions;
+};
