@@ -41,7 +41,7 @@ int main()
 
     std::cout << "push_back 'Foo::member_function' function" << std::endl;
     Foo foo;
-    delegate.push_back(&foo, &Foo::member_function);
+    delegate.push_back(&Foo::member_function, &foo);
     
     std::cout << "push_back 'Foo::static_function' function" << std::endl;
     delegate += &Foo::static_function;
@@ -61,11 +61,13 @@ int main()
     delegate -= lambda_function;
 
     std::cout << "erase 'Foo::member_function' function" << std::endl;
-    delegate.erase(&foo, &Foo::member_function);
+    delegate.erase(&Foo::member_function, &foo);
  
     std::cout << "erase 'Foo::static_function' function" << std::endl;
     delegate -= &Foo::static_function;
 
+    delegate.push_back(free_function); // 일반 함수 등록
+    delegate.erase(free_function);
     std::cout << std::endl;
     std::cout << "size of delegate: " << delegate.size() << std::endl;
     

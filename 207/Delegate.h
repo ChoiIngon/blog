@@ -22,14 +22,14 @@ class Delegate<R(Args...)>
 {
 public:
     template<class Class>
-    Delegate& push_back(Class* obj, R(Class::* memfunc_ptr)(Args...))
+    Delegate& push_back(R(Class::* memfunc_ptr)(Args...), Class* obj)
     {
         this->push_back(bind(memfunc_ptr, obj));
         return *this;
     }
 
     template<class Class>
-    Delegate& erase(Class* obj, R(Class::* memfunc_ptr)(Args...))
+    Delegate& erase(R(Class::* memfunc_ptr)(Args...), Class* obj)
     {
         this->erase(bind(memfunc_ptr, obj));
         return *this;
