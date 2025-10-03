@@ -22,16 +22,16 @@ class Delegate<R(Args...)>
 {
 public:
     template<class Class>
-    Delegate& push_back(R(Class::* memfunc_ptr)(Args...), Class* obj)
+    Delegate& push_back(R(Class::*memfunc_ptr)(Args...), Class* obj)
     {
-        this->push_back(bind(memfunc_ptr, obj));
+        this->push_back(this->variadic_bind(memfunc_ptr, obj));
         return *this;
     }
 
     template<class Class>
-    Delegate& erase(R(Class::* memfunc_ptr)(Args...), Class* obj)
+    Delegate& erase(R(Class::*memfunc_ptr)(Args...), Class* obj)
     {
-        this->erase(bind(memfunc_ptr, obj));
+        this->erase(this->variadic_bind(memfunc_ptr, obj));
         return *this;
     }
 
@@ -122,25 +122,13 @@ public:
     }
 private:
     template <class Class, size_t... Is>
-    auto bind(std::index_sequence<Is...>, R(Class::* memfunc_ptr)(Args...), Class* obj) {
+    auto variadic_bind(std::index_sequence<Is...>, R(Class::* memfunc_ptr)(Args...), Class* obj) {
         return std::bind(memfunc_ptr, obj, variadic_placeholder<Is>{}...);
     }
 
     template <typename Class>
-    auto bind(R(Class::* memfunc_ptr)(Args...), Class* obj) {
-        return bind(std::make_index_sequence<sizeof...(Args)>{}, memfunc_ptr, obj);
-    }
-
-
-    template <size_t... Is>
-    auto bind(std::index_sequence<Is...>, R(*func_ptr)(Args...))
-    {
-        return std::bind(func_ptr, variadic_placeholder<Is>{}...);
-    }
-
-    auto bind(R(*func_ptr)(Args...))
-    {
-        return bind(std::make_index_sequence<sizeof...(Args)>{}, func_ptr);
+    auto variadic_bind(R(Class::* memfunc_ptr)(Args...), Class* obj) {
+        return variadic_bind(std::make_index_sequence<sizeof...(Args)>{}, memfunc_ptr, obj);
     }
 
     std::list<std::function<R(Args...)>> functions;
