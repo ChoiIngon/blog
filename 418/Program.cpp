@@ -13,8 +13,8 @@ struct Item : public MetaData
             Boots,
             Head,
             Gloves,
-            LeftHand,
-            RightHand
+            Hand,
+            TwoHands
         };
 
         Part Part;
@@ -23,7 +23,7 @@ struct Item : public MetaData
         int Speed;
 
         Equip()
-            : Part(Part::None)
+            : Part(Equip::Part::None)
             , Attack(0)
             , Defense(0)
             , Speed(0)
@@ -36,35 +36,42 @@ struct Item : public MetaData
 
         void OnPart(const std::string& text)
         {
-            Part = Part::None;
-            if("Cloak" == text)
+            static const std::map<std::string, decltype(Part)> table = {
+                {"Cloak", Equip::Part::Cloak},
+                {"Body", Equip::Part::Body},
+                {"Boots", Equip::Part::Boots},
+                {"Head", Equip::Part::Head},
+                {"Gloves", Equip::Part::Gloves},
+                {"Hand", Equip::Part::Hand},
+                {"TwoHands", Equip::Part::TwoHands}
+            };
+            Part = Equip::Part::None;
+            auto it = table.find(text);
+            if (it != table.end())
             {
-                Part = Part::Cloak;
+                Part = it->second;
             }
-            else if("Body" == text)
+        }
+
+        std::string ToString()
+        {
+            std::string partText;
+            switch(Part)
             {
-                Part = Part::Body;
+            case Equip::Part::Cloak: partText = "Cloak"; break;
+            case Equip::Part::Body: partText = "Body"; break;
+            case Equip::Part::Boots: partText = "Boots"; break;
+            case Equip::Part::Head: partText = "Head"; break;
+            case Equip::Part::Gloves: partText = "Gloves"; break;
+            case Equip::Part::Hand: partText = "Hand"; break;
+            case Equip::Part::TwoHands: partText = "TwoHands"; break;
+            default: partText = "None"; break;
             }
-            else if ("Boots" == text)
-            {
-                Part = Part::Boots;
-            }
-            else if ("Head" == text)
-            {
-                Part = Part::Head;
-            }
-            else if ("Gloves" == text)
-            {
-                Part = Part::Gloves;
-            }
-            else if ("LeftHand" == text)
-            {
-                Part = Part::LeftHand;
-            }
-            else if ("RightHand" == text)
-            {
-                Part = Part::RightHand;
-            }
+
+            return "Part=" + partText
+                + ", Attack=" + std::to_string(Attack)
+                + ", Defense=" + std::to_string(Defense)
+                + ", Speed=" + std::to_string(Speed);
         }
     };
 
@@ -90,14 +97,31 @@ struct Item : public MetaData
 
         void OnType(const std::string& text)
         {
-            if("Gold" == text)
+            static const std::map<std::string, decltype(Type)> table = {
+                { "Gold", Type::Gold },
+                { "Jewel", Type::Jewel }
+            };
+
+            Type = Type::None;
+            auto it = table.find(text);
+            if(it != table.end())
             {
-                Type = Type::Gold;
+                Type = it->second;
             }
-            else if ("Jewel" == text)
+        }
+
+        std::string ToString()
+        {
+            std::string typeText;
+            switch(Type)
             {
-                Type = Type::Jewel;
+            case Price::Type::Gold: typeText = "Gold"; break;
+            case Price::Type::Jewel: typeText = "Jewel"; break;
+            default: typeText = "None"; break;
             }
+
+            return "Type=" + typeText
+                + ", Value=" + std::to_string(Value);
         }
     };
 
@@ -112,6 +136,12 @@ struct Item : public MetaData
         {
             META_INIT(ID);
             META_INIT(Count);
+        }
+
+        std::string ToString()
+        {
+            return "ID=" + ID
+                + ", Count=" + std::to_string(Count);
         }
     };
 
@@ -143,8 +173,50 @@ struct Item : public MetaData
         META_FUNC(Type, Item::OnType);
         META_INIT(Grade);
         META_INIT(MaxStack);
+        META_INIT(Equip);
         META_INIT(Price);
         META_INIT(Packages);
+    }
+
+    std::string ToString()
+    {
+        std::string typeText;
+        switch(Type)
+        {
+        case Item::Type::Equip: typeText = "Equip"; break;
+        case Item::Type::Package: typeText = "Package"; break;
+        default: typeText = "None"; break;
+        }
+
+        std::string text = "ID=" + ID
+            + ", Index=" + std::to_string(Index)
+            + ", Type=" + typeText
+            + ", Grade=" + std::to_string(Grade)
+            + ", MaxStack=" + std::to_string(MaxStack);
+
+        text += ", Equip={";
+        text += (nullptr != Equip) ? Equip->ToString() : "null";
+        text += "}";
+
+        text += ", Price={";
+        text += (nullptr != Price) ? Price->ToString() : "null";
+        text += "}";
+
+        text += ", Packages=[";
+        for (size_t i = 0; i < Packages.size(); ++i)
+        {
+            if (0 < i)
+            {
+                text += ", ";
+            }
+
+            text += "{";
+            text += (nullptr != Packages[i]) ? Packages[i]->ToString() : "null";
+            text += "}";
+        }
+        text += "]";
+
+        return text;
     }
 
 private :
@@ -169,7 +241,7 @@ int main()
     reader.Read("PackageItem.csv");
     for(std::shared_ptr<Item> item : reader)
     {
-        std::cout << item->ID << " " << item->MaxStack << std::endl;
+        std::cout << item->ToString() << std::endl;
     }
     return 0;
 }
